@@ -1,0 +1,32 @@
+{
+  "name": "@8bit/_template",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "lint": "eslint .",
+    "test": "vitest run",
+    "preview": "vite preview",
+    "clean": "rm -rf dist node_modules .turbo"
+  },
+  "dependencies": {
+    "react": "^19",
+    "react-dom": "^19"
+  },
+  "devDependencies": {
+    "@8bit/eslint-config": "*",
+    "@8bit/tsconfig": "*",
+    "@testing-library/react": "^16",
+    "@testing-library/jest-dom": "^6",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "@vitejs/plugin-react": "^4",
+    "eslint": "^9",
+    "jsdom": "^25",
+    "typescript": "^5",
+    "vite": "^6",
+    "vitest": "^3"
+  }
+}
