@@ -2,6 +2,7 @@ import { useState } from "react";
 import Canvas from "./components/Canvas";
 import ImageCropper from "./components/ImageCropper";
 import Sidebar from "./components/Sidebar";
+import { MAX_CUTOUT_SIZE_RATIO } from "./config";
 import { useLocalStorage } from "./hooks/useLocalStorage";
 
 export interface UploadedImage {
@@ -68,6 +69,7 @@ export default function App() {
         [],
     );
     const [canvasItems, setCanvasItems] = useLocalStorage<CanvasItem[]>("canvasItems", []);
+    const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
     const [selectedCanvasItemId, setSelectedCanvasItemId] = useState<string | null>(null);
     const [croppingImageId, setCroppingImageId] = useState<string | null>(null);
     const [selectedBgId, setSelectedBgId] = useLocalStorage<BackgroundId>(
@@ -91,19 +93,30 @@ export default function App() {
     }
 
     function handleAddToCanvas(cutout: CroppedCutout) {
-        setCanvasItems((prev) => [
-            ...prev,
-            {
-                id: crypto.randomUUID(),
-                cutoutId: cutout.id,
-                src: cutout.src,
-                x: 200,
-                y: 200,
-                scaleX: 1,
-                scaleY: 1,
-                rotation: 0,
-            },
-        ]);
+        const img = new Image();
+        img.onload = () => {
+            const maxW = canvasSize.width * MAX_CUTOUT_SIZE_RATIO;
+            const maxH = canvasSize.height * MAX_CUTOUT_SIZE_RATIO;
+            const scale =
+                maxW > 0 && maxH > 0
+                    ? Math.min(maxW / img.naturalWidth, maxH / img.naturalHeight, 1)
+                    : 1;
+
+            setCanvasItems((prev) => [
+                ...prev,
+                {
+                    id: crypto.randomUUID(),
+                    cutoutId: cutout.id,
+                    src: cutout.src,
+                    x: canvasSize.width / 2 - (img.naturalWidth * scale) / 2,
+                    y: canvasSize.height / 2 - (img.naturalHeight * scale) / 2,
+                    scaleX: scale,
+                    scaleY: scale,
+                    rotation: 0,
+                },
+            ]);
+        };
+        img.src = cutout.src;
     }
 
     function handleDeleteImage(id: string) {
@@ -168,6 +181,7 @@ export default function App() {
                     onDragEnd={handleItemDragEnd}
                     onTransformEnd={handleItemTransformEnd}
                     onUpload={handleUpload}
+                    onResize={setCanvasSize}
                     backgroundStyle={backgroundStyle}
                 />
             </div>

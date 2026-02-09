@@ -3,6 +3,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 import App from "./App";
 import { ACCEPTED_IMAGE_TYPES } from "./App";
+import { LOCAL_STORAGE_PREFIX } from "./config";
 
 vi.mock("heic2any", () => ({
     default: vi.fn().mockResolvedValue(new Blob(["converted"], { type: "image/jpeg" })),
@@ -65,9 +66,9 @@ function seedLocalStorage(
     cutouts: (typeof cutout1)[],
     canvasItems: (typeof canvasItem1)[],
 ) {
-    localStorage.setItem("pixel-collage:uploadedImages", JSON.stringify(images));
-    localStorage.setItem("pixel-collage:croppedCutouts", JSON.stringify(cutouts));
-    localStorage.setItem("pixel-collage:canvasItems", JSON.stringify(canvasItems));
+    localStorage.setItem(`${LOCAL_STORAGE_PREFIX}uploadedImages`, JSON.stringify(images));
+    localStorage.setItem(`${LOCAL_STORAGE_PREFIX}croppedCutouts`, JSON.stringify(cutouts));
+    localStorage.setItem(`${LOCAL_STORAGE_PREFIX}canvasItems`, JSON.stringify(canvasItems));
 }
 
 function getFileInput() {

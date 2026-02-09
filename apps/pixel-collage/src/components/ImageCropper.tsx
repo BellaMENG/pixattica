@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { ReactLassoSelect, getCanvas } from "react-lasso-select";
 import type { UploadedImage, CroppedCutout } from "../App";
+import { MIN_LASSO_POINTS, CROPPER_IMAGE_MAX_HEIGHT, CROPPER_IMAGE_MAX_WIDTH } from "../config";
 
 interface Point {
     x: number;
@@ -18,7 +19,7 @@ export default function ImageCropper({ image, onDone, onCancel }: ImageCropperPr
     const [clippedSrc, setClippedSrc] = useState<string | null>(null);
 
     function handleComplete(path: Point[]) {
-        if (path.length < 3) return;
+        if (path.length < MIN_LASSO_POINTS) return;
         getCanvas(image.src, path, (err, canvas) => {
             if (!err) {
                 setClippedSrc(canvas.toDataURL());
@@ -54,7 +55,10 @@ export default function ImageCropper({ image, onDone, onCancel }: ImageCropperPr
                         value={points}
                         onChange={setPoints}
                         onComplete={handleComplete}
-                        imageStyle={{ maxHeight: "60vh", maxWidth: "70vw" }}
+                        imageStyle={{
+                            maxHeight: CROPPER_IMAGE_MAX_HEIGHT,
+                            maxWidth: CROPPER_IMAGE_MAX_WIDTH,
+                        }}
                     />
                 </div>
 

@@ -2,6 +2,17 @@ import { useRef, useEffect, useState } from "react";
 import { Stage, Layer, Image as KonvaImage, Transformer } from "react-konva";
 import useImage from "use-image";
 import { ACCEPTED_IMAGE_TYPES, type CanvasItem, type UploadedImage } from "../App";
+import {
+    SELECTION_SHADOW_COLOR,
+    SELECTION_SHADOW_BLUR,
+    SELECTION_SHADOW_OPACITY,
+    TRANSFORMER_MIN_SIZE,
+    TRANSFORMER_BORDER_STROKE,
+    TRANSFORMER_ANCHOR_STROKE,
+    TRANSFORMER_ANCHOR_FILL,
+    TRANSFORMER_ANCHOR_SIZE,
+    DELETE_BUTTON_VERTICAL_OFFSET,
+} from "../config";
 import { readImageFile } from "../utils/readImageFile";
 import type Konva from "konva";
 
@@ -20,6 +31,7 @@ interface CanvasProps {
         rotation: number,
     ) => void;
     onUpload: (image: UploadedImage) => void;
+    onResize: (size: { width: number; height: number }) => void;
     backgroundStyle: string;
 }
 
@@ -51,9 +63,9 @@ function CanvasImage({
     useEffect(() => {
         if (!imageRef.current) return;
         if (isSelected) {
-            imageRef.current.shadowColor("deeppink");
-            imageRef.current.shadowBlur(12);
-            imageRef.current.shadowOpacity(0.8);
+            imageRef.current.shadowColor(SELECTION_SHADOW_COLOR);
+            imageRef.current.shadowBlur(SELECTION_SHADOW_BLUR);
+            imageRef.current.shadowOpacity(SELECTION_SHADOW_OPACITY);
             imageRef.current.shadowOffset({ x: 0, y: 0 });
         } else {
             imageRef.current.shadowBlur(0);
@@ -106,16 +118,18 @@ function CanvasImage({
                     rotateEnabled={true}
                     keepRatio={true}
                     boundBoxFunc={(_oldBox, newBox) => {
-                        const minSize = 20;
-                        if (newBox.width < minSize || newBox.height < minSize) {
+                        if (
+                            newBox.width < TRANSFORMER_MIN_SIZE ||
+                            newBox.height < TRANSFORMER_MIN_SIZE
+                        ) {
                             return _oldBox;
                         }
                         return newBox;
                     }}
-                    borderStroke="deeppink"
-                    anchorStroke="deeppink"
-                    anchorFill="white"
-                    anchorSize={8}
+                    borderStroke={TRANSFORMER_BORDER_STROKE}
+                    anchorStroke={TRANSFORMER_ANCHOR_STROKE}
+                    anchorFill={TRANSFORMER_ANCHOR_FILL}
+                    anchorSize={TRANSFORMER_ANCHOR_SIZE}
                 />
             )}
         </>
@@ -130,6 +144,7 @@ export default function Canvas({
     onDragEnd,
     onTransformEnd,
     onUpload,
+    onResize,
     backgroundStyle,
 }: CanvasProps) {
     const containerRef = useRef<HTMLDivElement>(null);
@@ -149,15 +164,17 @@ export default function Canvas({
         const observer = new ResizeObserver((entries) => {
             const entry = entries[0];
             if (entry) {
-                setSize({
+                const newSize = {
                     width: entry.contentRect.width,
                     height: entry.contentRect.height,
-                });
+                };
+                setSize(newSize);
+                onResize(newSize);
             }
         });
         observer.observe(el);
         return () => observer.disconnect();
-    }, []);
+    }, [onResize]);
 
     useEffect(() => {
         setDragPos(null);
@@ -244,7 +261,7 @@ export default function Canvas({
                                 position: "absolute",
                                 zIndex: 10,
                                 left: buttonPos.x,
-                                top: Math.max(0, buttonPos.y - 8),
+                                top: Math.max(0, buttonPos.y - DELETE_BUTTON_VERTICAL_OFFSET),
                                 transform: "translate(0, -100%)",
                                 pointerEvents: "auto",
                             }}

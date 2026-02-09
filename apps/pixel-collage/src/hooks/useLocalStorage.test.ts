@@ -1,6 +1,7 @@
 import { renderHook, act } from "@testing-library/react";
 import { describe, it, expect, beforeEach } from "vitest";
 import { useLocalStorage } from "./useLocalStorage";
+import { LOCAL_STORAGE_PREFIX } from "../config";
 
 beforeEach(() => {
     localStorage.clear();
@@ -18,14 +19,14 @@ describe("useLocalStorage", () => {
     });
 
     it("restores state from localStorage on mount", () => {
-        localStorage.setItem("pixel-collage:key", JSON.stringify("stored-value"));
+        localStorage.setItem(`${LOCAL_STORAGE_PREFIX}key`, JSON.stringify("stored-value"));
         const { result } = renderHook(() => useLocalStorage("key", "default"));
         expect(result.current[0]).toBe("stored-value");
     });
 
     it("restores an array from localStorage on mount", () => {
         const items = [{ id: "1", name: "test" }];
-        localStorage.setItem("pixel-collage:items", JSON.stringify(items));
+        localStorage.setItem(`${LOCAL_STORAGE_PREFIX}items`, JSON.stringify(items));
         const { result } = renderHook(() =>
             useLocalStorage<{ id: string; name: string }[]>("items", []),
         );
@@ -39,7 +40,7 @@ describe("useLocalStorage", () => {
             result.current[1]("updated");
         });
 
-        expect(JSON.parse(localStorage.getItem("pixel-collage:key")!)).toBe("updated");
+        expect(JSON.parse(localStorage.getItem(`${LOCAL_STORAGE_PREFIX}key`)!)).toBe("updated");
     });
 
     it("saves arrays to localStorage when value changes", () => {
@@ -49,7 +50,10 @@ describe("useLocalStorage", () => {
             result.current[1](["a", "b"]);
         });
 
-        expect(JSON.parse(localStorage.getItem("pixel-collage:items")!)).toEqual(["a", "b"]);
+        expect(JSON.parse(localStorage.getItem(`${LOCAL_STORAGE_PREFIX}items`)!)).toEqual([
+            "a",
+            "b",
+        ]);
     });
 
     it("supports functional updates", () => {
@@ -60,11 +64,11 @@ describe("useLocalStorage", () => {
         });
 
         expect(result.current[0]).toBe(1);
-        expect(JSON.parse(localStorage.getItem("pixel-collage:count")!)).toBe(1);
+        expect(JSON.parse(localStorage.getItem(`${LOCAL_STORAGE_PREFIX}count`)!)).toBe(1);
     });
 
     it("falls back to default when localStorage contains invalid JSON", () => {
-        localStorage.setItem("pixel-collage:key", "not-valid-json{{{");
+        localStorage.setItem(`${LOCAL_STORAGE_PREFIX}key`, "not-valid-json{{{");
         const { result } = renderHook(() => useLocalStorage("key", "fallback"));
         expect(result.current[0]).toBe("fallback");
     });

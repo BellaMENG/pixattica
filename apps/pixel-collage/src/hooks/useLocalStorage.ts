@@ -1,10 +1,9 @@
 import { useState, useEffect, useCallback } from "react";
-
-const STORAGE_PREFIX = "pixel-collage:";
+import { LOCAL_STORAGE_PREFIX } from "../config";
 
 function readFromStorage<T>(key: string, fallback: T): T {
     try {
-        const raw = localStorage.getItem(STORAGE_PREFIX + key);
+        const raw = localStorage.getItem(LOCAL_STORAGE_PREFIX + key);
         if (raw === null) return fallback;
         return JSON.parse(raw) as T;
     } catch {
@@ -14,7 +13,7 @@ function readFromStorage<T>(key: string, fallback: T): T {
 
 function writeToStorage<T>(key: string, value: T): void {
     try {
-        localStorage.setItem(STORAGE_PREFIX + key, JSON.stringify(value));
+        localStorage.setItem(LOCAL_STORAGE_PREFIX + key, JSON.stringify(value));
     } catch {
         // localStorage may be full or unavailable; silently skip
     }

@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { readImageFile } from "./readImageFile";
+import { HEIC_CONVERSION_TYPE, HEIC_CONVERSION_QUALITY } from "../config";
 
 vi.mock("heic2any", () => ({
     default: vi.fn(),
@@ -43,8 +44,8 @@ describe("readImageFile", () => {
 
         expect(mockedHeic2any).toHaveBeenCalledWith({
             blob: file,
-            toType: "image/jpeg",
-            quality: 0.92,
+            toType: HEIC_CONVERSION_TYPE,
+            quality: HEIC_CONVERSION_QUALITY,
         });
         expect(result).toMatch(/^data:image\/jpeg;base64,/);
     });
@@ -58,8 +59,8 @@ describe("readImageFile", () => {
 
         expect(mockedHeic2any).toHaveBeenCalledWith({
             blob: file,
-            toType: "image/jpeg",
-            quality: 0.92,
+            toType: HEIC_CONVERSION_TYPE,
+            quality: HEIC_CONVERSION_QUALITY,
         });
         expect(result).toMatch(/^data:image\/jpeg;base64,/);
     });
