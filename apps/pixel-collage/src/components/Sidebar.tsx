@@ -1,5 +1,12 @@
 import { useRef } from "react";
-import type { UploadedImage, CroppedCutout, BackgroundOption, BackgroundId } from "../App";
+import {
+    ACCEPTED_IMAGE_EXTENSIONS,
+    ACCEPTED_IMAGE_TYPES,
+    type UploadedImage,
+    type CroppedCutout,
+    type BackgroundOption,
+    type BackgroundId,
+} from "../App";
 
 interface SidebarProps {
     uploadedImages: UploadedImage[];
@@ -30,7 +37,7 @@ export default function Sidebar({
 
     function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
         const file = e.target.files?.[0];
-        if (!file) return;
+        if (!file || !ACCEPTED_IMAGE_TYPES.has(file.type)) return;
 
         const reader = new FileReader();
         reader.onload = () => {
@@ -58,7 +65,7 @@ export default function Sidebar({
                 <input
                     ref={fileInputRef}
                     type="file"
-                    accept="image/*"
+                    accept={ACCEPTED_IMAGE_EXTENSIONS}
                     className="hidden"
                     onChange={handleFileChange}
                 />

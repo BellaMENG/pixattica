@@ -27,6 +27,17 @@ export interface CanvasItem {
     rotation: number;
 }
 
+export const ACCEPTED_IMAGE_TYPES = new Set([
+    "image/png",
+    "image/jpeg",
+    "image/webp",
+    "image/gif",
+    "image/avif",
+    "image/svg+xml",
+]);
+
+export const ACCEPTED_IMAGE_EXTENSIONS = ".png,.jpg,.jpeg,.webp,.gif,.avif,.svg";
+
 export enum BackgroundId {
     White = "white",
     Pink = "pink",
@@ -154,6 +165,7 @@ export default function App() {
                     onDelete={handleDeleteCanvasItem}
                     onDragEnd={handleItemDragEnd}
                     onTransformEnd={handleItemTransformEnd}
+                    onUpload={handleUpload}
                     backgroundStyle={backgroundStyle}
                 />
             </div>

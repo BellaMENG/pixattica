@@ -1,7 +1,8 @@
-import { render, screen, fireEvent, cleanup } from "@testing-library/react";
+import { render, screen, fireEvent, cleanup, waitFor } from "@testing-library/react";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 import App from "./App";
+import { ACCEPTED_IMAGE_TYPES } from "./App";
 
 vi.mock("./components/Canvas", () => ({
     default: ({ items }: { items: Array<{ id: string }> }) => (
@@ -64,6 +65,73 @@ function seedLocalStorage(
     localStorage.setItem("pixel-collage:croppedCutouts", JSON.stringify(cutouts));
     localStorage.setItem("pixel-collage:canvasItems", JSON.stringify(canvasItems));
 }
+
+function getFileInput() {
+    // The hidden file input in the Sidebar
+    return document.querySelector('input[type="file"]') as HTMLInputElement;
+}
+
+function simulateFileSelect(input: HTMLInputElement, name: string, type: string) {
+    const file = new File(["fake-image-data"], name, { type });
+    Object.defineProperty(input, "files", { value: [file], configurable: true });
+    fireEvent.change(input);
+}
+
+describe("file upload validation", () => {
+    afterEach(() => {
+        cleanup();
+    });
+
+    beforeEach(() => {
+        localStorage.clear();
+    });
+
+    it.each([
+        ["image/png", "photo.png"],
+        ["image/jpeg", "photo.jpg"],
+        ["image/webp", "photo.webp"],
+        ["image/gif", "photo.gif"],
+        ["image/avif", "photo.avif"],
+        ["image/svg+xml", "icon.svg"],
+    ])("accepts %s files", async (mimeType, fileName) => {
+        render(<App />);
+        expect(screen.getByText("No images yet")).toBeInTheDocument();
+
+        simulateFileSelect(getFileInput(), fileName, mimeType);
+
+        await waitFor(() => {
+            expect(screen.getByText(fileName)).toBeInTheDocument();
+        });
+        expect(screen.queryByText("No images yet")).not.toBeInTheDocument();
+    });
+
+    it.each([
+        ["image/heic", "photo.heic"],
+        ["image/tiff", "photo.tiff"],
+        ["image/bmp", "photo.bmp"],
+        ["application/pdf", "doc.pdf"],
+        ["text/plain", "notes.txt"],
+    ])("rejects %s files", (mimeType, fileName) => {
+        render(<App />);
+        expect(screen.getByText("No images yet")).toBeInTheDocument();
+
+        simulateFileSelect(getFileInput(), fileName, mimeType);
+
+        expect(screen.getByText("No images yet")).toBeInTheDocument();
+    });
+
+    it("ACCEPTED_IMAGE_TYPES contains exactly the expected types", () => {
+        const expected = new Set([
+            "image/png",
+            "image/jpeg",
+            "image/webp",
+            "image/gif",
+            "image/avif",
+            "image/svg+xml",
+        ]);
+        expect(ACCEPTED_IMAGE_TYPES).toEqual(expected);
+    });
+});
 
 describe("delete handlers", () => {
     afterEach(() => {

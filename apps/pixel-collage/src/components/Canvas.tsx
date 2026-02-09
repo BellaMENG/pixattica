@@ -1,7 +1,7 @@
 import { useRef, useEffect, useState } from "react";
 import { Stage, Layer, Image as KonvaImage, Transformer } from "react-konva";
 import useImage from "use-image";
-import type { CanvasItem } from "../App";
+import { ACCEPTED_IMAGE_TYPES, type CanvasItem, type UploadedImage } from "../App";
 import type Konva from "konva";
 
 interface CanvasProps {
@@ -18,6 +18,7 @@ interface CanvasProps {
         scaleY: number,
         rotation: number,
     ) => void;
+    onUpload: (image: UploadedImage) => void;
     backgroundStyle: string;
 }
 
@@ -127,6 +128,7 @@ export default function Canvas({
     onDelete,
     onDragEnd,
     onTransformEnd,
+    onUpload,
     backgroundStyle,
 }: CanvasProps) {
     const containerRef = useRef<HTMLDivElement>(null);
@@ -172,6 +174,22 @@ export default function Canvas({
         return () => window.removeEventListener("keydown", handleKeyDown);
     }, [selectedItemId, onDelete]);
 
+    function handleDrop(e: React.DragEvent) {
+        e.preventDefault();
+        const file = e.dataTransfer.files[0];
+        if (!file || !ACCEPTED_IMAGE_TYPES.has(file.type)) return;
+
+        const reader = new FileReader();
+        reader.onload = () => {
+            onUpload({
+                id: crypto.randomUUID(),
+                src: reader.result as string,
+                name: file.name,
+            });
+        };
+        reader.readAsDataURL(file);
+    }
+
     function handleStageMouseDown(e: Konva.KonvaEventObject<MouseEvent>) {
         if (e.target === e.target.getStage()) {
             onSelect(null);
@@ -183,6 +201,8 @@ export default function Canvas({
             ref={containerRef}
             className="relative flex-1"
             style={{ background: backgroundStyle }}
+            onDragOver={(e) => e.preventDefault()}
+            onDrop={handleDrop}
         >
             {size.width > 0 && size.height > 0 && (
                 <>
