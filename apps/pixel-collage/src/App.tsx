@@ -2,6 +2,7 @@ import { useState } from "react";
 import Canvas from "./components/Canvas";
 import ImageCropper from "./components/ImageCropper";
 import Sidebar from "./components/Sidebar";
+import { useLocalStorage } from "./hooks/useLocalStorage";
 
 export interface UploadedImage {
     id: string;
@@ -44,12 +45,21 @@ const BACKGROUNDS: BackgroundOption[] = [
 ];
 
 export default function App() {
-    const [uploadedImages, setUploadedImages] = useState<UploadedImage[]>([]);
-    const [croppedCutouts, setCroppedCutouts] = useState<CroppedCutout[]>([]);
-    const [canvasItems, setCanvasItems] = useState<CanvasItem[]>([]);
+    const [uploadedImages, setUploadedImages] = useLocalStorage<UploadedImage[]>(
+        "uploadedImages",
+        [],
+    );
+    const [croppedCutouts, setCroppedCutouts] = useLocalStorage<CroppedCutout[]>(
+        "croppedCutouts",
+        [],
+    );
+    const [canvasItems, setCanvasItems] = useLocalStorage<CanvasItem[]>("canvasItems", []);
     const [selectedCanvasItemId, setSelectedCanvasItemId] = useState<string | null>(null);
     const [croppingImageId, setCroppingImageId] = useState<string | null>(null);
-    const [selectedBgId, setSelectedBgId] = useState(BackgroundId.Hearts);
+    const [selectedBgId, setSelectedBgId] = useLocalStorage<BackgroundId>(
+        "selectedBgId",
+        BackgroundId.Hearts,
+    );
 
     const backgroundStyle = BACKGROUNDS.find((bg) => bg.id === selectedBgId)?.style ?? "white";
 
