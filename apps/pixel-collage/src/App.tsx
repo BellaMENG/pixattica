@@ -90,7 +90,10 @@ export default function App() {
         : null;
 
     function handleUpload(image: UploadedImage) {
-        setUploadedImages((prev) => [...prev, image]);
+        setUploadedImages((prev) => {
+            if (prev.some((img) => img.src === image.src)) return prev;
+            return [...prev, image];
+        });
     }
 
     async function handleDrop(e: React.DragEvent) {
