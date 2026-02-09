@@ -1,12 +1,11 @@
 {
   "name": "@pixattica/pixel-collage",
-  "private": true,
   "version": "0.0.0",
+  "private": true,
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "lint": "eslint .",
     "test": "vitest run",
     "preview": "vite preview",
     "clean": "rm -rf dist node_modules .turbo"
@@ -16,7 +15,6 @@
     "react-dom": "^19"
   },
   "devDependencies": {
-    "@pixattica/eslint-config": "*",
     "@pixattica/tsconfig": "*",
     "@tailwindcss/vite": "^4",
     "@testing-library/jest-dom": "^6",
@@ -24,7 +22,6 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@vitejs/plugin-react": "^4",
-    "eslint": "^9",
     "jsdom": "^25",
     "tailwindcss": "^4",
     "typescript": "^5",

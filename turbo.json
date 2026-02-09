@@ -9,13 +9,15 @@
       "cache": false,
       "persistent": true
     },
-    "lint": {
-      "dependsOn": ["^build"]
-    },
+    "//#lint": {},
     "test": {
       "dependsOn": ["^build"]
     },
     "clean": {
+      "cache": false
+    },
+    "//#format": {},
+    "//#format:fix": {
       "cache": false
     }
   }
