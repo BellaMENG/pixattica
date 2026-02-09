@@ -1,6 +1,9 @@
 {
-  "name": "@8bit/tsconfig",
+  "name": "@pixattica/tsconfig",
   "version": "0.0.0",
   "private": true,
-  "files": ["base.json", "react-app.json"]
+  "files": [
+    "base.json",
+    "react-app.json"
+  ]
 }

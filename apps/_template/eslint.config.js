@@ -1,3 +1,3 @@
-import config from "@8bit/eslint-config/react";
+import config from "@pixattica/eslint-config/react";
 
 export default config;

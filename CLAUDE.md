@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Overview
 
-8bit-studio is a Turborepo monorepo containing multiple React TypeScript projects. Each app is a standalone Vite + React 19 SPA.
+pixattica is a Turborepo monorepo containing multiple React TypeScript projects. Each app is a standalone Vite + React 19 SPA.
 
 ## Commands
 
@@ -16,9 +16,9 @@ yarn lint                 # Lint all apps
 yarn test                 # Test all apps
 
 # Filter to a single app
-yarn turbo build --filter=@8bit/<app-name>
-yarn turbo dev --filter=@8bit/<app-name>
-yarn turbo test --filter=@8bit/<app-name>
+yarn turbo build --filter=@pixattica/<app-name>
+yarn turbo dev --filter=@pixattica/<app-name>
+yarn turbo test --filter=@pixattica/<app-name>
 ```
 
 Within an individual app directory, standard scripts apply: `yarn dev`, `yarn build`, `yarn lint`, `yarn test`.
@@ -36,12 +36,12 @@ packages/      — Shared workspace packages
 ## Creating a New App
 
 1. Copy `apps/_template` to `apps/<new-app-name>`
-2. Update `name` in `package.json` to `@8bit/<new-app-name>`
+2. Update `name` in `package.json` to `@pixattica/<new-app-name>`
 3. Run `yarn install` from the root
 
 ## Conventions
 
-- Package scope: `@8bit/*`
+- Package scope: `@pixattica/*`
 - All apps use Vite, React 19, TypeScript, Vitest
-- ESLint flat config via `@8bit/eslint-config/react`
-- TSConfig extends `@8bit/tsconfig/react-app.json` — each app must specify its own `"include": ["src"]`
+- ESLint flat config via `@pixattica/eslint-config/react`
+- TSConfig extends `@pixattica/tsconfig/react-app.json` — each app must specify its own `"include": ["src"]`

@@ -1,5 +1,5 @@
 {
-  "name": "@8bit/_template",
+  "name": "@pixattica/_template",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -16,10 +16,10 @@
     "react-dom": "^19"
   },
   "devDependencies": {
-    "@8bit/eslint-config": "*",
-    "@8bit/tsconfig": "*",
-    "@testing-library/react": "^16",
+    "@pixattica/eslint-config": "*",
+    "@pixattica/tsconfig": "*",
     "@testing-library/jest-dom": "^6",
+    "@testing-library/react": "^16",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@vitejs/plugin-react": "^4",

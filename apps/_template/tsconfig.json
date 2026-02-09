@@ -1,5 +1,5 @@
 {
-  "extends": "@8bit/tsconfig/react-app.json",
+  "extends": "@pixattica/tsconfig/react-app.json",
   "compilerOptions": {
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsBuildInfoFile"
   },
