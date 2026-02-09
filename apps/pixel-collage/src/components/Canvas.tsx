@@ -10,6 +10,7 @@ interface CanvasProps {
     onSelect: (id: string | null) => void;
     onDelete: (id: string) => void;
     onDragEnd: (id: string, x: number, y: number) => void;
+    backgroundStyle: string;
 }
 
 function CanvasImage({
@@ -67,6 +68,7 @@ export default function Canvas({
     onSelect,
     onDelete,
     onDragEnd,
+    backgroundStyle,
 }: CanvasProps) {
     const containerRef = useRef<HTMLDivElement>(null);
     const [size, setSize] = useState({ width: 0, height: 0 });
@@ -118,7 +120,11 @@ export default function Canvas({
     }
 
     return (
-        <main ref={containerRef} className="relative flex-1 bg-white">
+        <main
+            ref={containerRef}
+            className="relative flex-1"
+            style={{ background: backgroundStyle }}
+        >
             {size.width > 0 && size.height > 0 && (
                 <>
                     <Stage

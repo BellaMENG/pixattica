@@ -1,5 +1,5 @@
 import { useRef } from "react";
-import type { UploadedImage, CroppedCutout } from "../App";
+import type { UploadedImage, CroppedCutout, BackgroundOption, BackgroundId } from "../App";
 
 interface SidebarProps {
     uploadedImages: UploadedImage[];
@@ -7,6 +7,9 @@ interface SidebarProps {
     onUpload: (image: UploadedImage) => void;
     onStartCrop: (imageId: string) => void;
     onAddToCanvas: (cutout: CroppedCutout) => void;
+    backgrounds: BackgroundOption[];
+    selectedBgId: BackgroundId;
+    onSelectBg: (id: BackgroundId) => void;
 }
 
 export default function Sidebar({
@@ -15,6 +18,9 @@ export default function Sidebar({
     onUpload,
     onStartCrop,
     onAddToCanvas,
+    backgrounds,
+    selectedBgId,
+    onSelectBg,
 }: SidebarProps) {
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -80,6 +86,25 @@ export default function Sidebar({
                         ))}
                     </div>
                 )}
+            </section>
+
+            <section className="mb-6">
+                <h3 className="mb-2 text-xs text-pink-600">Background</h3>
+                <div className="grid grid-cols-3 gap-2">
+                    {backgrounds.map((bg) => (
+                        <button
+                            key={bg.id}
+                            title={bg.label}
+                            onClick={() => onSelectBg(bg.id)}
+                            className={`aspect-square w-full rounded border-2 cursor-pointer transition-colors ${
+                                selectedBgId === bg.id
+                                    ? "border-pink-500 ring-2 ring-pink-300"
+                                    : "border-pink-200 hover:border-pink-400"
+                            }`}
+                            style={{ background: bg.style }}
+                        />
+                    ))}
+                </div>
             </section>
 
             <section>

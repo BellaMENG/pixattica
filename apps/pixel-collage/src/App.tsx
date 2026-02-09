@@ -23,12 +23,33 @@ export interface CanvasItem {
     y: number;
 }
 
+export enum BackgroundId {
+    White = "white",
+    Pink = "pink",
+    Hearts = "hearts",
+}
+
+export interface BackgroundOption {
+    id: BackgroundId;
+    label: string;
+    style: string;
+}
+
+const BACKGROUNDS: BackgroundOption[] = [
+    { id: BackgroundId.White, label: "White", style: "white" },
+    { id: BackgroundId.Pink, label: "Light Pink", style: "#fce7f3" },
+    { id: BackgroundId.Hearts, label: "Pixel Hearts", style: "url('/bg-pixel-hearts.svg') repeat" },
+];
+
 export default function App() {
     const [uploadedImages, setUploadedImages] = useState<UploadedImage[]>([]);
     const [croppedCutouts, setCroppedCutouts] = useState<CroppedCutout[]>([]);
     const [canvasItems, setCanvasItems] = useState<CanvasItem[]>([]);
     const [selectedCanvasItemId, setSelectedCanvasItemId] = useState<string | null>(null);
     const [croppingImageId, setCroppingImageId] = useState<string | null>(null);
+    const [selectedBgId, setSelectedBgId] = useState(BackgroundId.Hearts);
+
+    const backgroundStyle = BACKGROUNDS.find((bg) => bg.id === selectedBgId)?.style ?? "white";
 
     const croppingImage = croppingImageId
         ? (uploadedImages.find((img) => img.id === croppingImageId) ?? null)
@@ -74,6 +95,9 @@ export default function App() {
                     onUpload={handleUpload}
                     onStartCrop={setCroppingImageId}
                     onAddToCanvas={handleAddToCanvas}
+                    backgrounds={BACKGROUNDS}
+                    selectedBgId={selectedBgId}
+                    onSelectBg={setSelectedBgId}
                 />
                 <Canvas
                     items={canvasItems}
@@ -81,6 +105,7 @@ export default function App() {
                     onSelect={setSelectedCanvasItemId}
                     onDelete={handleDeleteCanvasItem}
                     onDragEnd={handleItemDragEnd}
+                    backgroundStyle={backgroundStyle}
                 />
             </div>
 
