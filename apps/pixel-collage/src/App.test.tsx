@@ -32,6 +32,7 @@ const canvasItem1 = {
     y: 0,
     scaleX: 1,
     scaleY: 1,
+    rotation: 0,
 };
 const canvasItem2 = {
     id: "ci-2",
@@ -41,6 +42,7 @@ const canvasItem2 = {
     y: 0,
     scaleX: 1,
     scaleY: 1,
+    rotation: 0,
 };
 const canvasItem3 = {
     id: "ci-3",
@@ -50,6 +52,7 @@ const canvasItem3 = {
     y: 0,
     scaleX: 1,
     scaleY: 1,
+    rotation: 0,
 };
 
 function seedLocalStorage(

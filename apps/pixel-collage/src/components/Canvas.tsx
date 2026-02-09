@@ -10,7 +10,14 @@ interface CanvasProps {
     onSelect: (id: string | null) => void;
     onDelete: (id: string) => void;
     onDragEnd: (id: string, x: number, y: number) => void;
-    onTransformEnd: (id: string, x: number, y: number, scaleX: number, scaleY: number) => void;
+    onTransformEnd: (
+        id: string,
+        x: number,
+        y: number,
+        scaleX: number,
+        scaleY: number,
+        rotation: number,
+    ) => void;
     backgroundStyle: string;
 }
 
@@ -27,7 +34,13 @@ function CanvasImage({
     onSelect: () => void;
     onDragEnd: (x: number, y: number) => void;
     onDragMove: (x: number, y: number) => void;
-    onTransformEnd: (x: number, y: number, scaleX: number, scaleY: number) => void;
+    onTransformEnd: (
+        x: number,
+        y: number,
+        scaleX: number,
+        scaleY: number,
+        rotation: number,
+    ) => void;
 }) {
     const [image] = useImage(item.src);
     const imageRef = useRef<Konva.Image>(null);
@@ -63,6 +76,7 @@ function CanvasImage({
                 y={item.y}
                 scaleX={item.scaleX}
                 scaleY={item.scaleY}
+                rotation={item.rotation}
                 draggable
                 onClick={onSelect}
                 onTap={onSelect}
@@ -75,13 +89,19 @@ function CanvasImage({
                 onTransformEnd={() => {
                     const node = imageRef.current;
                     if (!node) return;
-                    onTransformEnd(node.x(), node.y(), node.scaleX(), node.scaleY());
+                    onTransformEnd(
+                        node.x(),
+                        node.y(),
+                        node.scaleX(),
+                        node.scaleY(),
+                        node.rotation(),
+                    );
                 }}
             />
             {isSelected && (
                 <Transformer
                     ref={transformerRef}
-                    rotateEnabled={false}
+                    rotateEnabled={true}
                     keepRatio={true}
                     boundBoxFunc={(_oldBox, newBox) => {
                         const minSize = 20;
@@ -192,8 +212,8 @@ export default function Canvas({
                                             setDragPos({ x, y });
                                         }
                                     }}
-                                    onTransformEnd={(x, y, scaleX, scaleY) => {
-                                        onTransformEnd(item.id, x, y, scaleX, scaleY);
+                                    onTransformEnd={(x, y, scaleX, scaleY, rotation) => {
+                                        onTransformEnd(item.id, x, y, scaleX, scaleY, rotation);
                                     }}
                                 />
                             ))}

@@ -24,6 +24,7 @@ export interface CanvasItem {
     y: number;
     scaleX: number;
     scaleY: number;
+    rotation: number;
 }
 
 export enum BackgroundId {
@@ -87,6 +88,7 @@ export default function App() {
                 y: 200,
                 scaleX: 1,
                 scaleY: 1,
+                rotation: 0,
             },
         ]);
     }
@@ -121,9 +123,12 @@ export default function App() {
         y: number,
         scaleX: number,
         scaleY: number,
+        rotation: number,
     ) {
         setCanvasItems((prev) =>
-            prev.map((item) => (item.id === id ? { ...item, x, y, scaleX, scaleY } : item)),
+            prev.map((item) =>
+                item.id === id ? { ...item, x, y, scaleX, scaleY, rotation } : item,
+            ),
         );
     }
 
