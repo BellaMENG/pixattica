@@ -1,5 +1,5 @@
 import { useRef, useEffect, useState } from "react";
-import { Stage, Layer, Image as KonvaImage } from "react-konva";
+import { Stage, Layer, Image as KonvaImage, Transformer } from "react-konva";
 import useImage from "use-image";
 import type { CanvasItem } from "../App";
 import type Konva from "konva";
@@ -10,6 +10,7 @@ interface CanvasProps {
     onSelect: (id: string | null) => void;
     onDelete: (id: string) => void;
     onDragEnd: (id: string, x: number, y: number) => void;
+    onTransformEnd: (id: string, x: number, y: number, scaleX: number, scaleY: number) => void;
     backgroundStyle: string;
 }
 
@@ -19,15 +20,18 @@ function CanvasImage({
     onSelect,
     onDragEnd,
     onDragMove,
+    onTransformEnd,
 }: {
     item: CanvasItem;
     isSelected: boolean;
     onSelect: () => void;
     onDragEnd: (x: number, y: number) => void;
     onDragMove: (x: number, y: number) => void;
+    onTransformEnd: (x: number, y: number, scaleX: number, scaleY: number) => void;
 }) {
     const [image] = useImage(item.src);
     const imageRef = useRef<Konva.Image>(null);
+    const transformerRef = useRef<Konva.Transformer>(null);
 
     useEffect(() => {
         if (!imageRef.current) return;
@@ -43,22 +47,56 @@ function CanvasImage({
         imageRef.current.getLayer()?.batchDraw();
     }, [isSelected]);
 
+    useEffect(() => {
+        if (isSelected && transformerRef.current && imageRef.current) {
+            transformerRef.current.nodes([imageRef.current]);
+            transformerRef.current.getLayer()?.batchDraw();
+        }
+    }, [isSelected]);
+
     return (
-        <KonvaImage
-            ref={imageRef}
-            image={image}
-            x={item.x}
-            y={item.y}
-            draggable
-            onClick={onSelect}
-            onTap={onSelect}
-            onDragEnd={(e) => {
-                onDragEnd(e.target.x(), e.target.y());
-            }}
-            onDragMove={(e) => {
-                onDragMove(e.target.x(), e.target.y());
-            }}
-        />
+        <>
+            <KonvaImage
+                ref={imageRef}
+                image={image}
+                x={item.x}
+                y={item.y}
+                scaleX={item.scaleX}
+                scaleY={item.scaleY}
+                draggable
+                onClick={onSelect}
+                onTap={onSelect}
+                onDragEnd={(e) => {
+                    onDragEnd(e.target.x(), e.target.y());
+                }}
+                onDragMove={(e) => {
+                    onDragMove(e.target.x(), e.target.y());
+                }}
+                onTransformEnd={() => {
+                    const node = imageRef.current;
+                    if (!node) return;
+                    onTransformEnd(node.x(), node.y(), node.scaleX(), node.scaleY());
+                }}
+            />
+            {isSelected && (
+                <Transformer
+                    ref={transformerRef}
+                    rotateEnabled={false}
+                    keepRatio={true}
+                    boundBoxFunc={(_oldBox, newBox) => {
+                        const minSize = 20;
+                        if (newBox.width < minSize || newBox.height < minSize) {
+                            return _oldBox;
+                        }
+                        return newBox;
+                    }}
+                    borderStroke="deeppink"
+                    anchorStroke="deeppink"
+                    anchorFill="white"
+                    anchorSize={8}
+                />
+            )}
+        </>
     );
 }
 
@@ -68,6 +106,7 @@ export default function Canvas({
     onSelect,
     onDelete,
     onDragEnd,
+    onTransformEnd,
     backgroundStyle,
 }: CanvasProps) {
     const containerRef = useRef<HTMLDivElement>(null);
@@ -152,6 +191,9 @@ export default function Canvas({
                                         if (item.id === selectedItemId) {
                                             setDragPos({ x, y });
                                         }
+                                    }}
+                                    onTransformEnd={(x, y, scaleX, scaleY) => {
+                                        onTransformEnd(item.id, x, y, scaleX, scaleY);
                                     }}
                                 />
                             ))}

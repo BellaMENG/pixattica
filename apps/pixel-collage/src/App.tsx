@@ -21,6 +21,8 @@ export interface CanvasItem {
     src: string;
     x: number;
     y: number;
+    scaleX: number;
+    scaleY: number;
 }
 
 export enum BackgroundId {
@@ -73,6 +75,8 @@ export default function App() {
                 src: cutout.src,
                 x: 200,
                 y: 200,
+                scaleX: 1,
+                scaleY: 1,
             },
         ]);
     }
@@ -84,6 +88,18 @@ export default function App() {
 
     function handleItemDragEnd(id: string, x: number, y: number) {
         setCanvasItems((prev) => prev.map((item) => (item.id === id ? { ...item, x, y } : item)));
+    }
+
+    function handleItemTransformEnd(
+        id: string,
+        x: number,
+        y: number,
+        scaleX: number,
+        scaleY: number,
+    ) {
+        setCanvasItems((prev) =>
+            prev.map((item) => (item.id === id ? { ...item, x, y, scaleX, scaleY } : item)),
+        );
     }
 
     return (
@@ -105,6 +121,7 @@ export default function App() {
                     onSelect={setSelectedCanvasItemId}
                     onDelete={handleDeleteCanvasItem}
                     onDragEnd={handleItemDragEnd}
+                    onTransformEnd={handleItemTransformEnd}
                     backgroundStyle={backgroundStyle}
                 />
             </div>
