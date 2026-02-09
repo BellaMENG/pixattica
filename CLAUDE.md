@@ -27,7 +27,6 @@ Within an individual app directory, standard scripts apply: `yarn dev`, `yarn bu
 
 ```
 apps/          — Individual React apps (each is a Vite + React 19 SPA)
-apps/_template — Copy this to create a new app
 packages/      — Shared workspace packages
   tsconfig/    — Shared TypeScript configs (base.json, react-app.json)
   eslint-config/ — Shared ESLint flat config for React
@@ -35,7 +34,7 @@ packages/      — Shared workspace packages
 
 ## Creating a New App
 
-1. Copy `apps/_template` to `apps/<new-app-name>`
+1. Copy an existing app (e.g. `apps/pixel-collage`) to `apps/<new-app-name>`
 2. Update `name` in `package.json` to `@pixattica/<new-app-name>`
 3. Run `yarn install` from the root
 
