@@ -102,25 +102,6 @@ export default function Sidebar({
             </section>
 
             <section className="mb-6">
-                <h3 className="mb-2 text-xs text-pink-600">Background</h3>
-                <div className="grid grid-cols-3 gap-2">
-                    {backgrounds.map((bg) => (
-                        <button
-                            key={bg.id}
-                            title={bg.label}
-                            onClick={() => onSelectBg(bg.id)}
-                            className={`aspect-square w-full rounded border-2 cursor-pointer transition-colors ${
-                                selectedBgId === bg.id
-                                    ? "border-pink-500 ring-2 ring-pink-300"
-                                    : "border-pink-200 hover:border-pink-400"
-                            }`}
-                            style={{ background: bg.style }}
-                        />
-                    ))}
-                </div>
-            </section>
-
-            <section>
                 <h3 className="mb-2 text-xs text-pink-600">Cutouts</h3>
                 {croppedCutouts.length === 0 ? (
                     <p className="text-[10px] text-pink-300">No cutouts yet</p>
@@ -155,6 +136,25 @@ export default function Sidebar({
                         ))}
                     </div>
                 )}
+            </section>
+
+            <section className="mt-auto">
+                <h3 className="mb-2 text-xs text-pink-600">Background</h3>
+                <div className="grid grid-cols-3 gap-2">
+                    {backgrounds.map((bg) => (
+                        <button
+                            key={bg.id}
+                            title={bg.label}
+                            onClick={() => onSelectBg(bg.id)}
+                            className={`aspect-square w-full rounded border-2 cursor-pointer transition-colors ${
+                                selectedBgId === bg.id
+                                    ? "border-pink-500 ring-2 ring-pink-300"
+                                    : "border-pink-200 hover:border-pink-400"
+                            }`}
+                            style={{ background: bg.style }}
+                        />
+                    ))}
+                </div>
             </section>
         </aside>
     );
