@@ -1,36 +1,36 @@
 {
-  "name": "@pixattica/pixel-collage",
-  "version": "0.0.0",
-  "private": true,
-  "type": "module",
-  "scripts": {
-    "dev": "vite",
-    "build": "tsc -b && vite build",
-    "test": "vitest run",
-    "preview": "vite preview",
-    "clean": "rm -rf dist node_modules .turbo"
-  },
-  "dependencies": {
-    "konva": "^10.2.0",
-    "prop-types": "^15.8.1",
-    "react": "^19",
-    "react-dom": "^19",
-    "react-konva": "^19.2.2",
-    "react-lasso-select": "^2.0.3",
-    "use-image": "^1.1.4"
-  },
-  "devDependencies": {
-    "@pixattica/tsconfig": "*",
-    "@tailwindcss/vite": "^4",
-    "@testing-library/jest-dom": "^6",
-    "@testing-library/react": "^16",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "@vitejs/plugin-react": "^4",
-    "jsdom": "^25",
-    "tailwindcss": "^4",
-    "typescript": "^5",
-    "vite": "^6",
-    "vitest": "^3"
-  }
+    "name": "@pixattica/pixel-collage",
+    "version": "0.0.0",
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "dev": "vite",
+        "build": "tsc -b && vite build",
+        "test": "vitest run",
+        "preview": "vite preview",
+        "clean": "rm -rf dist node_modules .turbo"
+    },
+    "dependencies": {
+        "konva": "^10.2.0",
+        "prop-types": "^15.8.1",
+        "react": "^19",
+        "react-dom": "^19",
+        "react-konva": "^19.2.2",
+        "react-lasso-select": "^2.0.3",
+        "use-image": "^1.1.4"
+    },
+    "devDependencies": {
+        "@pixattica/tsconfig": "*",
+        "@tailwindcss/vite": "^4",
+        "@testing-library/jest-dom": "^6",
+        "@testing-library/react": "^16",
+        "@types/react": "^19",
+        "@types/react-dom": "^19",
+        "@vitejs/plugin-react": "^4",
+        "jsdom": "^25",
+        "tailwindcss": "^4",
+        "typescript": "^5",
+        "vite": "^6",
+        "vitest": "^3"
+    }
 }

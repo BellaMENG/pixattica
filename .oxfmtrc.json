@@ -1,3 +1,4 @@
 {
-  "ignorePatterns": ["dist", "node_modules", ".turbo", "yarn.lock"]
+    "tabWidth": 4,
+    "ignorePatterns": ["dist", "node_modules", ".turbo", "yarn.lock"]
 }
