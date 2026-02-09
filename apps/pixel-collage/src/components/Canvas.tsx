@@ -2,6 +2,7 @@ import { useRef, useEffect, useState } from "react";
 import { Stage, Layer, Image as KonvaImage, Transformer } from "react-konva";
 import useImage from "use-image";
 import { ACCEPTED_IMAGE_TYPES, type CanvasItem, type UploadedImage } from "../App";
+import { readImageFile } from "../utils/readImageFile";
 import type Konva from "konva";
 
 interface CanvasProps {
@@ -174,20 +175,17 @@ export default function Canvas({
         return () => window.removeEventListener("keydown", handleKeyDown);
     }, [selectedItemId, onDelete]);
 
-    function handleDrop(e: React.DragEvent) {
+    async function handleDrop(e: React.DragEvent) {
         e.preventDefault();
         const file = e.dataTransfer.files[0];
         if (!file || !ACCEPTED_IMAGE_TYPES.has(file.type)) return;
 
-        const reader = new FileReader();
-        reader.onload = () => {
-            onUpload({
-                id: crypto.randomUUID(),
-                src: reader.result as string,
-                name: file.name,
-            });
-        };
-        reader.readAsDataURL(file);
+        const src = await readImageFile(file);
+        onUpload({
+            id: crypto.randomUUID(),
+            src,
+            name: file.name,
+        });
     }
 
     function handleStageMouseDown(e: Konva.KonvaEventObject<MouseEvent>) {

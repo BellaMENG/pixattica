@@ -4,6 +4,10 @@ import "@testing-library/jest-dom/vitest";
 import App from "./App";
 import { ACCEPTED_IMAGE_TYPES } from "./App";
 
+vi.mock("heic2any", () => ({
+    default: vi.fn().mockResolvedValue(new Blob(["converted"], { type: "image/jpeg" })),
+}));
+
 vi.mock("./components/Canvas", () => ({
     default: ({ items }: { items: Array<{ id: string }> }) => (
         <div data-testid="canvas">
@@ -93,6 +97,8 @@ describe("file upload validation", () => {
         ["image/gif", "photo.gif"],
         ["image/avif", "photo.avif"],
         ["image/svg+xml", "icon.svg"],
+        ["image/heic", "photo.heic"],
+        ["image/heif", "photo.heif"],
     ])("accepts %s files", async (mimeType, fileName) => {
         render(<App />);
         expect(screen.getByText("No images yet")).toBeInTheDocument();
@@ -106,7 +112,6 @@ describe("file upload validation", () => {
     });
 
     it.each([
-        ["image/heic", "photo.heic"],
         ["image/tiff", "photo.tiff"],
         ["image/bmp", "photo.bmp"],
         ["application/pdf", "doc.pdf"],
@@ -128,6 +133,8 @@ describe("file upload validation", () => {
             "image/gif",
             "image/avif",
             "image/svg+xml",
+            "image/heic",
+            "image/heif",
         ]);
         expect(ACCEPTED_IMAGE_TYPES).toEqual(expected);
     });

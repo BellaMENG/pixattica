@@ -34,9 +34,11 @@ export const ACCEPTED_IMAGE_TYPES = new Set([
     "image/gif",
     "image/avif",
     "image/svg+xml",
+    "image/heic",
+    "image/heif",
 ]);
 
-export const ACCEPTED_IMAGE_EXTENSIONS = ".png,.jpg,.jpeg,.webp,.gif,.avif,.svg";
+export const ACCEPTED_IMAGE_EXTENSIONS = ".png,.jpg,.jpeg,.webp,.gif,.avif,.svg,.heic,.heif";
 
 export enum BackgroundId {
     White = "white",

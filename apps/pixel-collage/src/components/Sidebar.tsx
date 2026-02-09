@@ -7,6 +7,7 @@ import {
     type BackgroundOption,
     type BackgroundId,
 } from "../App";
+import { readImageFile } from "../utils/readImageFile";
 
 interface SidebarProps {
     uploadedImages: UploadedImage[];
@@ -35,19 +36,16 @@ export default function Sidebar({
 }: SidebarProps) {
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
         const file = e.target.files?.[0];
         if (!file || !ACCEPTED_IMAGE_TYPES.has(file.type)) return;
 
-        const reader = new FileReader();
-        reader.onload = () => {
-            onUpload({
-                id: crypto.randomUUID(),
-                src: reader.result as string,
-                name: file.name,
-            });
-        };
-        reader.readAsDataURL(file);
+        const src = await readImageFile(file);
+        onUpload({
+            id: crypto.randomUUID(),
+            src,
+            name: file.name,
+        });
 
         e.target.value = "";
     }

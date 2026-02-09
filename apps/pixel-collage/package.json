@@ -11,6 +11,7 @@
         "clean": "rm -rf dist node_modules .turbo"
     },
     "dependencies": {
+        "heic2any": "^0.0.4",
         "konva": "^10.2.0",
         "prop-types": "^15.8.1",
         "react": "^19",
