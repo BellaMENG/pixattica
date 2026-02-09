@@ -1,4 +1,5 @@
 import { useState } from "react";
+import AnimatedCursor from "./components/AnimatedCursor";
 import Canvas from "./components/Canvas";
 import ImageCropper from "./components/ImageCropper";
 import Sidebar from "./components/Sidebar";
@@ -213,53 +214,59 @@ export default function App() {
 
     if (isLoading) {
         return (
-            <div className="flex h-screen items-center justify-center bg-pink-100">
-                <p className="text-pink-400">Loading...</p>
-            </div>
+            <>
+                <AnimatedCursor />
+                <div className="flex h-screen items-center justify-center bg-pink-100">
+                    <p className="text-pink-400">Loading...</p>
+                </div>
+            </>
         );
     }
 
     return (
-        <div
-            className="flex h-screen items-center justify-center bg-pink-100"
-            onDragOver={(e) => e.preventDefault()}
-            onDrop={handleDrop}
-        >
-            <div className="flex h-[80vh] w-[80vw] overflow-hidden rounded-lg border-4 border-pink-300 shadow-lg">
-                <Sidebar
-                    uploadedImages={uploadedImages}
-                    croppedCutouts={croppedCutouts}
-                    uploadingNames={uploadingNames}
-                    onFileSelect={processUpload}
-                    onStartCrop={setCroppingImageId}
-                    onAddToCanvas={handleAddToCanvas}
-                    onDeleteImage={handleDeleteImage}
-                    onDeleteCutout={handleDeleteCutout}
-                    backgrounds={BACKGROUNDS}
-                    selectedBgId={selectedBgId}
-                    onSelectBg={setSelectedBgId}
-                />
-                <Canvas
-                    items={canvasItems}
-                    selectedItemId={selectedCanvasItemId}
-                    onSelect={setSelectedCanvasItemId}
-                    onDelete={handleDeleteCanvasItem}
-                    onBringToFront={handleBringToFront}
-                    onSendToBack={handleSendToBack}
-                    onDragEnd={handleItemDragEnd}
-                    onTransformEnd={handleItemTransformEnd}
-                    onResize={setCanvasSize}
-                    backgroundStyle={backgroundStyle}
-                />
-            </div>
+        <>
+            <AnimatedCursor />
+            <div
+                className="flex h-screen items-center justify-center bg-pink-100"
+                onDragOver={(e) => e.preventDefault()}
+                onDrop={handleDrop}
+            >
+                <div className="flex h-[80vh] w-[80vw] overflow-hidden rounded-lg border-4 border-pink-300 shadow-lg">
+                    <Sidebar
+                        uploadedImages={uploadedImages}
+                        croppedCutouts={croppedCutouts}
+                        uploadingNames={uploadingNames}
+                        onFileSelect={processUpload}
+                        onStartCrop={setCroppingImageId}
+                        onAddToCanvas={handleAddToCanvas}
+                        onDeleteImage={handleDeleteImage}
+                        onDeleteCutout={handleDeleteCutout}
+                        backgrounds={BACKGROUNDS}
+                        selectedBgId={selectedBgId}
+                        onSelectBg={setSelectedBgId}
+                    />
+                    <Canvas
+                        items={canvasItems}
+                        selectedItemId={selectedCanvasItemId}
+                        onSelect={setSelectedCanvasItemId}
+                        onDelete={handleDeleteCanvasItem}
+                        onBringToFront={handleBringToFront}
+                        onSendToBack={handleSendToBack}
+                        onDragEnd={handleItemDragEnd}
+                        onTransformEnd={handleItemTransformEnd}
+                        onResize={setCanvasSize}
+                        backgroundStyle={backgroundStyle}
+                    />
+                </div>
 
-            {croppingImage && (
-                <ImageCropper
-                    image={croppingImage}
-                    onDone={handleCropDone}
-                    onCancel={() => setCroppingImageId(null)}
-                />
-            )}
-        </div>
+                {croppingImage && (
+                    <ImageCropper
+                        image={croppingImage}
+                        onDone={handleCropDone}
+                        onCancel={() => setCroppingImageId(null)}
+                    />
+                )}
+            </div>
+        </>
     );
 }
