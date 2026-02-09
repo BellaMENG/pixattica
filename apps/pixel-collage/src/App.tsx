@@ -1,13 +1,96 @@
+import { useState } from "react";
 import Canvas from "./components/Canvas";
+import ImageCropper from "./components/ImageCropper";
 import Sidebar from "./components/Sidebar";
 
+export interface UploadedImage {
+  id: string;
+  src: string;
+  name: string;
+}
+
+export interface CroppedCutout {
+  id: string;
+  src: string;
+  sourceImageId: string;
+}
+
+export interface CanvasItem {
+  id: string;
+  cutoutId: string;
+  src: string;
+  x: number;
+  y: number;
+}
+
 export default function App() {
+  const [uploadedImages, setUploadedImages] = useState<UploadedImage[]>([]);
+  const [croppedCutouts, setCroppedCutouts] = useState<CroppedCutout[]>([]);
+  const [canvasItems, setCanvasItems] = useState<CanvasItem[]>([]);
+  const [selectedCanvasItemId, setSelectedCanvasItemId] = useState<string | null>(null);
+  const [croppingImageId, setCroppingImageId] = useState<string | null>(null);
+
+  const croppingImage = croppingImageId
+    ? (uploadedImages.find((img) => img.id === croppingImageId) ?? null)
+    : null;
+
+  function handleUpload(image: UploadedImage) {
+    setUploadedImages((prev) => [...prev, image]);
+  }
+
+  function handleCropDone(cutout: CroppedCutout) {
+    setCroppedCutouts((prev) => [...prev, cutout]);
+    setCroppingImageId(null);
+  }
+
+  function handleAddToCanvas(cutout: CroppedCutout) {
+    setCanvasItems((prev) => [
+      ...prev,
+      {
+        id: crypto.randomUUID(),
+        cutoutId: cutout.id,
+        src: cutout.src,
+        x: 200,
+        y: 200,
+      },
+    ]);
+  }
+
+  function handleDeleteCanvasItem(id: string) {
+    setCanvasItems((prev) => prev.filter((item) => item.id !== id));
+    setSelectedCanvasItemId(null);
+  }
+
+  function handleItemDragEnd(id: string, x: number, y: number) {
+    setCanvasItems((prev) => prev.map((item) => (item.id === id ? { ...item, x, y } : item)));
+  }
+
   return (
     <div className="flex h-screen items-center justify-center bg-pink-100">
       <div className="flex h-[80vh] w-[80vw] overflow-hidden rounded-lg border-4 border-pink-300 shadow-lg">
-        <Sidebar />
-        <Canvas />
+        <Sidebar
+          uploadedImages={uploadedImages}
+          croppedCutouts={croppedCutouts}
+          onUpload={handleUpload}
+          onStartCrop={setCroppingImageId}
+          onAddToCanvas={handleAddToCanvas}
+        />
+        <Canvas
+          items={canvasItems}
+          selectedItemId={selectedCanvasItemId}
+          onSelect={setSelectedCanvasItemId}
+          onDelete={handleDeleteCanvasItem}
+          onDragEnd={handleItemDragEnd}
+        />
       </div>
+
+      {croppingImage && (
+        <ImageCropper
+          image={croppingImage}
+          onDone={handleCropDone}
+          onCancel={() => setCroppingImageId(null)}
+        />
+      )}
     </div>
   );
 }

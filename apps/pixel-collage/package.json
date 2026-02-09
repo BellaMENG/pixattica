@@ -11,8 +11,13 @@
     "clean": "rm -rf dist node_modules .turbo"
   },
   "dependencies": {
+    "konva": "^10.2.0",
+    "prop-types": "^15.8.1",
     "react": "^19",
-    "react-dom": "^19"
+    "react-dom": "^19",
+    "react-konva": "^19.2.2",
+    "react-lasso-select": "^2.0.3",
+    "use-image": "^1.1.4"
   },
   "devDependencies": {
     "@pixattica/tsconfig": "*",
