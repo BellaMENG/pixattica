@@ -1,9 +1,10 @@
+import "fake-indexeddb/auto";
 import { render, screen, fireEvent, cleanup, waitFor } from "@testing-library/react";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 import App from "./App";
 import { ACCEPTED_IMAGE_TYPES } from "./App";
-import { LOCAL_STORAGE_PREFIX } from "./config";
+import { saveValue } from "./utils/imageStorage";
 
 vi.mock("heic2any", () => ({
     default: vi.fn().mockResolvedValue(new Blob(["converted"], { type: "image/jpeg" })),
@@ -61,18 +62,24 @@ const canvasItem3 = {
     rotation: 0,
 };
 
-function seedLocalStorage(
+async function seedIndexedDB(
     images: (typeof img1)[],
     cutouts: (typeof cutout1)[],
-    canvasItems: (typeof canvasItem1)[],
+    items: (typeof canvasItem1)[],
 ) {
-    localStorage.setItem(`${LOCAL_STORAGE_PREFIX}uploadedImages`, JSON.stringify(images));
-    localStorage.setItem(`${LOCAL_STORAGE_PREFIX}croppedCutouts`, JSON.stringify(cutouts));
-    localStorage.setItem(`${LOCAL_STORAGE_PREFIX}canvasItems`, JSON.stringify(canvasItems));
+    await saveValue("uploadedImages", images);
+    await saveValue("croppedCutouts", cutouts);
+    await saveValue("canvasItems", items);
+}
+
+async function renderAndWaitForLoad() {
+    render(<App />);
+    await waitFor(() => {
+        expect(screen.queryByText("Loading...")).not.toBeInTheDocument();
+    });
 }
 
 function getFileInput() {
-    // The hidden file input in the Sidebar
     return document.querySelector('input[type="file"]') as HTMLInputElement;
 }
 
@@ -88,6 +95,7 @@ describe("file upload validation", () => {
     });
 
     beforeEach(() => {
+        globalThis.indexedDB = new IDBFactory();
         localStorage.clear();
     });
 
@@ -101,7 +109,7 @@ describe("file upload validation", () => {
         ["image/heic", "photo.heic"],
         ["image/heif", "photo.heif"],
     ])("accepts %s files", async (mimeType, fileName) => {
-        render(<App />);
+        await renderAndWaitForLoad();
         expect(screen.getByText("No images yet")).toBeInTheDocument();
 
         simulateFileSelect(getFileInput(), fileName, mimeType);
@@ -117,8 +125,8 @@ describe("file upload validation", () => {
         ["image/bmp", "photo.bmp"],
         ["application/pdf", "doc.pdf"],
         ["text/plain", "notes.txt"],
-    ])("rejects %s files", (mimeType, fileName) => {
-        render(<App />);
+    ])("rejects %s files", async (mimeType, fileName) => {
+        await renderAndWaitForLoad();
         expect(screen.getByText("No images yet")).toBeInTheDocument();
 
         simulateFileSelect(getFileInput(), fileName, mimeType);
@@ -147,36 +155,30 @@ describe("delete handlers", () => {
     });
 
     beforeEach(() => {
+        globalThis.indexedDB = new IDBFactory();
         localStorage.clear();
     });
 
     describe("handleDeleteCutout", () => {
-        it("removes the cutout and its canvas items, leaves others intact", () => {
-            seedLocalStorage([img1], [cutout1, cutout2], [canvasItem1, canvasItem2]);
-            render(<App />);
+        it("removes the cutout and its canvas items, leaves others intact", async () => {
+            await seedIndexedDB([img1], [cutout1, cutout2], [canvasItem1, canvasItem2]);
+            await renderAndWaitForLoad();
 
-            // Both cutouts visible
             expect(screen.getAllByTitle("Delete cutout")).toHaveLength(2);
             expect(screen.getByTestId("canvas-item-ci-1")).toBeInTheDocument();
             expect(screen.getByTestId("canvas-item-ci-2")).toBeInTheDocument();
 
-            // Delete cutout-1
             fireEvent.click(screen.getAllByTitle("Delete cutout")[0]);
 
-            // cutout-1 gone, cutout-2 remains
             expect(screen.getAllByTitle("Delete cutout")).toHaveLength(1);
-
-            // canvas item for cutout-1 gone, cutout-2's canvas item remains
             expect(screen.queryByTestId("canvas-item-ci-1")).not.toBeInTheDocument();
             expect(screen.getByTestId("canvas-item-ci-2")).toBeInTheDocument();
-
-            // The source image is unaffected
             expect(screen.getByText("photo1.png")).toBeInTheDocument();
         });
 
-        it("shows empty state when last cutout is deleted", () => {
-            seedLocalStorage([img1], [cutout1], [canvasItem1]);
-            render(<App />);
+        it("shows empty state when last cutout is deleted", async () => {
+            await seedIndexedDB([img1], [cutout1], [canvasItem1]);
+            await renderAndWaitForLoad();
 
             fireEvent.click(screen.getByTitle("Delete cutout"));
 
@@ -186,38 +188,31 @@ describe("delete handlers", () => {
     });
 
     describe("handleDeleteImage", () => {
-        it("removes the image, its cutouts, and their canvas items, leaves others intact", () => {
-            seedLocalStorage(
+        it("removes the image, its cutouts, and their canvas items, leaves others intact", async () => {
+            await seedIndexedDB(
                 [img1, img2],
                 [cutout1, cutout2, cutout3],
                 [canvasItem1, canvasItem2, canvasItem3],
             );
-            render(<App />);
+            await renderAndWaitForLoad();
 
-            // Both images, 3 cutouts, 3 canvas items
             expect(screen.getAllByTitle("Delete image")).toHaveLength(2);
             expect(screen.getAllByTitle("Delete cutout")).toHaveLength(3);
 
-            // Delete img-1 (has cutout-1 and cutout-2)
             fireEvent.click(screen.getAllByTitle("Delete image")[0]);
 
-            // img-1 gone, img-2 remains
             expect(screen.getAllByTitle("Delete image")).toHaveLength(1);
             expect(screen.queryByText("photo1.png")).not.toBeInTheDocument();
             expect(screen.getByText("photo2.png")).toBeInTheDocument();
-
-            // cutout-1 and cutout-2 (from img-1) gone, cutout-3 (from img-2) remains
             expect(screen.getAllByTitle("Delete cutout")).toHaveLength(1);
-
-            // canvas items for cutout-1 and cutout-2 gone, cutout-3's remains
             expect(screen.queryByTestId("canvas-item-ci-1")).not.toBeInTheDocument();
             expect(screen.queryByTestId("canvas-item-ci-2")).not.toBeInTheDocument();
             expect(screen.getByTestId("canvas-item-ci-3")).toBeInTheDocument();
         });
 
-        it("shows empty states when last image and its cutouts are deleted", () => {
-            seedLocalStorage([img1], [cutout1], [canvasItem1]);
-            render(<App />);
+        it("shows empty states when last image and its cutouts are deleted", async () => {
+            await seedIndexedDB([img1], [cutout1], [canvasItem1]);
+            await renderAndWaitForLoad();
 
             fireEvent.click(screen.getByTitle("Delete image"));
 

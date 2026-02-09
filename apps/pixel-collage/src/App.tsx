@@ -3,6 +3,7 @@ import Canvas from "./components/Canvas";
 import ImageCropper from "./components/ImageCropper";
 import Sidebar from "./components/Sidebar";
 import { MAX_CUTOUT_SIZE_RATIO } from "./config";
+import { useIndexedDB } from "./hooks/useIndexedDB";
 import { useLocalStorage } from "./hooks/useLocalStorage";
 
 export interface UploadedImage {
@@ -60,15 +61,19 @@ const BACKGROUNDS: BackgroundOption[] = [
 ];
 
 export default function App() {
-    const [uploadedImages, setUploadedImages] = useLocalStorage<UploadedImage[]>(
+    const [uploadedImages, setUploadedImages, imagesLoading] = useIndexedDB<UploadedImage[]>(
         "uploadedImages",
         [],
     );
-    const [croppedCutouts, setCroppedCutouts] = useLocalStorage<CroppedCutout[]>(
+    const [croppedCutouts, setCroppedCutouts, cutoutsLoading] = useIndexedDB<CroppedCutout[]>(
         "croppedCutouts",
         [],
     );
-    const [canvasItems, setCanvasItems] = useLocalStorage<CanvasItem[]>("canvasItems", []);
+    const [canvasItems, setCanvasItems, canvasItemsLoading] = useIndexedDB<CanvasItem[]>(
+        "canvasItems",
+        [],
+    );
+    const isLoading = imagesLoading || cutoutsLoading || canvasItemsLoading;
     const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
     const [selectedCanvasItemId, setSelectedCanvasItemId] = useState<string | null>(null);
     const [croppingImageId, setCroppingImageId] = useState<string | null>(null);
@@ -155,6 +160,14 @@ export default function App() {
             prev.map((item) =>
                 item.id === id ? { ...item, x, y, scaleX, scaleY, rotation } : item,
             ),
+        );
+    }
+
+    if (isLoading) {
+        return (
+            <div className="flex h-screen items-center justify-center bg-pink-100">
+                <p className="text-pink-400">Loading...</p>
+            </div>
         );
     }
 

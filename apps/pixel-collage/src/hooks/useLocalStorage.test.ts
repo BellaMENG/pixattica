@@ -1,5 +1,5 @@
 import { renderHook, act } from "@testing-library/react";
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
 import { useLocalStorage } from "./useLocalStorage";
 import { LOCAL_STORAGE_PREFIX } from "../config";
 
@@ -96,5 +96,74 @@ describe("useLocalStorage", () => {
 
         expect(hook1.current[0]).toBe("value1");
         expect(hook2.current[0]).toBe("default2");
+    });
+
+    it("returns null error when storage succeeds", () => {
+        const { result } = renderHook(() => useLocalStorage("key", "default"));
+        expect(result.current[2]).toBeNull();
+    });
+});
+
+describe("useLocalStorage quota exceeded handling", () => {
+    let setItemSpy: ReturnType<typeof vi.spyOn>;
+
+    beforeEach(() => {
+        localStorage.clear();
+    });
+
+    afterEach(() => {
+        setItemSpy?.mockRestore();
+    });
+
+    it("surfaces an error when localStorage.setItem throws QuotaExceededError", () => {
+        const { result } = renderHook(() => useLocalStorage("key", "small"));
+
+        setItemSpy = vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => {
+            throw new DOMException("quota exceeded", "QuotaExceededError");
+        });
+
+        act(() => {
+            result.current[1]("a-very-large-value");
+        });
+
+        expect(result.current[0]).toBe("a-very-large-value");
+        expect(result.current[2]).not.toBeNull();
+        expect(result.current[2]!.message).toMatch(/quota/i);
+    });
+
+    it("clears the error after a successful write", () => {
+        const { result } = renderHook(() => useLocalStorage("key", "initial"));
+
+        setItemSpy = vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => {
+            throw new DOMException("quota exceeded", "QuotaExceededError");
+        });
+
+        act(() => {
+            result.current[1]("big-value");
+        });
+
+        expect(result.current[2]).not.toBeNull();
+
+        setItemSpy.mockRestore();
+
+        act(() => {
+            result.current[1]("small-value");
+        });
+
+        expect(result.current[2]).toBeNull();
+    });
+
+    it("still updates in-memory state even when persistence fails", () => {
+        const { result } = renderHook(() => useLocalStorage("key", "initial"));
+
+        setItemSpy = vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => {
+            throw new DOMException("quota exceeded", "QuotaExceededError");
+        });
+
+        act(() => {
+            result.current[1]("new-value");
+        });
+
+        expect(result.current[0]).toBe("new-value");
     });
 });
