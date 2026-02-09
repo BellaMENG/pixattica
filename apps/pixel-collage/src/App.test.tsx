@@ -60,10 +60,15 @@ vi.mock("./components/ImageCropper", () => ({
 
 const img1 = { id: "img-1", src: "data:image/png;base64,img1", name: "photo1.png" };
 const img2 = { id: "img-2", src: "data:image/png;base64,img2", name: "photo2.png" };
+const img3 = { id: "img-3", src: "data:image/png;base64,img3", name: "photo3.png" };
+const img4 = { id: "img-4", src: "data:image/png;base64,img4", name: "photo4.png" };
+const img5 = { id: "img-5", src: "data:image/png;base64,img5", name: "photo5.png" };
 
 const cutout1 = { id: "cutout-1", src: "data:image/png;base64,c1", sourceImageId: "img-1" };
 const cutout2 = { id: "cutout-2", src: "data:image/png;base64,c2", sourceImageId: "img-1" };
 const cutout3 = { id: "cutout-3", src: "data:image/png;base64,c3", sourceImageId: "img-2" };
+const cutout4 = { id: "cutout-4", src: "data:image/png;base64,c4", sourceImageId: "img-3" };
+const cutout5 = { id: "cutout-5", src: "data:image/png;base64,c5", sourceImageId: "img-4" };
 
 const canvasItem1 = {
     id: "ci-1",
@@ -235,7 +240,7 @@ describe("delete handlers", () => {
             await renderAndWaitForLoad();
 
             expect(screen.getAllByTitle("Delete image")).toHaveLength(2);
-            expect(screen.getAllByTitle("Delete cutout")).toHaveLength(3);
+            expect(screen.getAllByTitle("Delete cutout")).toHaveLength(2);
 
             fireEvent.click(screen.getAllByTitle("Delete image")[0]);
 
@@ -414,5 +419,147 @@ describe("z-order controls", () => {
         fireEvent.click(screen.getByText("Send to Back"));
 
         expect(canvasItemIds()).toEqual(["ci-1", "ci-2", "ci-3"]);
+    });
+});
+
+describe("scrollable card sections", () => {
+    afterEach(() => {
+        cleanup();
+    });
+
+    beforeEach(() => {
+        globalThis.indexedDB = new IDBFactory();
+        localStorage.clear();
+    });
+
+    describe("images section", () => {
+        it("shows only 2 image cards when more than 2 images exist", async () => {
+            await seedIndexedDB([img1, img2, img3, img4, img5], [], []);
+            await renderAndWaitForLoad();
+
+            const visibleNames = ["photo1.png", "photo2.png"];
+            const hiddenNames = ["photo3.png", "photo4.png", "photo5.png"];
+
+            visibleNames.forEach((name) => {
+                expect(screen.getByText(name)).toBeInTheDocument();
+            });
+            hiddenNames.forEach((name) => {
+                expect(screen.queryByText(name)).not.toBeInTheDocument();
+            });
+        });
+
+        it("down arrow is enabled when there are more than 2 images", async () => {
+            await seedIndexedDB([img1, img2, img3], [], []);
+            await renderAndWaitForLoad();
+
+            expect(screen.getByLabelText("Scroll images down")).not.toBeDisabled();
+        });
+
+        it("up arrow is disabled initially", async () => {
+            await seedIndexedDB([img1, img2, img3], [], []);
+            await renderAndWaitForLoad();
+
+            expect(screen.getByLabelText("Scroll images up")).toBeDisabled();
+        });
+
+        it("scrolls down to show next images when down arrow is clicked", async () => {
+            await seedIndexedDB([img1, img2, img3, img4, img5], [], []);
+            await renderAndWaitForLoad();
+
+            const downButton = screen.getByLabelText("Scroll images down");
+            fireEvent.click(downButton);
+
+            expect(screen.getByText("photo2.png")).toBeInTheDocument();
+            expect(screen.getByText("photo3.png")).toBeInTheDocument();
+            expect(screen.queryByText("photo1.png")).not.toBeInTheDocument();
+            expect(screen.queryByText("photo4.png")).not.toBeInTheDocument();
+        });
+
+        it("up arrow is enabled after scrolling down", async () => {
+            await seedIndexedDB([img1, img2, img3], [], []);
+            await renderAndWaitForLoad();
+
+            fireEvent.click(screen.getByLabelText("Scroll images down"));
+
+            expect(screen.getByLabelText("Scroll images up")).not.toBeDisabled();
+        });
+
+        it("scrolls back up when up arrow is clicked", async () => {
+            await seedIndexedDB([img1, img2, img3, img4, img5], [], []);
+            await renderAndWaitForLoad();
+
+            fireEvent.click(screen.getByLabelText("Scroll images down"));
+            fireEvent.click(screen.getByLabelText("Scroll images down"));
+
+            expect(screen.getByText("photo3.png")).toBeInTheDocument();
+            expect(screen.getByText("photo4.png")).toBeInTheDocument();
+
+            fireEvent.click(screen.getByLabelText("Scroll images up"));
+
+            expect(screen.getByText("photo2.png")).toBeInTheDocument();
+            expect(screen.getByText("photo3.png")).toBeInTheDocument();
+            expect(screen.queryByText("photo1.png")).not.toBeInTheDocument();
+            expect(screen.queryByText("photo4.png")).not.toBeInTheDocument();
+        });
+
+        it("disables down arrow when scrolled to the end", async () => {
+            await seedIndexedDB([img1, img2, img3], [], []);
+            await renderAndWaitForLoad();
+
+            fireEvent.click(screen.getByLabelText("Scroll images down"));
+
+            expect(screen.getByLabelText("Scroll images down")).toBeDisabled();
+        });
+
+        it("disables both scroll arrows when 2 or fewer images exist", async () => {
+            await seedIndexedDB([img1, img2], [], []);
+            await renderAndWaitForLoad();
+
+            expect(screen.getByLabelText("Scroll images down")).toBeDisabled();
+            expect(screen.getByLabelText("Scroll images up")).toBeDisabled();
+        });
+    });
+
+    describe("cutouts section", () => {
+        it("shows only 2 cutout cards when more than 2 cutouts exist", async () => {
+            await seedIndexedDB(
+                [img1, img2, img3, img4],
+                [cutout1, cutout2, cutout3, cutout4, cutout5],
+                [],
+            );
+            await renderAndWaitForLoad();
+
+            expect(screen.getAllByText("Add to Canvas")).toHaveLength(2);
+        });
+
+        it("down arrow is enabled when there are more than 2 cutouts", async () => {
+            await seedIndexedDB([img1, img2, img3, img4], [cutout1, cutout2, cutout3], []);
+            await renderAndWaitForLoad();
+
+            expect(screen.getByLabelText("Scroll cutouts down")).not.toBeDisabled();
+        });
+
+        it("scrolls down to show next cutouts when down arrow is clicked", async () => {
+            await seedIndexedDB(
+                [img1, img2, img3, img4],
+                [cutout1, cutout2, cutout3, cutout4, cutout5],
+                [],
+            );
+            await renderAndWaitForLoad();
+
+            fireEvent.click(screen.getByLabelText("Scroll cutouts down"));
+
+            expect(screen.getAllByText("Add to Canvas")).toHaveLength(2);
+
+            expect(screen.getByLabelText("Scroll cutouts up")).not.toBeDisabled();
+        });
+
+        it("disables both scroll arrows when 2 or fewer cutouts exist", async () => {
+            await seedIndexedDB([img1, img2], [cutout1, cutout2], []);
+            await renderAndWaitForLoad();
+
+            expect(screen.getByLabelText("Scroll cutouts down")).toBeDisabled();
+            expect(screen.getByLabelText("Scroll cutouts up")).toBeDisabled();
+        });
     });
 });
