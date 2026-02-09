@@ -174,6 +174,24 @@ export default function App() {
         setSelectedCanvasItemId(null);
     }
 
+    function handleBringToFront(id: string) {
+        setCanvasItems((prev) => {
+            const idx = prev.findIndex((item) => item.id === id);
+            if (idx === -1 || idx === prev.length - 1) return prev;
+            const item = prev[idx];
+            return [...prev.slice(0, idx), ...prev.slice(idx + 1), item];
+        });
+    }
+
+    function handleSendToBack(id: string) {
+        setCanvasItems((prev) => {
+            const idx = prev.findIndex((item) => item.id === id);
+            if (idx <= 0) return prev;
+            const item = prev[idx];
+            return [item, ...prev.slice(0, idx), ...prev.slice(idx + 1)];
+        });
+    }
+
     function handleItemDragEnd(id: string, x: number, y: number) {
         setCanvasItems((prev) => prev.map((item) => (item.id === id ? { ...item, x, y } : item)));
     }
@@ -226,6 +244,8 @@ export default function App() {
                     selectedItemId={selectedCanvasItemId}
                     onSelect={setSelectedCanvasItemId}
                     onDelete={handleDeleteCanvasItem}
+                    onBringToFront={handleBringToFront}
+                    onSendToBack={handleSendToBack}
                     onDragEnd={handleItemDragEnd}
                     onTransformEnd={handleItemTransformEnd}
                     onResize={setCanvasSize}

@@ -25,11 +25,31 @@ vi.mock("./utils/readImageFile", () => ({
 }));
 
 vi.mock("./components/Canvas", () => ({
-    default: ({ items }: { items: Array<{ id: string }> }) => (
+    default: ({
+        items,
+        selectedItemId,
+        onSelect,
+        onBringToFront,
+        onSendToBack,
+    }: {
+        items: Array<{ id: string }>;
+        selectedItemId: string | null;
+        onSelect: (id: string | null) => void;
+        onBringToFront: (id: string) => void;
+        onSendToBack: (id: string) => void;
+    }) => (
         <div data-testid="canvas">
             {items.map((item) => (
-                <div key={item.id} data-testid={`canvas-item-${item.id}`} />
+                <div key={item.id} data-testid={`canvas-item-${item.id}`}>
+                    <button onClick={() => onSelect(item.id)}>Select {item.id}</button>
+                </div>
             ))}
+            {selectedItemId && (
+                <div data-testid="item-toolbar">
+                    <button onClick={() => onBringToFront(selectedItemId)}>Bring to Front</button>
+                    <button onClick={() => onSendToBack(selectedItemId)}>Send to Back</button>
+                </div>
+            )}
         </div>
     ),
 }));
@@ -316,5 +336,83 @@ describe("loading card during image upload", () => {
         await waitFor(() => {
             expect(screen.queryByTestId("upload-loading-placeholder")).not.toBeInTheDocument();
         });
+    });
+});
+
+function canvasItemIds() {
+    const canvas = screen.getByTestId("canvas");
+    return Array.from(canvas.querySelectorAll("[data-testid^='canvas-item-']")).map((el) =>
+        el.getAttribute("data-testid")!.replace("canvas-item-", ""),
+    );
+}
+
+describe("z-order controls", () => {
+    afterEach(() => {
+        cleanup();
+    });
+
+    beforeEach(() => {
+        globalThis.indexedDB = new IDBFactory();
+        localStorage.clear();
+    });
+
+    it("Bring to Front moves the selected canvas item to the end of the array", async () => {
+        await seedIndexedDB(
+            [img1, img2],
+            [cutout1, cutout2, cutout3],
+            [canvasItem1, canvasItem2, canvasItem3],
+        );
+        await renderAndWaitForLoad();
+
+        expect(canvasItemIds()).toEqual(["ci-1", "ci-2", "ci-3"]);
+
+        fireEvent.click(screen.getByText("Select ci-1"));
+        fireEvent.click(screen.getByText("Bring to Front"));
+
+        expect(canvasItemIds()).toEqual(["ci-2", "ci-3", "ci-1"]);
+    });
+
+    it("Send to Back moves the selected canvas item to the start of the array", async () => {
+        await seedIndexedDB(
+            [img1, img2],
+            [cutout1, cutout2, cutout3],
+            [canvasItem1, canvasItem2, canvasItem3],
+        );
+        await renderAndWaitForLoad();
+
+        expect(canvasItemIds()).toEqual(["ci-1", "ci-2", "ci-3"]);
+
+        fireEvent.click(screen.getByText("Select ci-3"));
+        fireEvent.click(screen.getByText("Send to Back"));
+
+        expect(canvasItemIds()).toEqual(["ci-3", "ci-1", "ci-2"]);
+    });
+
+    it("Bring to Front is a no-op when item is already on top", async () => {
+        await seedIndexedDB(
+            [img1, img2],
+            [cutout1, cutout2, cutout3],
+            [canvasItem1, canvasItem2, canvasItem3],
+        );
+        await renderAndWaitForLoad();
+
+        fireEvent.click(screen.getByText("Select ci-3"));
+        fireEvent.click(screen.getByText("Bring to Front"));
+
+        expect(canvasItemIds()).toEqual(["ci-1", "ci-2", "ci-3"]);
+    });
+
+    it("Send to Back is a no-op when item is already at bottom", async () => {
+        await seedIndexedDB(
+            [img1, img2],
+            [cutout1, cutout2, cutout3],
+            [canvasItem1, canvasItem2, canvasItem3],
+        );
+        await renderAndWaitForLoad();
+
+        fireEvent.click(screen.getByText("Select ci-1"));
+        fireEvent.click(screen.getByText("Send to Back"));
+
+        expect(canvasItemIds()).toEqual(["ci-1", "ci-2", "ci-3"]);
     });
 });

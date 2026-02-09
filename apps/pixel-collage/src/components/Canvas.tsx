@@ -11,7 +11,7 @@ import {
     TRANSFORMER_ANCHOR_STROKE,
     TRANSFORMER_ANCHOR_FILL,
     TRANSFORMER_ANCHOR_SIZE,
-    DELETE_BUTTON_VERTICAL_OFFSET,
+    TOOLBAR_VERTICAL_OFFSET,
 } from "../config";
 import type Konva from "konva";
 
@@ -20,6 +20,8 @@ interface CanvasProps {
     selectedItemId: string | null;
     onSelect: (id: string | null) => void;
     onDelete: (id: string) => void;
+    onBringToFront: (id: string) => void;
+    onSendToBack: (id: string) => void;
     onDragEnd: (id: string, x: number, y: number) => void;
     onTransformEnd: (
         id: string,
@@ -31,6 +33,83 @@ interface CanvasProps {
     ) => void;
     onResize: (size: { width: number; height: number }) => void;
     backgroundStyle: string;
+}
+
+function ToolbarButton({
+    label,
+    onClick,
+    icon,
+}: {
+    label: string;
+    onClick: () => void;
+    icon: React.ReactNode;
+}) {
+    return (
+        <button
+            onClick={onClick}
+            className="flex cursor-pointer items-center gap-1 rounded-md bg-pink-500 px-2 py-1 text-xs font-medium text-white shadow-md transition-colors hover:bg-pink-600"
+        >
+            {icon}
+            {label}
+        </button>
+    );
+}
+
+function BringToFrontIcon() {
+    return (
+        <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="12"
+            height="12"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+        >
+            <rect x="8" y="2" width="14" height="14" rx="2" />
+            <rect x="2" y="8" width="14" height="14" rx="2" opacity="0.4" />
+        </svg>
+    );
+}
+
+function SendToBackIcon() {
+    return (
+        <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="12"
+            height="12"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+        >
+            <rect x="2" y="2" width="14" height="14" rx="2" opacity="0.4" />
+            <rect x="8" y="8" width="14" height="14" rx="2" />
+        </svg>
+    );
+}
+
+function DeleteIcon() {
+    return (
+        <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="12"
+            height="12"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+        >
+            <polyline points="3 6 5 6 21 6" />
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+        </svg>
+    );
 }
 
 function CanvasImage({
@@ -139,6 +218,8 @@ export default function Canvas({
     selectedItemId,
     onSelect,
     onDelete,
+    onBringToFront,
+    onSendToBack,
     onDragEnd,
     onTransformEnd,
     onResize,
@@ -237,34 +318,33 @@ export default function Canvas({
                         </Layer>
                     </Stage>
                     {selectedItemId && buttonPos && (
-                        <button
-                            onClick={() => onDelete(selectedItemId)}
+                        <div
                             style={{
                                 position: "absolute",
                                 zIndex: 10,
                                 left: buttonPos.x,
-                                top: Math.max(0, buttonPos.y - DELETE_BUTTON_VERTICAL_OFFSET),
+                                top: Math.max(0, buttonPos.y - TOOLBAR_VERTICAL_OFFSET),
                                 transform: "translate(0, -100%)",
                                 pointerEvents: "auto",
                             }}
-                            className="flex items-center gap-1 rounded-md bg-pink-500 px-2 py-1 text-xs font-medium text-white shadow-md transition-colors hover:bg-pink-600 cursor-pointer"
+                            className="flex gap-1"
                         >
-                            <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="12"
-                                height="12"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                            >
-                                <polyline points="3 6 5 6 21 6" />
-                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                            </svg>
-                            Delete
-                        </button>
+                            <ToolbarButton
+                                label="Front"
+                                onClick={() => onBringToFront(selectedItemId)}
+                                icon={<BringToFrontIcon />}
+                            />
+                            <ToolbarButton
+                                label="Back"
+                                onClick={() => onSendToBack(selectedItemId)}
+                                icon={<SendToBackIcon />}
+                            />
+                            <ToolbarButton
+                                label="Delete"
+                                onClick={() => onDelete(selectedItemId)}
+                                icon={<DeleteIcon />}
+                            />
+                        </div>
                     )}
                 </>
             )}

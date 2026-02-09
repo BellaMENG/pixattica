@@ -18,7 +18,7 @@ export const TRANSFORMER_ANCHOR_STROKE = "deeppink";
 export const TRANSFORMER_ANCHOR_FILL = "white";
 export const TRANSFORMER_ANCHOR_SIZE = 8;
 
-export const DELETE_BUTTON_VERTICAL_OFFSET = 8;
+export const TOOLBAR_VERTICAL_OFFSET = 8;
 
 // ---------------------------------------------------------------------------
 // Image cropper
