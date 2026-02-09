@@ -13,6 +13,8 @@ yarn install              # Install all dependencies
 yarn build                # Build all apps
 yarn dev                  # Dev server for all apps
 yarn lint                 # Lint all apps
+yarn format               # Auto-format all files
+yarn format:check         # Check formatting (CI)
 yarn test                 # Test all apps
 
 # Filter to a single app

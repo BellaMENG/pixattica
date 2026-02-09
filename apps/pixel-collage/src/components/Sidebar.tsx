@@ -7,6 +7,8 @@ interface SidebarProps {
     onUpload: (image: UploadedImage) => void;
     onStartCrop: (imageId: string) => void;
     onAddToCanvas: (cutout: CroppedCutout) => void;
+    onDeleteImage: (id: string) => void;
+    onDeleteCutout: (id: string) => void;
     backgrounds: BackgroundOption[];
     selectedBgId: BackgroundId;
     onSelectBg: (id: BackgroundId) => void;
@@ -18,6 +20,8 @@ export default function Sidebar({
     onUpload,
     onStartCrop,
     onAddToCanvas,
+    onDeleteImage,
+    onDeleteCutout,
     backgrounds,
     selectedBgId,
     onSelectBg,
@@ -75,12 +79,21 @@ export default function Sidebar({
                                 />
                                 <div className="flex-1 min-w-0">
                                     <p className="truncate text-[10px] text-pink-600">{img.name}</p>
-                                    <button
-                                        onClick={() => onStartCrop(img.id)}
-                                        className="mt-0.5 rounded bg-pink-200 px-1.5 py-0.5 text-[10px] text-pink-700 hover:bg-pink-300 transition-colors cursor-pointer"
-                                    >
-                                        Crop
-                                    </button>
+                                    <div className="mt-0.5 flex gap-1">
+                                        <button
+                                            onClick={() => onStartCrop(img.id)}
+                                            className="rounded bg-pink-200 px-1.5 py-0.5 text-[10px] text-pink-700 hover:bg-pink-300 transition-colors cursor-pointer"
+                                        >
+                                            Crop
+                                        </button>
+                                        <button
+                                            onClick={() => onDeleteImage(img.id)}
+                                            className="rounded bg-pink-200 px-1.5 py-0.5 text-[10px] text-pink-700 hover:bg-pink-300 transition-colors cursor-pointer"
+                                            title="Delete image"
+                                        >
+                                            ×
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         ))}
@@ -123,12 +136,21 @@ export default function Sidebar({
                                     alt="Cutout"
                                     className="h-10 w-10 rounded object-contain bg-white"
                                 />
-                                <button
-                                    onClick={() => onAddToCanvas(cutout)}
-                                    className="rounded bg-pink-200 px-1.5 py-0.5 text-[10px] text-pink-700 hover:bg-pink-300 transition-colors cursor-pointer"
-                                >
-                                    Add to Canvas
-                                </button>
+                                <div className="flex gap-1">
+                                    <button
+                                        onClick={() => onAddToCanvas(cutout)}
+                                        className="rounded bg-pink-200 px-1.5 py-0.5 text-[10px] text-pink-700 hover:bg-pink-300 transition-colors cursor-pointer"
+                                    >
+                                        Add to Canvas
+                                    </button>
+                                    <button
+                                        onClick={() => onDeleteCutout(cutout.id)}
+                                        className="rounded bg-pink-200 px-1.5 py-0.5 text-[10px] text-pink-700 hover:bg-pink-300 transition-colors cursor-pointer"
+                                        title="Delete cutout"
+                                    >
+                                        ×
+                                    </button>
+                                </div>
                             </div>
                         ))}
                     </div>

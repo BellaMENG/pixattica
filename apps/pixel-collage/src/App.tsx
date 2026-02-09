@@ -91,6 +91,21 @@ export default function App() {
         ]);
     }
 
+    function handleDeleteImage(id: string) {
+        const cutoutIdsToRemove = new Set(
+            croppedCutouts.filter((c) => c.sourceImageId === id).map((c) => c.id),
+        );
+        setUploadedImages((prev) => prev.filter((img) => img.id !== id));
+        setCroppedCutouts((prev) => prev.filter((c) => c.sourceImageId !== id));
+        setCanvasItems((prev) => prev.filter((item) => !cutoutIdsToRemove.has(item.cutoutId)));
+        if (croppingImageId === id) setCroppingImageId(null);
+    }
+
+    function handleDeleteCutout(id: string) {
+        setCroppedCutouts((prev) => prev.filter((c) => c.id !== id));
+        setCanvasItems((prev) => prev.filter((item) => item.cutoutId !== id));
+    }
+
     function handleDeleteCanvasItem(id: string) {
         setCanvasItems((prev) => prev.filter((item) => item.id !== id));
         setSelectedCanvasItemId(null);
@@ -121,6 +136,8 @@ export default function App() {
                     onUpload={handleUpload}
                     onStartCrop={setCroppingImageId}
                     onAddToCanvas={handleAddToCanvas}
+                    onDeleteImage={handleDeleteImage}
+                    onDeleteCutout={handleDeleteCutout}
                     backgrounds={BACKGROUNDS}
                     selectedBgId={selectedBgId}
                     onSelectBg={setSelectedBgId}

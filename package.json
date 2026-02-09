@@ -9,8 +9,8 @@
         "build": "turbo build",
         "dev": "turbo dev",
         "lint": "oxlint .",
-        "format": "oxfmt --check .",
-        "format:fix": "oxfmt .",
+        "format": "oxfmt --list-different .",
+        "format:check": "oxfmt --check .",
         "test": "turbo test",
         "clean": "turbo clean",
         "prepare": "husky"
