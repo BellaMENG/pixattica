@@ -78,6 +78,8 @@ export default function App() {
     const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
     const [selectedCanvasItemId, setSelectedCanvasItemId] = useState<string | null>(null);
     const [croppingImageId, setCroppingImageId] = useState<string | null>(null);
+
+    const [uploadingNames, setUploadingNames] = useState<Map<string, string>>(new Map());
     const [selectedBgId, setSelectedBgId] = useLocalStorage<BackgroundId>(
         "selectedBgId",
         BackgroundId.Hearts,
@@ -89,24 +91,35 @@ export default function App() {
         ? (uploadedImages.find((img) => img.id === croppingImageId) ?? null)
         : null;
 
-    function handleUpload(image: UploadedImage) {
-        setUploadedImages((prev) => {
-            if (prev.some((img) => img.src === image.src)) return prev;
-            return [...prev, image];
-        });
+    async function processUpload(file: File) {
+        if (!ACCEPTED_IMAGE_TYPES.has(file.type)) return;
+
+        const tempId = crypto.randomUUID();
+        setUploadingNames((prev) => new Map(prev).set(tempId, file.name));
+
+        try {
+            const src = await readImageFile(file);
+            setUploadedImages((prev) => {
+                if (prev.some((img) => img.src === src)) return prev;
+                return [...prev, { id: crypto.randomUUID(), src, name: file.name }];
+            });
+        } catch {
+            // File read failures are silently ignored since there is
+            // no actionable recovery path for the user beyond retrying.
+        } finally {
+            setUploadingNames((prev) => {
+                const next = new Map(prev);
+                next.delete(tempId);
+                return next;
+            });
+        }
     }
 
     async function handleDrop(e: React.DragEvent) {
         e.preventDefault();
         const file = e.dataTransfer.files[0];
-        if (!file || !ACCEPTED_IMAGE_TYPES.has(file.type)) return;
-
-        const src = await readImageFile(file);
-        handleUpload({
-            id: crypto.randomUUID(),
-            src,
-            name: file.name,
-        });
+        if (!file) return;
+        processUpload(file);
     }
 
     function handleCropDone(cutout: CroppedCutout) {
@@ -198,7 +211,8 @@ export default function App() {
                 <Sidebar
                     uploadedImages={uploadedImages}
                     croppedCutouts={croppedCutouts}
-                    onUpload={handleUpload}
+                    uploadingNames={uploadingNames}
+                    onFileSelect={processUpload}
                     onStartCrop={setCroppingImageId}
                     onAddToCanvas={handleAddToCanvas}
                     onDeleteImage={handleDeleteImage}

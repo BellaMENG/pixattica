@@ -7,12 +7,12 @@ import {
     type BackgroundOption,
     type BackgroundId,
 } from "../App";
-import { readImageFile } from "../utils/readImageFile";
 
 interface SidebarProps {
     uploadedImages: UploadedImage[];
     croppedCutouts: CroppedCutout[];
-    onUpload: (image: UploadedImage) => void;
+    uploadingNames: Map<string, string>;
+    onFileSelect: (file: File) => void;
     onStartCrop: (imageId: string) => void;
     onAddToCanvas: (cutout: CroppedCutout) => void;
     onDeleteImage: (id: string) => void;
@@ -25,7 +25,8 @@ interface SidebarProps {
 export default function Sidebar({
     uploadedImages,
     croppedCutouts,
-    onUpload,
+    uploadingNames,
+    onFileSelect,
     onStartCrop,
     onAddToCanvas,
     onDeleteImage,
@@ -36,17 +37,11 @@ export default function Sidebar({
 }: SidebarProps) {
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
         const file = e.target.files?.[0];
         if (!file || !ACCEPTED_IMAGE_TYPES.has(file.type)) return;
 
-        const src = await readImageFile(file);
-        onUpload({
-            id: crypto.randomUUID(),
-            src,
-            name: file.name,
-        });
-
+        onFileSelect(file);
         e.target.value = "";
     }
 
@@ -68,7 +63,7 @@ export default function Sidebar({
                     onChange={handleFileChange}
                 />
 
-                {uploadedImages.length === 0 ? (
+                {uploadedImages.length === 0 && uploadingNames.size === 0 ? (
                     <p className="text-[10px] text-pink-300">No images yet</p>
                 ) : (
                     <div className="space-y-2">
@@ -99,6 +94,18 @@ export default function Sidebar({
                                             ×
                                         </button>
                                     </div>
+                                </div>
+                            </div>
+                        ))}
+                        {Array.from(uploadingNames).map(([tempId, fileName]) => (
+                            <div
+                                key={tempId}
+                                data-testid="upload-loading-placeholder"
+                                className="flex items-center gap-2 rounded border border-pink-200 p-1"
+                            >
+                                <div className="h-10 w-10 rounded bg-pink-200 animate-pulse" />
+                                <div className="flex-1 min-w-0">
+                                    <p className="truncate text-[10px] text-pink-600">{fileName}</p>
                                 </div>
                             </div>
                         ))}

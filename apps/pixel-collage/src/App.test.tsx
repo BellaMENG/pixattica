@@ -1,5 +1,5 @@
 import "fake-indexeddb/auto";
-import { render, screen, fireEvent, cleanup, waitFor } from "@testing-library/react";
+import { render, screen, fireEvent, cleanup, waitFor, act } from "@testing-library/react";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 import App from "./App";
@@ -8,6 +8,20 @@ import { saveValue } from "./utils/imageStorage";
 
 vi.mock("heic2any", () => ({
     default: vi.fn().mockResolvedValue(new Blob(["converted"], { type: "image/jpeg" })),
+}));
+
+let resolveReadImageFile: (value: string) => void;
+let rejectReadImageFile: (reason: unknown) => void;
+
+function createDeferredReadImageFile() {
+    return new Promise<string>((resolve, reject) => {
+        resolveReadImageFile = resolve;
+        rejectReadImageFile = reject;
+    });
+}
+
+vi.mock("./utils/readImageFile", () => ({
+    readImageFile: vi.fn(() => createDeferredReadImageFile()),
 }));
 
 vi.mock("./components/Canvas", () => ({
@@ -114,6 +128,10 @@ describe("file upload validation", () => {
 
         simulateFileSelect(getFileInput(), fileName, mimeType);
 
+        await act(async () => {
+            resolveReadImageFile(`data:${mimeType};base64,fakedata`);
+        });
+
         await waitFor(() => {
             expect(screen.getByText(fileName)).toBeInTheDocument();
         });
@@ -219,6 +237,84 @@ describe("delete handlers", () => {
             expect(screen.getByText("No images yet")).toBeInTheDocument();
             expect(screen.getByText("No cutouts yet")).toBeInTheDocument();
             expect(screen.queryByTestId("canvas-item-ci-1")).not.toBeInTheDocument();
+        });
+    });
+});
+
+describe("loading card during image upload", () => {
+    afterEach(() => {
+        cleanup();
+    });
+
+    beforeEach(() => {
+        globalThis.indexedDB = new IDBFactory();
+        localStorage.clear();
+    });
+
+    it("shows a loading placeholder immediately when upload starts", async () => {
+        await renderAndWaitForLoad();
+
+        simulateFileSelect(getFileInput(), "photo.png", "image/png");
+
+        await waitFor(() => {
+            expect(screen.getByText("photo.png")).toBeInTheDocument();
+        });
+        expect(screen.getByTestId("upload-loading-placeholder")).toBeInTheDocument();
+    });
+
+    it("removes the loading placeholder after upload completes", async () => {
+        await renderAndWaitForLoad();
+
+        simulateFileSelect(getFileInput(), "photo.png", "image/png");
+
+        await waitFor(() => {
+            expect(screen.getByTestId("upload-loading-placeholder")).toBeInTheDocument();
+        });
+
+        await act(async () => {
+            resolveReadImageFile("data:image/png;base64,fakedata");
+        });
+
+        await waitFor(() => {
+            expect(screen.queryByTestId("upload-loading-placeholder")).not.toBeInTheDocument();
+        });
+        expect(screen.getByText("photo.png")).toBeInTheDocument();
+    });
+
+    it("suppresses 'No images yet' while upload is in progress", async () => {
+        await renderAndWaitForLoad();
+        expect(screen.getByText("No images yet")).toBeInTheDocument();
+
+        simulateFileSelect(getFileInput(), "photo.png", "image/png");
+
+        await waitFor(() => {
+            expect(screen.queryByText("No images yet")).not.toBeInTheDocument();
+        });
+
+        await act(async () => {
+            resolveReadImageFile("data:image/png;base64,fakedata");
+        });
+
+        await waitFor(() => {
+            expect(screen.queryByText("No images yet")).not.toBeInTheDocument();
+        });
+    });
+
+    it("removes the loading placeholder after upload fails", async () => {
+        await renderAndWaitForLoad();
+
+        simulateFileSelect(getFileInput(), "photo.png", "image/png");
+
+        await waitFor(() => {
+            expect(screen.getByTestId("upload-loading-placeholder")).toBeInTheDocument();
+        });
+
+        await act(async () => {
+            rejectReadImageFile(new Error("read failed"));
+        });
+
+        await waitFor(() => {
+            expect(screen.queryByTestId("upload-loading-placeholder")).not.toBeInTheDocument();
         });
     });
 });
