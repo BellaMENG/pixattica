@@ -1,7 +1,7 @@
 import { useRef, useEffect, useState } from "react";
 import { Stage, Layer, Image as KonvaImage, Transformer } from "react-konva";
 import useImage from "use-image";
-import { ACCEPTED_IMAGE_TYPES, type CanvasItem, type UploadedImage } from "../App";
+import type { CanvasItem } from "../App";
 import {
     SELECTION_SHADOW_COLOR,
     SELECTION_SHADOW_BLUR,
@@ -13,7 +13,6 @@ import {
     TRANSFORMER_ANCHOR_SIZE,
     DELETE_BUTTON_VERTICAL_OFFSET,
 } from "../config";
-import { readImageFile } from "../utils/readImageFile";
 import type Konva from "konva";
 
 interface CanvasProps {
@@ -30,7 +29,6 @@ interface CanvasProps {
         scaleY: number,
         rotation: number,
     ) => void;
-    onUpload: (image: UploadedImage) => void;
     onResize: (size: { width: number; height: number }) => void;
     backgroundStyle: string;
 }
@@ -143,7 +141,6 @@ export default function Canvas({
     onDelete,
     onDragEnd,
     onTransformEnd,
-    onUpload,
     onResize,
     backgroundStyle,
 }: CanvasProps) {
@@ -192,19 +189,6 @@ export default function Canvas({
         return () => window.removeEventListener("keydown", handleKeyDown);
     }, [selectedItemId, onDelete]);
 
-    async function handleDrop(e: React.DragEvent) {
-        e.preventDefault();
-        const file = e.dataTransfer.files[0];
-        if (!file || !ACCEPTED_IMAGE_TYPES.has(file.type)) return;
-
-        const src = await readImageFile(file);
-        onUpload({
-            id: crypto.randomUUID(),
-            src,
-            name: file.name,
-        });
-    }
-
     function handleStageMouseDown(e: Konva.KonvaEventObject<MouseEvent>) {
         if (e.target === e.target.getStage()) {
             onSelect(null);
@@ -216,8 +200,6 @@ export default function Canvas({
             ref={containerRef}
             className="relative flex-1"
             style={{ background: backgroundStyle }}
-            onDragOver={(e) => e.preventDefault()}
-            onDrop={handleDrop}
         >
             {size.width > 0 && size.height > 0 && (
                 <>

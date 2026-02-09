@@ -5,6 +5,7 @@ import Sidebar from "./components/Sidebar";
 import { MAX_CUTOUT_SIZE_RATIO } from "./config";
 import { useIndexedDB } from "./hooks/useIndexedDB";
 import { useLocalStorage } from "./hooks/useLocalStorage";
+import { readImageFile } from "./utils/readImageFile";
 
 export interface UploadedImage {
     id: string;
@@ -92,6 +93,19 @@ export default function App() {
         setUploadedImages((prev) => [...prev, image]);
     }
 
+    async function handleDrop(e: React.DragEvent) {
+        e.preventDefault();
+        const file = e.dataTransfer.files[0];
+        if (!file || !ACCEPTED_IMAGE_TYPES.has(file.type)) return;
+
+        const src = await readImageFile(file);
+        handleUpload({
+            id: crypto.randomUUID(),
+            src,
+            name: file.name,
+        });
+    }
+
     function handleCropDone(cutout: CroppedCutout) {
         setCroppedCutouts((prev) => [...prev, cutout]);
         setCroppingImageId(null);
@@ -172,7 +186,11 @@ export default function App() {
     }
 
     return (
-        <div className="flex h-screen items-center justify-center bg-pink-100">
+        <div
+            className="flex h-screen items-center justify-center bg-pink-100"
+            onDragOver={(e) => e.preventDefault()}
+            onDrop={handleDrop}
+        >
             <div className="flex h-[80vh] w-[80vw] overflow-hidden rounded-lg border-4 border-pink-300 shadow-lg">
                 <Sidebar
                     uploadedImages={uploadedImages}
@@ -193,7 +211,6 @@ export default function App() {
                     onDelete={handleDeleteCanvasItem}
                     onDragEnd={handleItemDragEnd}
                     onTransformEnd={handleItemTransformEnd}
-                    onUpload={handleUpload}
                     onResize={setCanvasSize}
                     backgroundStyle={backgroundStyle}
                 />
