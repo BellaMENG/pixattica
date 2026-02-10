@@ -12,6 +12,7 @@ import {
     TRANSFORMER_ANCHOR_FILL,
     TRANSFORMER_ANCHOR_SIZE,
     TOOLBAR_VERTICAL_OFFSET,
+    CANVAS_FIT_PADDING,
 } from "../config";
 import type Konva from "konva";
 
@@ -31,7 +32,8 @@ interface CanvasProps {
         scaleY: number,
         rotation: number,
     ) => void;
-    onResize: (size: { width: number; height: number }) => void;
+    canvasWidth: number;
+    canvasHeight: number;
     backgroundStyle: string;
 }
 
@@ -213,6 +215,20 @@ function CanvasImage({
     );
 }
 
+function computeFitScale(
+    containerWidth: number,
+    containerHeight: number,
+    canvasWidth: number,
+    canvasHeight: number,
+): number {
+    if (containerWidth <= 0 || containerHeight <= 0) return 1;
+    return Math.min(
+        (containerWidth - CANVAS_FIT_PADDING * 2) / canvasWidth,
+        (containerHeight - CANVAS_FIT_PADDING * 2) / canvasHeight,
+        1,
+    );
+}
+
 export default function Canvas({
     items,
     selectedItemId,
@@ -222,11 +238,12 @@ export default function Canvas({
     onSendToBack,
     onDragEnd,
     onTransformEnd,
-    onResize,
+    canvasWidth,
+    canvasHeight,
     backgroundStyle,
 }: CanvasProps) {
     const containerRef = useRef<HTMLDivElement>(null);
-    const [size, setSize] = useState({ width: 0, height: 0 });
+    const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
     const [dragPos, setDragPos] = useState<{ x: number; y: number } | null>(null);
 
     const selectedItem = selectedItemId
@@ -235,6 +252,15 @@ export default function Canvas({
 
     const buttonPos = selectedItem ? (dragPos ?? { x: selectedItem.x, y: selectedItem.y }) : null;
 
+    const fitScale = computeFitScale(
+        containerSize.width,
+        containerSize.height,
+        canvasWidth,
+        canvasHeight,
+    );
+    const visualWidth = canvasWidth * fitScale;
+    const visualHeight = canvasHeight * fitScale;
+
     useEffect(() => {
         const el = containerRef.current;
         if (!el) return;
@@ -242,17 +268,15 @@ export default function Canvas({
         const observer = new ResizeObserver((entries) => {
             const entry = entries[0];
             if (entry) {
-                const newSize = {
+                setContainerSize({
                     width: entry.contentRect.width,
                     height: entry.contentRect.height,
-                };
-                setSize(newSize);
-                onResize(newSize);
+                });
             }
         });
         observer.observe(el);
         return () => observer.disconnect();
-    }, [onResize]);
+    }, []);
 
     useEffect(() => {
         setDragPos(null);
@@ -279,14 +303,25 @@ export default function Canvas({
     return (
         <main
             ref={containerRef}
-            className="relative flex-1"
-            style={{ background: backgroundStyle }}
+            className="relative flex-1 flex items-center justify-center bg-pink-100"
         >
-            {size.width > 0 && size.height > 0 && (
-                <>
+            <div
+                className="overflow-hidden rounded-lg border-4 border-pink-400"
+                style={{ width: visualWidth, height: visualHeight }}
+            >
+                <div
+                    className="relative"
+                    style={{
+                        width: canvasWidth,
+                        height: canvasHeight,
+                        transform: `scale(${fitScale})`,
+                        transformOrigin: "0 0",
+                        background: backgroundStyle,
+                    }}
+                >
                     <Stage
-                        width={size.width}
-                        height={size.height}
+                        width={canvasWidth}
+                        height={canvasHeight}
                         onMouseDown={handleStageMouseDown}
                         onTouchStart={
                             handleStageMouseDown as unknown as (
@@ -346,8 +381,8 @@ export default function Canvas({
                             />
                         </div>
                     )}
-                </>
-            )}
+                </div>
+            </div>
         </main>
     );
 }

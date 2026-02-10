@@ -7,6 +7,7 @@ import {
     type BackgroundOption,
     type BackgroundId,
 } from "../App";
+import type { CanvasSizeOption, CanvasSizeId } from "../config";
 
 const VISIBLE_CARDS = 2;
 
@@ -24,6 +25,9 @@ interface SidebarProps {
     backgrounds: BackgroundOption[];
     selectedBgId: BackgroundId;
     onSelectBg: (id: BackgroundId) => void;
+    canvasSizes: CanvasSizeOption[];
+    selectedCanvasSizeId: CanvasSizeId;
+    onSelectCanvasSize: (id: CanvasSizeId) => void;
 }
 
 function clampStartIndex(startIndex: number, totalCount: number): number {
@@ -216,6 +220,9 @@ export default function Sidebar({
     backgrounds,
     selectedBgId,
     onSelectBg,
+    canvasSizes,
+    selectedCanvasSizeId,
+    onSelectCanvasSize,
 }: SidebarProps) {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -378,6 +385,35 @@ export default function Sidebar({
                                 }`}
                                 style={{ background: bg.style }}
                             />
+                        ))}
+                    </div>
+                </section>
+
+                <section className="mb-6">
+                    <h3 className="mb-2 text-xs text-pink-600">Canvas Size</h3>
+                    <div className="grid grid-cols-3 gap-2">
+                        {canvasSizes.map((size) => (
+                            <button
+                                key={size.id}
+                                title={`${size.label} (${size.width}x${size.height})`}
+                                onClick={() => onSelectCanvasSize(size.id)}
+                                className={`flex flex-col items-center justify-center rounded border-2 p-1.5 cursor-pointer transition-colors ${
+                                    selectedCanvasSizeId === size.id
+                                        ? "border-pink-500 ring-2 ring-pink-300 bg-pink-100"
+                                        : "border-pink-200 hover:border-pink-400 bg-white"
+                                }`}
+                            >
+                                <div
+                                    className="border border-pink-300 bg-pink-50 mb-1"
+                                    style={{
+                                        width: size.width > size.height ? 28 : 21,
+                                        height: size.height > size.width ? 28 : 21,
+                                    }}
+                                />
+                                <span className="text-[8px] text-pink-600 leading-tight">
+                                    {size.tier[0]}
+                                </span>
+                            </button>
                         ))}
                     </div>
                 </section>

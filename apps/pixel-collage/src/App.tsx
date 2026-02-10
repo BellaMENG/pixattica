@@ -3,7 +3,12 @@ import AnimatedCursor from "./components/AnimatedCursor";
 import Canvas from "./components/Canvas";
 import ImageCropper from "./components/ImageCropper";
 import Sidebar from "./components/Sidebar";
-import { MAX_CUTOUT_SIZE_RATIO } from "./config";
+import {
+    MAX_CUTOUT_SIZE_RATIO,
+    type CanvasSizeId,
+    CANVAS_SIZES,
+    detectCanvasSizeId,
+} from "./config";
 import { useIndexedDB } from "./hooks/useIndexedDB";
 import { useLocalStorage } from "./hooks/useLocalStorage";
 import { readImageFile } from "./utils/readImageFile";
@@ -76,7 +81,11 @@ export default function App() {
         [],
     );
     const isLoading = imagesLoading || cutoutsLoading || canvasItemsLoading;
-    const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
+    const [selectedCanvasSizeId, setSelectedCanvasSizeId] = useLocalStorage<CanvasSizeId>(
+        "canvasSizeId",
+        detectCanvasSizeId(),
+    );
+    const canvasSize = CANVAS_SIZES.find((s) => s.id === selectedCanvasSizeId) ?? CANVAS_SIZES[0];
     const [selectedCanvasItemId, setSelectedCanvasItemId] = useState<string | null>(null);
     const [croppingImageId, setCroppingImageId] = useState<string | null>(null);
 
@@ -245,6 +254,9 @@ export default function App() {
                         backgrounds={BACKGROUNDS}
                         selectedBgId={selectedBgId}
                         onSelectBg={setSelectedBgId}
+                        canvasSizes={CANVAS_SIZES}
+                        selectedCanvasSizeId={selectedCanvasSizeId}
+                        onSelectCanvasSize={setSelectedCanvasSizeId}
                     />
                     <Canvas
                         items={canvasItems}
@@ -255,7 +267,8 @@ export default function App() {
                         onSendToBack={handleSendToBack}
                         onDragEnd={handleItemDragEnd}
                         onTransformEnd={handleItemTransformEnd}
-                        onResize={setCanvasSize}
+                        canvasWidth={canvasSize.width}
+                        canvasHeight={canvasSize.height}
                         backgroundStyle={backgroundStyle}
                     />
                 </div>

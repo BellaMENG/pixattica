@@ -1,4 +1,89 @@
 // ---------------------------------------------------------------------------
+// Canvas size presets
+// ---------------------------------------------------------------------------
+
+export enum CanvasSizeId {
+    SmallLandscape = "small-landscape",
+    SmallPortrait = "small-portrait",
+    MediumLandscape = "medium-landscape",
+    MediumPortrait = "medium-portrait",
+    LargeLandscape = "large-landscape",
+    LargePortrait = "large-portrait",
+}
+
+export interface CanvasSizeOption {
+    id: CanvasSizeId;
+    label: string;
+    width: number;
+    height: number;
+    tier: string;
+}
+
+export const CANVAS_SIZES: CanvasSizeOption[] = [
+    {
+        id: CanvasSizeId.SmallLandscape,
+        label: "Small Landscape",
+        width: 800,
+        height: 600,
+        tier: "Small",
+    },
+    {
+        id: CanvasSizeId.MediumLandscape,
+        label: "Medium Landscape",
+        width: 1200,
+        height: 900,
+        tier: "Medium",
+    },
+    {
+        id: CanvasSizeId.LargeLandscape,
+        label: "Large Landscape",
+        width: 1600,
+        height: 1200,
+        tier: "Large",
+    },
+    {
+        id: CanvasSizeId.SmallPortrait,
+        label: "Small Portrait",
+        width: 600,
+        height: 800,
+        tier: "Small",
+    },
+    {
+        id: CanvasSizeId.MediumPortrait,
+        label: "Medium Portrait",
+        width: 900,
+        height: 1200,
+        tier: "Medium",
+    },
+    {
+        id: CanvasSizeId.LargePortrait,
+        label: "Large Portrait",
+        width: 1200,
+        height: 1600,
+        tier: "Large",
+    },
+];
+
+export const CANVAS_FIT_PADDING = 24;
+export const CANVAS_TIER_BREAKPOINT_MEDIUM = 1024;
+export const CANVAS_TIER_BREAKPOINT_LARGE = 1536;
+
+export function detectCanvasSizeId(): CanvasSizeId {
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    const maxDimension = Math.max(vw, vh);
+    const isLandscape = vw >= vh;
+
+    if (maxDimension >= CANVAS_TIER_BREAKPOINT_LARGE) {
+        return isLandscape ? CanvasSizeId.LargeLandscape : CanvasSizeId.LargePortrait;
+    }
+    if (maxDimension >= CANVAS_TIER_BREAKPOINT_MEDIUM) {
+        return isLandscape ? CanvasSizeId.MediumLandscape : CanvasSizeId.MediumPortrait;
+    }
+    return isLandscape ? CanvasSizeId.SmallLandscape : CanvasSizeId.SmallPortrait;
+}
+
+// ---------------------------------------------------------------------------
 // Canvas item placement
 // ---------------------------------------------------------------------------
 
