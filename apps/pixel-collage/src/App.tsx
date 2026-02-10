@@ -1,5 +1,6 @@
 import { useRef, useState } from "react";
 import type Konva from "konva";
+import { Footer } from "@pixattica/ui";
 import AnimatedCursor from "./components/AnimatedCursor";
 import Canvas from "./components/Canvas";
 import ImageCropper from "./components/ImageCropper";
@@ -298,49 +299,52 @@ export default function App() {
         <>
             <AnimatedCursor />
             <div
-                className="flex h-screen items-center justify-center bg-pink-100"
+                className="flex h-screen flex-col bg-pink-100"
                 onDragOver={(e) => e.preventDefault()}
                 onDrop={handleDrop}
             >
-                <div className="flex h-[80vh] w-[80vw] overflow-hidden rounded-lg border-4 border-pink-300 shadow-lg">
-                    <Sidebar
-                        uploadedImages={uploadedImages}
-                        croppedCutouts={croppedCutouts}
-                        uploadingNames={uploadingNames}
-                        onFileSelect={processUpload}
-                        onStartCrop={setCroppingImageId}
-                        onAddToCanvas={handleAddToCanvas}
-                        onDeleteImage={handleDeleteImage}
-                        onDeleteCutout={handleDeleteCutout}
-                        onAddText={handleAddText}
-                        backgrounds={BACKGROUNDS}
-                        selectedBgId={selectedBgId}
-                        onSelectBg={setSelectedBgId}
-                        onSaveImage={handleSaveImage}
-                        onEmailImage={handleEmailImage}
-                    />
-                    <Canvas
-                        items={canvasItems}
-                        selectedItemId={selectedCanvasItemId}
-                        onSelect={setSelectedCanvasItemId}
-                        onDelete={handleDeleteCanvasItem}
-                        onBringToFront={handleBringToFront}
-                        onSendToBack={handleSendToBack}
-                        onDragEnd={handleItemDragEnd}
-                        onTransformEnd={handleItemTransformEnd}
-                        onResize={setCanvasSize}
-                        backgroundStyle={backgroundStyle}
-                        stageRef={stageRef}
-                    />
-                </div>
+                <div className="flex flex-1 items-center justify-center">
+                    <div className="flex h-[80vh] w-[80vw] overflow-hidden rounded-lg border-4 border-pink-300 shadow-lg">
+                        <Sidebar
+                            uploadedImages={uploadedImages}
+                            croppedCutouts={croppedCutouts}
+                            uploadingNames={uploadingNames}
+                            onFileSelect={processUpload}
+                            onStartCrop={setCroppingImageId}
+                            onAddToCanvas={handleAddToCanvas}
+                            onDeleteImage={handleDeleteImage}
+                            onDeleteCutout={handleDeleteCutout}
+                            onAddText={handleAddText}
+                            backgrounds={BACKGROUNDS}
+                            selectedBgId={selectedBgId}
+                            onSelectBg={setSelectedBgId}
+                            onSaveImage={handleSaveImage}
+                            onEmailImage={handleEmailImage}
+                        />
+                        <Canvas
+                            items={canvasItems}
+                            selectedItemId={selectedCanvasItemId}
+                            onSelect={setSelectedCanvasItemId}
+                            onDelete={handleDeleteCanvasItem}
+                            onBringToFront={handleBringToFront}
+                            onSendToBack={handleSendToBack}
+                            onDragEnd={handleItemDragEnd}
+                            onTransformEnd={handleItemTransformEnd}
+                            onResize={setCanvasSize}
+                            backgroundStyle={backgroundStyle}
+                            stageRef={stageRef}
+                        />
+                    </div>
 
-                {croppingImage && (
-                    <ImageCropper
-                        image={croppingImage}
-                        onDone={handleCropDone}
-                        onCancel={() => setCroppingImageId(null)}
-                    />
-                )}
+                    {croppingImage && (
+                        <ImageCropper
+                            image={croppingImage}
+                            onDone={handleCropDone}
+                            onCancel={() => setCroppingImageId(null)}
+                        />
+                    )}
+                </div>
+                <Footer instagramUrl={import.meta.env.VITE_INSTAGRAM_URL} />
             </div>
         </>
     );

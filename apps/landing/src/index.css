@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@source "../../../packages/ui/src";
 
 body {
     font-family: "Press Start 2P", cursive;

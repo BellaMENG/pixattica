@@ -6,11 +6,12 @@
     "scripts": {
         "dev": "vite",
         "build": "tsc -b && vite build",
-        "test": "vitest run",
+        "test": "vitest run --passWithNoTests",
         "preview": "vite preview",
         "clean": "rm -rf dist node_modules .turbo"
     },
     "dependencies": {
+        "@pixattica/ui": "*",
         "react": "^19",
         "react-dom": "^19"
     },

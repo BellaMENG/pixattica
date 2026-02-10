@@ -1,0 +1,4 @@
+{
+    "extends": "@pixattica/tsconfig/react-app.json",
+    "include": ["src"]
+}

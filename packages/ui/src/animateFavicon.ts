@@ -1,10 +1,3 @@
-import {
-    FAVICON_SIZE,
-    FAVICON_HEART_COLOR,
-    FAVICON_HIGHLIGHT_COLOR,
-    FAVICON_ANIMATION_CYCLE_FRAMES,
-} from "./config";
-
 const HEART = [
     [0, 1, 1, 0, 0, 1, 1, 0],
     [1, 1, 1, 1, 1, 1, 1, 1],
@@ -16,11 +9,12 @@ const HEART = [
 
 const COLS = HEART[0].length;
 const ROWS = HEART.length;
-const SIZE = FAVICON_SIZE;
+const SIZE = 32;
 const CELL = SIZE / COLS;
 const OFFSET_Y = (SIZE - ROWS * CELL) / 2;
-const COLOR = FAVICON_HEART_COLOR;
-const HIGHLIGHT = FAVICON_HIGHLIGHT_COLOR;
+const COLOR = "#ff4f8a";
+const HIGHLIGHT = "#ff87b2";
+const CYCLE_FRAMES = 300;
 
 export function animateFavicon() {
     const canvas = document.createElement("canvas");
@@ -36,7 +30,7 @@ export function animateFavicon() {
     document.head.appendChild(link);
 
     let angle = 0;
-    const SPEED = (2 * Math.PI) / FAVICON_ANIMATION_CYCLE_FRAMES;
+    const SPEED = (2 * Math.PI) / CYCLE_FRAMES;
 
     function draw() {
         const scaleX = Math.cos(angle);

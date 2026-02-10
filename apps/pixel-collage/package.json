@@ -12,6 +12,7 @@
     },
     "dependencies": {
         "@imgly/background-removal": "^1.7.0",
+        "@pixattica/ui": "*",
         "heic2any": "^0.0.4",
         "konva": "^10.2.0",
         "onnxruntime-web": "1.21.0",

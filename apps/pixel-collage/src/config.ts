@@ -55,12 +55,3 @@ export const HEIC_CONVERSION_QUALITY = 0.92;
 // ---------------------------------------------------------------------------
 
 export const LOCAL_STORAGE_PREFIX = "pixel-collage:";
-
-// ---------------------------------------------------------------------------
-// Favicon animation
-// ---------------------------------------------------------------------------
-
-export const FAVICON_SIZE = 32;
-export const FAVICON_HEART_COLOR = "#ff4f8a";
-export const FAVICON_HIGHLIGHT_COLOR = "#ff87b2";
-export const FAVICON_ANIMATION_CYCLE_FRAMES = 300;
