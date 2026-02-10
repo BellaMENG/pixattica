@@ -1,0 +1,28 @@
+{
+    "name": "@pixattica/landing",
+    "version": "0.0.0",
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "dev": "vite",
+        "build": "tsc -b && vite build",
+        "test": "vitest run",
+        "preview": "vite preview",
+        "clean": "rm -rf dist node_modules .turbo"
+    },
+    "dependencies": {
+        "react": "^19",
+        "react-dom": "^19"
+    },
+    "devDependencies": {
+        "@pixattica/tsconfig": "*",
+        "@tailwindcss/vite": "^4",
+        "@types/react": "^19",
+        "@types/react-dom": "^19",
+        "@vitejs/plugin-react": "^4",
+        "tailwindcss": "^4",
+        "typescript": "^5",
+        "vite": "^6",
+        "vitest": "^3"
+    }
+}
