@@ -126,6 +126,7 @@ export default function App() {
     function handleCropDone(cutout: CroppedCutout) {
         setCroppedCutouts((prev) => [...prev, cutout]);
         setCroppingImageId(null);
+        handleAddToCanvas(cutout);
     }
 
     function handleAddToCanvas(cutout: CroppedCutout) {
