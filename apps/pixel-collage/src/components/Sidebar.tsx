@@ -103,11 +103,44 @@ function ScrollableCardList({
     onScrollDown: () => void;
     children: ReactNode;
 }) {
+    const containerRef = useRef<HTMLDivElement>(null);
     const canScrollUp = startIndex > 0;
     const canScrollDown = startIndex + VISIBLE_CARDS < totalCount;
 
+    const isWindowed = totalCount > VISIBLE_CARDS;
+    const latestRef = useRef({ canScrollUp, canScrollDown, onScrollUp, onScrollDown, isWindowed });
+    latestRef.current = { canScrollUp, canScrollDown, onScrollUp, onScrollDown, isWindowed };
+
+    useEffect(() => {
+        const el = containerRef.current;
+        if (!el) return;
+
+        function handleWheel(e: WheelEvent) {
+            const { canScrollUp, canScrollDown, onScrollUp, onScrollDown, isWindowed } =
+                latestRef.current;
+
+            if (!isWindowed) return;
+
+            e.preventDefault();
+            e.stopPropagation();
+
+            if (e.deltaY > 0 && canScrollDown) {
+                onScrollDown();
+            } else if (e.deltaY < 0 && canScrollUp) {
+                onScrollUp();
+            }
+        }
+
+        el.addEventListener("wheel", handleWheel, { passive: false });
+        return () => el.removeEventListener("wheel", handleWheel);
+    }, []);
+
     return (
-        <div className="rounded-lg border-2 border-pink-200 p-2">
+        <div
+            ref={containerRef}
+            data-scrollable-cards
+            className="rounded-lg border-2 border-pink-200 p-2"
+        >
             <ScrollArrow
                 direction="up"
                 label={`Scroll ${sectionName} up`}
@@ -242,6 +275,21 @@ export default function Sidebar({
         updateSidebarScrollState();
     });
 
+    useEffect(() => {
+        const el = scrollContainerRef.current;
+        if (!el) return;
+
+        function handleWheel(e: WheelEvent) {
+            const target = e.target as HTMLElement;
+            if (target.closest("[data-scrollable-cards]")) {
+                e.preventDefault();
+            }
+        }
+
+        el.addEventListener("wheel", handleWheel, { passive: false });
+        return () => el.removeEventListener("wheel", handleWheel);
+    }, []);
+
     function scrollSidebar(direction: ScrollDirection) {
         scrollContainerRef.current?.scrollBy({
             top: direction === "up" ? -SIDEBAR_SCROLL_AMOUNT : SIDEBAR_SCROLL_AMOUNT,
@@ -293,7 +341,7 @@ export default function Sidebar({
             <div
                 ref={scrollContainerRef}
                 onScroll={updateSidebarScrollState}
-                className="flex-1 overflow-hidden p-4 pt-0 pb-0"
+                className="flex-1 overflow-y-auto scrollbar-hide p-4 pt-0 pb-0"
             >
                 <section className="mb-6">
                     <h3 className="mb-2 text-xs text-pink-600">Images</h3>
