@@ -422,6 +422,30 @@ describe("z-order controls", () => {
     });
 });
 
+describe("sidebar scroll arrows", () => {
+    afterEach(() => {
+        cleanup();
+    });
+
+    beforeEach(() => {
+        globalThis.indexedDB = new IDBFactory();
+        localStorage.clear();
+    });
+
+    it("renders sidebar up and down scroll arrows", async () => {
+        await renderAndWaitForLoad();
+
+        expect(screen.getByLabelText("Scroll sidebar up")).toBeInTheDocument();
+        expect(screen.getByLabelText("Scroll sidebar down")).toBeInTheDocument();
+    });
+
+    it("sidebar up arrow is disabled initially", async () => {
+        await renderAndWaitForLoad();
+
+        expect(screen.getByLabelText("Scroll sidebar up")).toBeDisabled();
+    });
+});
+
 describe("scrollable card sections", () => {
     afterEach(() => {
         cleanup();
