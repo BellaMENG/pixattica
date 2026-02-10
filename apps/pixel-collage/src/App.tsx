@@ -116,11 +116,11 @@ export default function App() {
         }
     }
 
-    async function handleDrop(e: React.DragEvent) {
+    function handleDrop(e: React.DragEvent) {
         e.preventDefault();
-        const file = e.dataTransfer.files[0];
-        if (!file) return;
-        processUpload(file);
+        for (const file of Array.from(e.dataTransfer.files)) {
+            processUpload(file);
+        }
     }
 
     function handleCropDone(cutout: CroppedCutout) {

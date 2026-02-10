@@ -243,10 +243,14 @@ export default function Sidebar({
     }
 
     function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
-        const file = e.target.files?.[0];
-        if (!file || !ACCEPTED_IMAGE_TYPES.has(file.type)) return;
+        const files = e.target.files;
+        if (!files) return;
 
-        onFileSelect(file);
+        for (const file of Array.from(files)) {
+            if (ACCEPTED_IMAGE_TYPES.has(file.type)) {
+                onFileSelect(file);
+            }
+        }
         e.target.value = "";
     }
 
@@ -296,6 +300,7 @@ export default function Sidebar({
                         ref={fileInputRef}
                         type="file"
                         accept={ACCEPTED_IMAGE_EXTENSIONS}
+                        multiple
                         className="hidden"
                         onChange={handleFileChange}
                     />

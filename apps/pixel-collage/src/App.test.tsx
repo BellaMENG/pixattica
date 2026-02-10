@@ -5,6 +5,13 @@ import "@testing-library/jest-dom/vitest";
 import App from "./App";
 import { ACCEPTED_IMAGE_TYPES } from "./App";
 import { saveValue } from "./utils/imageStorage";
+import { readImageFile } from "./utils/readImageFile";
+
+vi.mock("./utils/readImageFile", () => ({
+    readImageFile: vi.fn(() => createDeferredReadImageFile()),
+}));
+
+const mockedReadImageFile = vi.mocked(readImageFile);
 
 vi.mock("heic2any", () => ({
     default: vi.fn().mockResolvedValue(new Blob(["converted"], { type: "image/jpeg" })),
@@ -19,10 +26,6 @@ function createDeferredReadImageFile() {
         rejectReadImageFile = reject;
     });
 }
-
-vi.mock("./utils/readImageFile", () => ({
-    readImageFile: vi.fn(() => createDeferredReadImageFile()),
-}));
 
 vi.mock("./components/Canvas", () => ({
     default: ({
@@ -126,6 +129,25 @@ function simulateFileSelect(input: HTMLInputElement, name: string, type: string)
     const file = new File(["fake-image-data"], name, { type });
     Object.defineProperty(input, "files", { value: [file], configurable: true });
     fireEvent.change(input);
+}
+
+function simulateMultiFileSelect(
+    input: HTMLInputElement,
+    files: Array<{ name: string; type: string }>,
+) {
+    const fileList = files.map((f) => new File(["fake-image-data"], f.name, { type: f.type }));
+    Object.defineProperty(input, "files", { value: fileList, configurable: true });
+    fireEvent.change(input);
+}
+
+function simulateMultiFileDrop(
+    dropTarget: HTMLElement,
+    files: Array<{ name: string; type: string }>,
+) {
+    const fileList = files.map((f) => new File(["fake-image-data"], f.name, { type: f.type }));
+    fireEvent.drop(dropTarget, {
+        dataTransfer: { files: fileList },
+    });
 }
 
 describe("file upload validation", () => {
@@ -585,5 +607,81 @@ describe("scrollable card sections", () => {
             expect(screen.getByLabelText("Scroll cutouts down")).toBeDisabled();
             expect(screen.getByLabelText("Scroll cutouts up")).toBeDisabled();
         });
+    });
+});
+
+describe("multi-file upload", () => {
+    afterEach(() => {
+        cleanup();
+    });
+
+    beforeEach(() => {
+        globalThis.indexedDB = new IDBFactory();
+        localStorage.clear();
+        mockedReadImageFile.mockReset();
+    });
+
+    it("uploads multiple files selected via the file input", async () => {
+        mockedReadImageFile
+            .mockResolvedValueOnce("data:image/png;base64,aaa")
+            .mockResolvedValueOnce("data:image/jpeg;base64,bbb");
+
+        await renderAndWaitForLoad();
+        expect(screen.getByText("No images yet")).toBeInTheDocument();
+
+        await act(async () => {
+            simulateMultiFileSelect(getFileInput(), [
+                { name: "cat.png", type: "image/png" },
+                { name: "dog.jpg", type: "image/jpeg" },
+            ]);
+        });
+
+        await waitFor(() => {
+            expect(screen.getByText("cat.png")).toBeInTheDocument();
+            expect(screen.getByText("dog.jpg")).toBeInTheDocument();
+        });
+        expect(mockedReadImageFile).toHaveBeenCalledTimes(2);
+    });
+
+    it("uploads multiple files via drag and drop", async () => {
+        mockedReadImageFile
+            .mockResolvedValueOnce("data:image/png;base64,aaa")
+            .mockResolvedValueOnce("data:image/webp;base64,bbb");
+
+        await renderAndWaitForLoad();
+        expect(screen.getByText("No images yet")).toBeInTheDocument();
+
+        const dropTarget = screen.getByText("No images yet").closest("[class*='flex h-screen']")!;
+
+        await act(async () => {
+            simulateMultiFileDrop(dropTarget, [
+                { name: "photo1.png", type: "image/png" },
+                { name: "photo2.webp", type: "image/webp" },
+            ]);
+        });
+
+        await waitFor(() => {
+            expect(screen.getByText("photo1.png")).toBeInTheDocument();
+            expect(screen.getByText("photo2.webp")).toBeInTheDocument();
+        });
+        expect(mockedReadImageFile).toHaveBeenCalledTimes(2);
+    });
+
+    it("skips invalid files in a multi-file selection", async () => {
+        mockedReadImageFile.mockResolvedValueOnce("data:image/png;base64,aaa");
+
+        await renderAndWaitForLoad();
+
+        await act(async () => {
+            simulateMultiFileSelect(getFileInput(), [
+                { name: "cat.png", type: "image/png" },
+                { name: "notes.txt", type: "text/plain" },
+            ]);
+        });
+
+        await waitFor(() => {
+            expect(screen.getByText("cat.png")).toBeInTheDocument();
+        });
+        expect(mockedReadImageFile).toHaveBeenCalledTimes(1);
     });
 });
