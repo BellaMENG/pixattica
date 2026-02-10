@@ -652,7 +652,9 @@ describe("multi-file upload", () => {
         await renderAndWaitForLoad();
         expect(screen.getByText("No images yet")).toBeInTheDocument();
 
-        const dropTarget = screen.getByText("No images yet").closest("[class*='flex h-screen']")!;
+        const dropTarget = screen
+            .getByText("No images yet")
+            .closest("[class*='flex h-screen']") as HTMLElement;
 
         await act(async () => {
             simulateMultiFileDrop(dropTarget, [

@@ -11,8 +11,10 @@
         "clean": "rm -rf dist node_modules .turbo"
     },
     "dependencies": {
+        "@imgly/background-removal": "^1.7.0",
         "heic2any": "^0.0.4",
         "konva": "^10.2.0",
+        "onnxruntime-web": "1.21.0",
         "prop-types": "^15.8.1",
         "react": "^19",
         "react-dom": "^19",

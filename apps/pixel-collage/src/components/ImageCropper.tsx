@@ -1,7 +1,9 @@
+import { removeBackground } from "@imgly/background-removal";
 import { useState } from "react";
 import { ReactLassoSelect, getCanvas } from "react-lasso-select";
 import type { UploadedImage, CroppedCutout } from "../App";
 import { MIN_LASSO_POINTS, CROPPER_IMAGE_MAX_HEIGHT, CROPPER_IMAGE_MAX_WIDTH } from "../config";
+import { blobToDataUrl } from "../utils/blobToDataUrl";
 
 interface Point {
     x: number;
@@ -17,6 +19,7 @@ interface ImageCropperProps {
 export default function ImageCropper({ image, onDone, onCancel }: ImageCropperProps) {
     const [points, setPoints] = useState<Point[]>([]);
     const [clippedSrc, setClippedSrc] = useState<string | null>(null);
+    const [isRemovingBg, setIsRemovingBg] = useState(false);
 
     function handleComplete(path: Point[]) {
         if (path.length < MIN_LASSO_POINTS) return;
@@ -39,6 +42,21 @@ export default function ImageCropper({ image, onDone, onCancel }: ImageCropperPr
     function handleReset() {
         setPoints([]);
         setClippedSrc(null);
+    }
+
+    async function handleRemoveBg() {
+        setIsRemovingBg(true);
+        try {
+            const blob = await removeBackground(image.src);
+            const src = await blobToDataUrl(blob);
+            onDone({
+                id: crypto.randomUUID(),
+                src,
+                sourceImageId: image.id,
+            });
+        } finally {
+            setIsRemovingBg(false);
+        }
     }
 
     return (
@@ -75,20 +93,29 @@ export default function ImageCropper({ image, onDone, onCancel }: ImageCropperPr
 
                 <div className="mt-3 flex justify-end gap-2">
                     <button
+                        onClick={handleRemoveBg}
+                        disabled={isRemovingBg}
+                        className="rounded bg-pink-100 px-3 py-1 text-[11px] text-pink-600 hover:bg-pink-200 disabled:opacity-40 transition-colors cursor-pointer"
+                    >
+                        {isRemovingBg ? "Removing..." : "Remove BG"}
+                    </button>
+                    <button
                         onClick={handleReset}
-                        className="rounded bg-pink-100 px-3 py-1 text-[11px] text-pink-600 hover:bg-pink-200 transition-colors cursor-pointer"
+                        disabled={isRemovingBg}
+                        className="rounded bg-pink-100 px-3 py-1 text-[11px] text-pink-600 hover:bg-pink-200 disabled:opacity-40 transition-colors cursor-pointer"
                     >
                         Reset
                     </button>
                     <button
                         onClick={onCancel}
-                        className="rounded bg-pink-100 px-3 py-1 text-[11px] text-pink-600 hover:bg-pink-200 transition-colors cursor-pointer"
+                        disabled={isRemovingBg}
+                        className="rounded bg-pink-100 px-3 py-1 text-[11px] text-pink-600 hover:bg-pink-200 disabled:opacity-40 transition-colors cursor-pointer"
                     >
                         Cancel
                     </button>
                     <button
                         onClick={handleDone}
-                        disabled={!clippedSrc}
+                        disabled={!clippedSrc || isRemovingBg}
                         className="rounded bg-pink-400 px-3 py-1 text-[11px] text-white hover:bg-pink-500 disabled:opacity-40 transition-colors cursor-pointer"
                     >
                         Done
