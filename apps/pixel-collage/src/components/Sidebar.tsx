@@ -23,6 +23,8 @@ interface SidebarProps {
     backgrounds: BackgroundOption[];
     selectedBgId: BackgroundId;
     onSelectBg: (id: BackgroundId) => void;
+    onSaveImage: () => void;
+    onEmailImage: () => void;
 }
 
 function clampStartIndex(startIndex: number, totalCount: number): number {
@@ -248,6 +250,8 @@ export default function Sidebar({
     backgrounds,
     selectedBgId,
     onSelectBg,
+    onSaveImage,
+    onEmailImage,
 }: SidebarProps) {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -426,6 +430,24 @@ export default function Sidebar({
                                 style={{ background: bg.style }}
                             />
                         ))}
+                    </div>
+                </section>
+
+                <section className="mt-6 mb-4">
+                    <h3 className="mb-2 text-xs text-pink-600">Export</h3>
+                    <div className="flex gap-2">
+                        <button
+                            onClick={onSaveImage}
+                            className="flex-1 rounded bg-pink-400 px-2 py-1 text-[11px] text-white hover:bg-pink-500 transition-colors cursor-pointer"
+                        >
+                            Save Image
+                        </button>
+                        <button
+                            onClick={onEmailImage}
+                            className="flex-1 rounded bg-pink-400 px-2 py-1 text-[11px] text-white hover:bg-pink-500 transition-colors cursor-pointer"
+                        >
+                            Email
+                        </button>
                     </div>
                 </section>
             </div>

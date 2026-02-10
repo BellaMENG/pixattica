@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
+import type Konva from "konva";
 import AnimatedCursor from "./components/AnimatedCursor";
 import Canvas from "./components/Canvas";
 import ImageCropper from "./components/ImageCropper";
@@ -6,6 +7,7 @@ import Sidebar from "./components/Sidebar";
 import { MAX_CUTOUT_SIZE_RATIO } from "./config";
 import { useIndexedDB } from "./hooks/useIndexedDB";
 import { useLocalStorage } from "./hooks/useLocalStorage";
+import { exportCanvasToBlob, downloadBlob } from "./utils/exportCanvas";
 import { readImageFile } from "./utils/readImageFile";
 
 export interface UploadedImage {
@@ -85,6 +87,8 @@ export default function App() {
         "selectedBgId",
         BackgroundId.Hearts,
     );
+
+    const stageRef = useRef<Konva.Stage>(null);
 
     const backgroundStyle = BACKGROUNDS.find((bg) => bg.id === selectedBgId)?.style ?? "white";
 
@@ -213,6 +217,29 @@ export default function App() {
         );
     }
 
+    async function handleSaveImage() {
+        if (!stageRef.current) return;
+        const blob = await exportCanvasToBlob(
+            stageRef.current,
+            backgroundStyle,
+            canvasSize.width,
+            canvasSize.height,
+        );
+        downloadBlob(blob, "pixattica-collage.png");
+    }
+
+    async function handleEmailImage() {
+        if (!stageRef.current) return;
+        const blob = await exportCanvasToBlob(
+            stageRef.current,
+            backgroundStyle,
+            canvasSize.width,
+            canvasSize.height,
+        );
+        downloadBlob(blob, "pixattica-collage.png");
+        window.open("mailto:?subject=My%20Pixattica%20Collage");
+    }
+
     if (isLoading) {
         return (
             <>
@@ -245,6 +272,8 @@ export default function App() {
                         backgrounds={BACKGROUNDS}
                         selectedBgId={selectedBgId}
                         onSelectBg={setSelectedBgId}
+                        onSaveImage={handleSaveImage}
+                        onEmailImage={handleEmailImage}
                     />
                     <Canvas
                         items={canvasItems}
@@ -257,6 +286,7 @@ export default function App() {
                         onTransformEnd={handleItemTransformEnd}
                         onResize={setCanvasSize}
                         backgroundStyle={backgroundStyle}
+                        stageRef={stageRef}
                     />
                 </div>
 

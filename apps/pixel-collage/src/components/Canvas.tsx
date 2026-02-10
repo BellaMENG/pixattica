@@ -35,6 +35,7 @@ interface CanvasProps {
     ) => void;
     onResize: (size: { width: number; height: number }) => void;
     backgroundStyle: string;
+    stageRef?: React.RefObject<Konva.Stage | null>;
 }
 
 function ToolbarButton({
@@ -261,6 +262,7 @@ export default function Canvas({
     onTransformEnd,
     onResize,
     backgroundStyle,
+    stageRef,
 }: CanvasProps) {
     const containerRef = useRef<HTMLDivElement>(null);
     const canvasSizeRef = useRef<{ width: number; height: number } | null>(null);
@@ -347,6 +349,7 @@ export default function Canvas({
                     }}
                 >
                     <Stage
+                        ref={stageRef}
                         width={canvasWidth}
                         height={canvasHeight}
                         onMouseDown={handleStageMouseDown}

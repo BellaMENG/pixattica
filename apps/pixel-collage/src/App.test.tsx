@@ -34,6 +34,7 @@ vi.mock("./components/Canvas", () => ({
         onSelect,
         onBringToFront,
         onSendToBack,
+        stageRef,
     }: {
         items: Array<{ id: string }>;
         selectedItemId: string | null;
@@ -41,25 +42,40 @@ vi.mock("./components/Canvas", () => ({
         onBringToFront: (id: string) => void;
         onSendToBack: (id: string) => void;
         onResize: (size: { width: number; height: number }) => void;
-    }) => (
-        <div data-testid="canvas">
-            {items.map((item) => (
-                <div key={item.id} data-testid={`canvas-item-${item.id}`}>
-                    <button onClick={() => onSelect(item.id)}>Select {item.id}</button>
-                </div>
-            ))}
-            {selectedItemId && (
-                <div data-testid="item-toolbar">
-                    <button onClick={() => onBringToFront(selectedItemId)}>Bring to Front</button>
-                    <button onClick={() => onSendToBack(selectedItemId)}>Send to Back</button>
-                </div>
-            )}
-        </div>
-    ),
+        stageRef?: React.RefObject<unknown>;
+    }) => {
+        if (stageRef && !stageRef.current) {
+            (stageRef as React.MutableRefObject<unknown>).current = {
+                toCanvas: () => document.createElement("canvas"),
+            };
+        }
+        return (
+            <div data-testid="canvas">
+                {items.map((item) => (
+                    <div key={item.id} data-testid={`canvas-item-${item.id}`}>
+                        <button onClick={() => onSelect(item.id)}>Select {item.id}</button>
+                    </div>
+                ))}
+                {selectedItemId && (
+                    <div data-testid="item-toolbar">
+                        <button onClick={() => onBringToFront(selectedItemId)}>
+                            Bring to Front
+                        </button>
+                        <button onClick={() => onSendToBack(selectedItemId)}>Send to Back</button>
+                    </div>
+                )}
+            </div>
+        );
+    },
 }));
 
 vi.mock("./components/ImageCropper", () => ({
     default: () => null,
+}));
+
+vi.mock("./utils/exportCanvas", () => ({
+    exportCanvasToBlob: vi.fn().mockResolvedValue(new Blob(["fake-png"], { type: "image/png" })),
+    downloadBlob: vi.fn(),
 }));
 
 const img1 = { id: "img-1", src: "data:image/png;base64,img1", name: "photo1.png" };
@@ -686,5 +702,56 @@ describe("multi-file upload", () => {
             expect(screen.getByText("cat.png")).toBeInTheDocument();
         });
         expect(mockedReadImageFile).toHaveBeenCalledTimes(1);
+    });
+});
+
+describe("export buttons", () => {
+    afterEach(() => {
+        cleanup();
+    });
+
+    beforeEach(() => {
+        globalThis.indexedDB = new IDBFactory();
+        localStorage.clear();
+    });
+
+    it("renders Save Image and Email buttons in the sidebar", async () => {
+        await renderAndWaitForLoad();
+
+        expect(screen.getByText("Save Image")).toBeInTheDocument();
+        expect(screen.getByText("Email")).toBeInTheDocument();
+    });
+
+    it("clicking Save Image triggers a download", async () => {
+        const { downloadBlob } = await import("./utils/exportCanvas");
+        const mockedDownload = vi.mocked(downloadBlob);
+        mockedDownload.mockClear();
+
+        await renderAndWaitForLoad();
+
+        await act(async () => {
+            fireEvent.click(screen.getByText("Save Image"));
+        });
+
+        expect(mockedDownload).toHaveBeenCalledWith(expect.any(Blob), "pixattica-collage.png");
+    });
+
+    it("clicking Email triggers download and opens mailto link", async () => {
+        const { downloadBlob } = await import("./utils/exportCanvas");
+        const mockedDownload = vi.mocked(downloadBlob);
+        mockedDownload.mockClear();
+
+        const openSpy = vi.spyOn(window, "open").mockImplementation(() => null);
+
+        await renderAndWaitForLoad();
+
+        await act(async () => {
+            fireEvent.click(screen.getByText("Email"));
+        });
+
+        expect(mockedDownload).toHaveBeenCalledWith(expect.any(Blob), "pixattica-collage.png");
+        expect(openSpy).toHaveBeenCalledWith("mailto:?subject=My%20Pixattica%20Collage");
+
+        openSpy.mockRestore();
     });
 });
