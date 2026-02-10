@@ -28,6 +28,14 @@ export const TRANSFORMER_ANCHOR_SIZE = 8;
 export const TOOLBAR_VERTICAL_OFFSET = 8;
 
 // ---------------------------------------------------------------------------
+// Canvas text items
+// ---------------------------------------------------------------------------
+
+export const TEXT_FONT_FAMILY = '"Press Start 2P"';
+export const TEXT_FONT_SIZE = 24;
+export const TEXT_FILL = "deeppink";
+
+// ---------------------------------------------------------------------------
 // Image cropper
 // ---------------------------------------------------------------------------
 

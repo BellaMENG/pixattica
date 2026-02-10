@@ -4,7 +4,7 @@ import AnimatedCursor from "./components/AnimatedCursor";
 import Canvas from "./components/Canvas";
 import ImageCropper from "./components/ImageCropper";
 import Sidebar from "./components/Sidebar";
-import { MAX_CUTOUT_SIZE_RATIO } from "./config";
+import { MAX_CUTOUT_SIZE_RATIO, TEXT_FONT_FAMILY, TEXT_FONT_SIZE } from "./config";
 import { useIndexedDB } from "./hooks/useIndexedDB";
 import { useLocalStorage } from "./hooks/useLocalStorage";
 import { exportCanvasToBlob, downloadBlob } from "./utils/exportCanvas";
@@ -22,16 +22,27 @@ export interface CroppedCutout {
     sourceImageId: string;
 }
 
-export interface CanvasItem {
+interface CanvasItemBase {
     id: string;
-    cutoutId: string;
-    src: string;
     x: number;
     y: number;
     scaleX: number;
     scaleY: number;
     rotation: number;
 }
+
+export interface CanvasImageItem extends CanvasItemBase {
+    type: "image";
+    cutoutId: string;
+    src: string;
+}
+
+export interface CanvasTextItem extends CanvasItemBase {
+    type: "text";
+    text: string;
+}
+
+export type CanvasItem = CanvasImageItem | CanvasTextItem;
 
 export const ACCEPTED_IMAGE_TYPES = new Set([
     "image/png",
@@ -63,6 +74,15 @@ const BACKGROUNDS: BackgroundOption[] = [
     { id: BackgroundId.Pink, label: "Light Pink", style: "#fce7f3" },
     { id: BackgroundId.Hearts, label: "Pixel Hearts", style: "url('/bg-pixel-hearts.svg') repeat" },
 ];
+
+function measureTextWidth(text: string): number {
+    const ctx = document.createElement("canvas").getContext("2d");
+    if (ctx) {
+        ctx.font = `${TEXT_FONT_SIZE}px ${TEXT_FONT_FAMILY}`;
+        return ctx.measureText(text).width;
+    }
+    return text.length * TEXT_FONT_SIZE * 0.6;
+}
 
 export default function App() {
     const [uploadedImages, setUploadedImages, imagesLoading] = useIndexedDB<UploadedImage[]>(
@@ -146,6 +166,7 @@ export default function App() {
             setCanvasItems((prev) => [
                 ...prev,
                 {
+                    type: "image",
                     id: crypto.randomUUID(),
                     cutoutId: cutout.id,
                     src: cutout.src,
@@ -160,19 +181,41 @@ export default function App() {
         img.src = cutout.src;
     }
 
+    function handleAddText(text: string) {
+        const textWidth = measureTextWidth(text);
+
+        setCanvasItems((prev) => [
+            ...prev,
+            {
+                type: "text",
+                id: crypto.randomUUID(),
+                text,
+                x: canvasSize.width / 2 - textWidth / 2,
+                y: canvasSize.height / 2 - TEXT_FONT_SIZE / 2,
+                scaleX: 1,
+                scaleY: 1,
+                rotation: 0,
+            },
+        ]);
+    }
+
     function handleDeleteImage(id: string) {
         const cutoutIdsToRemove = new Set(
             croppedCutouts.filter((c) => c.sourceImageId === id).map((c) => c.id),
         );
         setUploadedImages((prev) => prev.filter((img) => img.id !== id));
         setCroppedCutouts((prev) => prev.filter((c) => c.sourceImageId !== id));
-        setCanvasItems((prev) => prev.filter((item) => !cutoutIdsToRemove.has(item.cutoutId)));
+        setCanvasItems((prev) =>
+            prev.filter((item) => item.type !== "image" || !cutoutIdsToRemove.has(item.cutoutId)),
+        );
         if (croppingImageId === id) setCroppingImageId(null);
     }
 
     function handleDeleteCutout(id: string) {
         setCroppedCutouts((prev) => prev.filter((c) => c.id !== id));
-        setCanvasItems((prev) => prev.filter((item) => item.cutoutId !== id));
+        setCanvasItems((prev) =>
+            prev.filter((item) => item.type !== "image" || item.cutoutId !== id),
+        );
     }
 
     function handleDeleteCanvasItem(id: string) {
@@ -269,6 +312,7 @@ export default function App() {
                         onAddToCanvas={handleAddToCanvas}
                         onDeleteImage={handleDeleteImage}
                         onDeleteCutout={handleDeleteCutout}
+                        onAddText={handleAddText}
                         backgrounds={BACKGROUNDS}
                         selectedBgId={selectedBgId}
                         onSelectBg={setSelectedBgId}

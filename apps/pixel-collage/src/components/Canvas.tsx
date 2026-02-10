@@ -1,7 +1,7 @@
 import { useRef, useEffect, useState } from "react";
-import { Stage, Layer, Image as KonvaImage, Transformer } from "react-konva";
+import { Stage, Layer, Image as KonvaImage, Text, Transformer } from "react-konva";
 import useImage from "use-image";
-import type { CanvasItem } from "../App";
+import type { CanvasItem, CanvasImageItem, CanvasTextItem } from "../App";
 import {
     SELECTION_SHADOW_COLOR,
     SELECTION_SHADOW_BLUR,
@@ -14,6 +14,9 @@ import {
     TOOLBAR_VERTICAL_OFFSET,
     CANVAS_FIT_PADDING,
     CANVAS_ASPECT_RATIO,
+    TEXT_FONT_FAMILY,
+    TEXT_FONT_SIZE,
+    TEXT_FILL,
 } from "../config";
 import type Konva from "konva";
 
@@ -123,7 +126,7 @@ function CanvasImage({
     onDragMove,
     onTransformEnd,
 }: {
-    item: CanvasItem;
+    item: CanvasImageItem;
     isSelected: boolean;
     onSelect: () => void;
     onDragEnd: (x: number, y: number) => void;
@@ -182,6 +185,109 @@ function CanvasImage({
                 }}
                 onTransformEnd={() => {
                     const node = imageRef.current;
+                    if (!node) return;
+                    onTransformEnd(
+                        node.x(),
+                        node.y(),
+                        node.scaleX(),
+                        node.scaleY(),
+                        node.rotation(),
+                    );
+                }}
+            />
+            {isSelected && (
+                <Transformer
+                    ref={transformerRef}
+                    rotateEnabled={true}
+                    keepRatio={true}
+                    boundBoxFunc={(_oldBox, newBox) => {
+                        if (
+                            newBox.width < TRANSFORMER_MIN_SIZE ||
+                            newBox.height < TRANSFORMER_MIN_SIZE
+                        ) {
+                            return _oldBox;
+                        }
+                        return newBox;
+                    }}
+                    borderStroke={TRANSFORMER_BORDER_STROKE}
+                    anchorStroke={TRANSFORMER_ANCHOR_STROKE}
+                    anchorFill={TRANSFORMER_ANCHOR_FILL}
+                    anchorSize={TRANSFORMER_ANCHOR_SIZE}
+                />
+            )}
+        </>
+    );
+}
+
+function CanvasText({
+    item,
+    isSelected,
+    onSelect,
+    onDragEnd,
+    onDragMove,
+    onTransformEnd,
+}: {
+    item: CanvasTextItem;
+    isSelected: boolean;
+    onSelect: () => void;
+    onDragEnd: (x: number, y: number) => void;
+    onDragMove: (x: number, y: number) => void;
+    onTransformEnd: (
+        x: number,
+        y: number,
+        scaleX: number,
+        scaleY: number,
+        rotation: number,
+    ) => void;
+}) {
+    const textRef = useRef<Konva.Text>(null);
+    const transformerRef = useRef<Konva.Transformer>(null);
+
+    useEffect(() => {
+        if (!textRef.current) return;
+        if (isSelected) {
+            textRef.current.shadowColor(SELECTION_SHADOW_COLOR);
+            textRef.current.shadowBlur(SELECTION_SHADOW_BLUR);
+            textRef.current.shadowOpacity(SELECTION_SHADOW_OPACITY);
+            textRef.current.shadowOffset({ x: 0, y: 0 });
+        } else {
+            textRef.current.shadowBlur(0);
+            textRef.current.shadowOpacity(0);
+        }
+        textRef.current.getLayer()?.batchDraw();
+    }, [isSelected]);
+
+    useEffect(() => {
+        if (isSelected && transformerRef.current && textRef.current) {
+            transformerRef.current.nodes([textRef.current]);
+            transformerRef.current.getLayer()?.batchDraw();
+        }
+    }, [isSelected]);
+
+    return (
+        <>
+            <Text
+                ref={textRef}
+                text={item.text}
+                fontFamily={TEXT_FONT_FAMILY}
+                fontSize={TEXT_FONT_SIZE}
+                fill={TEXT_FILL}
+                x={item.x}
+                y={item.y}
+                scaleX={item.scaleX}
+                scaleY={item.scaleY}
+                rotation={item.rotation}
+                draggable
+                onClick={onSelect}
+                onTap={onSelect}
+                onDragEnd={(e) => {
+                    onDragEnd(e.target.x(), e.target.y());
+                }}
+                onDragMove={(e) => {
+                    onDragMove(e.target.x(), e.target.y());
+                }}
+                onTransformEnd={() => {
+                    const node = textRef.current;
                     if (!node) return;
                     onTransformEnd(
                         node.x(),
@@ -360,26 +466,36 @@ export default function Canvas({
                         }
                     >
                         <Layer>
-                            {items.map((item) => (
-                                <CanvasImage
-                                    key={item.id}
-                                    item={item}
-                                    isSelected={item.id === selectedItemId}
-                                    onSelect={() => onSelect(item.id)}
-                                    onDragEnd={(x, y) => {
+                            {items.map((item) => {
+                                const shared = {
+                                    key: item.id,
+                                    isSelected: item.id === selectedItemId,
+                                    onSelect: () => onSelect(item.id),
+                                    onDragEnd: (x: number, y: number) => {
                                         setDragPos(null);
                                         onDragEnd(item.id, x, y);
-                                    }}
-                                    onDragMove={(x, y) => {
+                                    },
+                                    onDragMove: (x: number, y: number) => {
                                         if (item.id === selectedItemId) {
                                             setDragPos({ x, y });
                                         }
-                                    }}
-                                    onTransformEnd={(x, y, scaleX, scaleY, rotation) => {
+                                    },
+                                    onTransformEnd: (
+                                        x: number,
+                                        y: number,
+                                        scaleX: number,
+                                        scaleY: number,
+                                        rotation: number,
+                                    ) => {
                                         onTransformEnd(item.id, x, y, scaleX, scaleY, rotation);
-                                    }}
-                                />
-                            ))}
+                                    },
+                                };
+                                return item.type === "text" ? (
+                                    <CanvasText key={item.id} {...shared} item={item} />
+                                ) : (
+                                    <CanvasImage key={item.id} {...shared} item={item} />
+                                );
+                            })}
                         </Layer>
                     </Stage>
                     {selectedItemId && buttonPos && (

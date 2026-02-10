@@ -36,7 +36,7 @@ vi.mock("./components/Canvas", () => ({
         onSendToBack,
         stageRef,
     }: {
-        items: Array<{ id: string }>;
+        items: Array<{ id: string; type: string; text?: string }>;
         selectedItemId: string | null;
         onSelect: (id: string | null) => void;
         onBringToFront: (id: string) => void;
@@ -52,7 +52,12 @@ vi.mock("./components/Canvas", () => ({
         return (
             <div data-testid="canvas">
                 {items.map((item) => (
-                    <div key={item.id} data-testid={`canvas-item-${item.id}`}>
+                    <div
+                        key={item.id}
+                        data-testid={`canvas-item-${item.id}`}
+                        data-type={item.type}
+                        data-text={item.text ?? ""}
+                    >
                         <button onClick={() => onSelect(item.id)}>Select {item.id}</button>
                     </div>
                 ))}
@@ -91,6 +96,7 @@ const cutout4 = { id: "cutout-4", src: "data:image/png;base64,c4", sourceImageId
 const cutout5 = { id: "cutout-5", src: "data:image/png;base64,c5", sourceImageId: "img-4" };
 
 const canvasItem1 = {
+    type: "image" as const,
     id: "ci-1",
     cutoutId: "cutout-1",
     src: "data:image/png;base64,c1",
@@ -101,6 +107,7 @@ const canvasItem1 = {
     rotation: 0,
 };
 const canvasItem2 = {
+    type: "image" as const,
     id: "ci-2",
     cutoutId: "cutout-2",
     src: "data:image/png;base64,c2",
@@ -111,6 +118,7 @@ const canvasItem2 = {
     rotation: 0,
 };
 const canvasItem3 = {
+    type: "image" as const,
     id: "ci-3",
     cutoutId: "cutout-3",
     src: "data:image/png;base64,c3",
@@ -753,5 +761,65 @@ describe("export buttons", () => {
         expect(openSpy).toHaveBeenCalledWith("mailto:?subject=My%20Pixattica%20Collage");
 
         openSpy.mockRestore();
+    });
+});
+
+describe("add text to canvas", () => {
+    afterEach(() => {
+        cleanup();
+    });
+
+    beforeEach(() => {
+        globalThis.indexedDB = new IDBFactory();
+        localStorage.clear();
+    });
+
+    it("renders the Add Text button disabled when input is empty", async () => {
+        await renderAndWaitForLoad();
+
+        const addTextButton = screen.getByText("Add Text");
+        expect(addTextButton).toBeDisabled();
+    });
+
+    it("enables the Add Text button when text is entered", async () => {
+        await renderAndWaitForLoad();
+
+        const input = screen.getByPlaceholderText("Type text...");
+        fireEvent.change(input, { target: { value: "Hello" } });
+
+        expect(screen.getByText("Add Text")).not.toBeDisabled();
+    });
+
+    it("adds a text item to the canvas when Add Text is clicked", async () => {
+        await renderAndWaitForLoad();
+
+        const input = screen.getByPlaceholderText("Type text...");
+        fireEvent.change(input, { target: { value: "Hello World" } });
+        fireEvent.click(screen.getByText("Add Text"));
+
+        const canvas = screen.getByTestId("canvas");
+        const textItems = canvas.querySelectorAll('[data-type="text"]');
+        expect(textItems).toHaveLength(1);
+        expect(textItems[0].getAttribute("data-text")).toBe("Hello World");
+    });
+
+    it("clears the input after adding text", async () => {
+        await renderAndWaitForLoad();
+
+        const input = screen.getByPlaceholderText("Type text...");
+        fireEvent.change(input, { target: { value: "Hello" } });
+        fireEvent.click(screen.getByText("Add Text"));
+
+        expect(input).toHaveValue("");
+        expect(screen.getByText("Add Text")).toBeDisabled();
+    });
+
+    it("does not add a text item when input is only whitespace", async () => {
+        await renderAndWaitForLoad();
+
+        const input = screen.getByPlaceholderText("Type text...");
+        fireEvent.change(input, { target: { value: "   " } });
+
+        expect(screen.getByText("Add Text")).toBeDisabled();
     });
 });

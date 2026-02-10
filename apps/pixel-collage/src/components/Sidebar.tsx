@@ -20,6 +20,7 @@ interface SidebarProps {
     onAddToCanvas: (cutout: CroppedCutout) => void;
     onDeleteImage: (id: string) => void;
     onDeleteCutout: (id: string) => void;
+    onAddText: (text: string) => void;
     backgrounds: BackgroundOption[];
     selectedBgId: BackgroundId;
     onSelectBg: (id: BackgroundId) => void;
@@ -247,6 +248,7 @@ export default function Sidebar({
     onAddToCanvas,
     onDeleteImage,
     onDeleteCutout,
+    onAddText,
     backgrounds,
     selectedBgId,
     onSelectBg,
@@ -257,6 +259,7 @@ export default function Sidebar({
     const scrollContainerRef = useRef<HTMLDivElement>(null);
     const [imageStartIndex, setImageStartIndex] = useState(0);
     const [cutoutStartIndex, setCutoutStartIndex] = useState(0);
+    const [textInput, setTextInput] = useState("");
     const [canScrollSidebarUp, setCanScrollSidebarUp] = useState(false);
     const [canScrollSidebarDown, setCanScrollSidebarDown] = useState(false);
 
@@ -412,6 +415,34 @@ export default function Sidebar({
                             ))}
                         </ScrollableCardList>
                     )}
+                </section>
+
+                <section className="mb-6">
+                    <h3 className="mb-2 text-xs text-pink-600">Text</h3>
+                    <form
+                        onSubmit={(e) => {
+                            e.preventDefault();
+                            if (!textInput.trim()) return;
+                            onAddText(textInput.trim());
+                            setTextInput("");
+                        }}
+                        className="flex gap-2"
+                    >
+                        <input
+                            type="text"
+                            value={textInput}
+                            onChange={(e) => setTextInput(e.target.value)}
+                            placeholder="Type text..."
+                            className="flex-1 min-w-0 rounded border-2 border-pink-200 bg-white px-2 py-1 text-[11px] text-pink-700 placeholder-pink-300 outline-none focus:border-pink-400"
+                        />
+                        <button
+                            type="submit"
+                            disabled={!textInput.trim()}
+                            className="rounded bg-pink-400 px-2 py-1 text-[11px] text-white hover:bg-pink-500 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-default"
+                        >
+                            Add Text
+                        </button>
+                    </form>
                 </section>
 
                 <section className="mt-auto">
