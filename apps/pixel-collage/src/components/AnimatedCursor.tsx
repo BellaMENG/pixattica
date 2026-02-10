@@ -41,6 +41,7 @@ export default function AnimatedCursor() {
 
     useEffect(() => {
         preloadImages();
+        document.body.classList.add("animated-cursor-ready");
 
         function updateCursorImage() {
             const el = imgRef.current;
@@ -88,6 +89,7 @@ export default function AnimatedCursor() {
             document.removeEventListener("mousemove", handleMouseMove);
             document.removeEventListener("mouseenter", handleMouseEnter);
             document.removeEventListener("mouseleave", handleMouseLeave);
+            document.body.classList.remove("animated-cursor-ready");
         };
     }, []);
 

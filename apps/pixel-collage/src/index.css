@@ -7,8 +7,16 @@
     *,
     *::before,
     *::after {
-        cursor: none !important;
+        cursor:
+            url("/cursors/normal-0.png") 1 1,
+            auto;
     }
+}
+
+.animated-cursor-ready *,
+.animated-cursor-ready *::before,
+.animated-cursor-ready *::after {
+    cursor: none !important;
 }
 
 body {
