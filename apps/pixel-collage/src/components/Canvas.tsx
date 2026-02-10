@@ -468,7 +468,6 @@ export default function Canvas({
                         <Layer>
                             {items.map((item) => {
                                 const shared = {
-                                    key: item.id,
                                     isSelected: item.id === selectedItemId,
                                     onSelect: () => onSelect(item.id),
                                     onDragEnd: (x: number, y: number) => {
