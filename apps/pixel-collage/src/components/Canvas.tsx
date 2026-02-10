@@ -13,6 +13,7 @@ import {
     TRANSFORMER_ANCHOR_SIZE,
     TOOLBAR_VERTICAL_OFFSET,
     CANVAS_FIT_PADDING,
+    CANVAS_ASPECT_RATIO,
 } from "../config";
 import type Konva from "konva";
 
@@ -32,8 +33,7 @@ interface CanvasProps {
         scaleY: number,
         rotation: number,
     ) => void;
-    canvasWidth: number;
-    canvasHeight: number;
+    onResize: (size: { width: number; height: number }) => void;
     backgroundStyle: string;
 }
 
@@ -215,6 +215,27 @@ function CanvasImage({
     );
 }
 
+function computeInitialCanvasSize(
+    containerWidth: number,
+    containerHeight: number,
+): { width: number; height: number } {
+    const availW = containerWidth - CANVAS_FIT_PADDING * 2;
+    const availH = containerHeight - CANVAS_FIT_PADDING * 2;
+    if (availW <= 0 || availH <= 0) return { width: 0, height: 0 };
+
+    const isLandscape = containerWidth >= containerHeight;
+    const ratio = isLandscape ? CANVAS_ASPECT_RATIO : 1 / CANVAS_ASPECT_RATIO;
+
+    let canvasW = Math.min(availW, availH * ratio);
+    let canvasH = canvasW / ratio;
+    if (canvasH > availH) {
+        canvasH = availH;
+        canvasW = canvasH * ratio;
+    }
+
+    return { width: Math.round(canvasW), height: Math.round(canvasH) };
+}
+
 function computeFitScale(
     containerWidth: number,
     containerHeight: number,
@@ -238,11 +259,11 @@ export default function Canvas({
     onSendToBack,
     onDragEnd,
     onTransformEnd,
-    canvasWidth,
-    canvasHeight,
+    onResize,
     backgroundStyle,
 }: CanvasProps) {
     const containerRef = useRef<HTMLDivElement>(null);
+    const canvasSizeRef = useRef<{ width: number; height: number } | null>(null);
     const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
     const [dragPos, setDragPos] = useState<{ x: number; y: number } | null>(null);
 
@@ -251,6 +272,9 @@ export default function Canvas({
         : null;
 
     const buttonPos = selectedItem ? (dragPos ?? { x: selectedItem.x, y: selectedItem.y }) : null;
+
+    const canvasWidth = canvasSizeRef.current?.width ?? 0;
+    const canvasHeight = canvasSizeRef.current?.height ?? 0;
 
     const fitScale = computeFitScale(
         containerSize.width,
@@ -268,15 +292,18 @@ export default function Canvas({
         const observer = new ResizeObserver((entries) => {
             const entry = entries[0];
             if (entry) {
-                setContainerSize({
-                    width: entry.contentRect.width,
-                    height: entry.contentRect.height,
-                });
+                const { width, height } = entry.contentRect;
+                if (!canvasSizeRef.current) {
+                    const size = computeInitialCanvasSize(width, height);
+                    canvasSizeRef.current = size;
+                    onResize(size);
+                }
+                setContainerSize({ width, height });
             }
         });
         observer.observe(el);
         return () => observer.disconnect();
-    }, []);
+    }, [onResize]);
 
     useEffect(() => {
         setDragPos(null);

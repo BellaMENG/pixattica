@@ -34,18 +34,15 @@ vi.mock("./components/Canvas", () => ({
         onSelect,
         onBringToFront,
         onSendToBack,
-        canvasWidth,
-        canvasHeight,
     }: {
         items: Array<{ id: string }>;
         selectedItemId: string | null;
         onSelect: (id: string | null) => void;
         onBringToFront: (id: string) => void;
         onSendToBack: (id: string) => void;
-        canvasWidth: number;
-        canvasHeight: number;
+        onResize: (size: { width: number; height: number }) => void;
     }) => (
-        <div data-testid="canvas" data-canvas-width={canvasWidth} data-canvas-height={canvasHeight}>
+        <div data-testid="canvas">
             {items.map((item) => (
                 <div key={item.id} data-testid={`canvas-item-${item.id}`}>
                     <button onClick={() => onSelect(item.id)}>Select {item.id}</button>
@@ -687,56 +684,5 @@ describe("multi-file upload", () => {
             expect(screen.getByText("cat.png")).toBeInTheDocument();
         });
         expect(mockedReadImageFile).toHaveBeenCalledTimes(1);
-    });
-});
-
-describe("canvas size picker", () => {
-    afterEach(() => {
-        cleanup();
-    });
-
-    beforeEach(() => {
-        globalThis.indexedDB = new IDBFactory();
-        localStorage.clear();
-    });
-
-    it("renders a Canvas Size section in the sidebar", async () => {
-        await renderAndWaitForLoad();
-
-        expect(screen.getByText("Canvas Size")).toBeInTheDocument();
-    });
-
-    it("renders 6 canvas size preset buttons", async () => {
-        await renderAndWaitForLoad();
-
-        const sizeButtons = screen.getAllByTitle(/Landscape|Portrait/);
-        expect(sizeButtons).toHaveLength(6);
-    });
-
-    it("passes canvas dimensions to the Canvas mock", async () => {
-        await renderAndWaitForLoad();
-
-        const canvas = screen.getByTestId("canvas");
-        const width = Number(canvas.getAttribute("data-canvas-width"));
-        const height = Number(canvas.getAttribute("data-canvas-height"));
-        expect(width).toBeGreaterThan(0);
-        expect(height).toBeGreaterThan(0);
-    });
-
-    it("changes canvas dimensions when a different size is selected", async () => {
-        await renderAndWaitForLoad();
-
-        const canvas = screen.getByTestId("canvas");
-        const initialWidth = Number(canvas.getAttribute("data-canvas-width"));
-        const initialHeight = Number(canvas.getAttribute("data-canvas-height"));
-
-        const largePortraitButton = screen.getByTitle(/Large Portrait/);
-        fireEvent.click(largePortraitButton);
-
-        const newWidth = Number(canvas.getAttribute("data-canvas-width"));
-        const newHeight = Number(canvas.getAttribute("data-canvas-height"));
-        expect(newWidth).toBe(1200);
-        expect(newHeight).toBe(1600);
-        expect(newWidth !== initialWidth || newHeight !== initialHeight || true).toBe(true);
     });
 });
