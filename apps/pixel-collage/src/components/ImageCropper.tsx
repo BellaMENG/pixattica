@@ -93,7 +93,7 @@ export default function ImageCropper({ image, onDone, onCancel }: ImageCropperPr
                     </div>
                 )}
 
-                <div className="mt-3 flex justify-end gap-2">
+                <div className="mt-3 flex flex-wrap justify-end gap-2">
                     <button
                         onClick={handleRemoveBg}
                         disabled={isRemovingBg}
