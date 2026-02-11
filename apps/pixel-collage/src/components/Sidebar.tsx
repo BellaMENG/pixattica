@@ -331,18 +331,20 @@ export default function Sidebar({
     );
 
     return (
-        <aside className="flex w-64 flex-col border-r-4 border-pink-300 bg-pink-50 overflow-hidden">
-            <SidebarScrollArrow
-                direction="up"
-                disabled={!canScrollSidebarUp}
-                onClick={() => scrollSidebar("up")}
-            />
+        <aside className="flex w-full flex-col border-b-4 border-pink-300 bg-pink-50 overflow-hidden md:w-64 md:border-b-0 md:border-r-4 max-h-[40vh] md:max-h-none">
+            <div className="hidden md:flex">
+                <SidebarScrollArrow
+                    direction="up"
+                    disabled={!canScrollSidebarUp}
+                    onClick={() => scrollSidebar("up")}
+                />
+            </div>
             <div
                 ref={scrollContainerRef}
                 onScroll={updateSidebarScrollState}
                 className="flex-1 overflow-y-auto scrollbar-hide p-4 pt-0 pb-0"
             >
-                <section className="mb-6">
+                <section className="mb-6 mt-4">
                     <h3 className="mb-2 text-xs text-pink-600">Images</h3>
                     <button
                         onClick={() => fileInputRef.current?.click()}
@@ -482,11 +484,13 @@ export default function Sidebar({
                     </div>
                 </section>
             </div>
-            <SidebarScrollArrow
-                direction="down"
-                disabled={!canScrollSidebarDown}
-                onClick={() => scrollSidebar("down")}
-            />
+            <div className="hidden md:flex">
+                <SidebarScrollArrow
+                    direction="down"
+                    disabled={!canScrollSidebarDown}
+                    onClick={() => scrollSidebar("down")}
+                />
+            </div>
         </aside>
     );
 }

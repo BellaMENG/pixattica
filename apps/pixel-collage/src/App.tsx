@@ -303,8 +303,8 @@ export default function App() {
                 onDragOver={(e) => e.preventDefault()}
                 onDrop={handleDrop}
             >
-                <div className="flex flex-1 items-center justify-center">
-                    <div className="flex h-[80vh] w-[80vw] overflow-hidden rounded-lg border-4 border-pink-300 shadow-lg">
+                <div className="flex flex-1 md:items-center md:justify-center">
+                    <div className="flex flex-col w-full h-full md:flex-row md:h-[80vh] md:w-[80vw] overflow-hidden md:rounded-lg md:border-4 md:border-pink-300 md:shadow-lg">
                         <Sidebar
                             uploadedImages={uploadedImages}
                             croppedCutouts={croppedCutouts}
