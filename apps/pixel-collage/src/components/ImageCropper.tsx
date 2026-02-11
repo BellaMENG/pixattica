@@ -1,9 +1,10 @@
 import { removeBackground } from "@imgly/background-removal";
 import { useState } from "react";
-import { ReactLassoSelect, getCanvas } from "react-lasso-select";
+import { getCanvas } from "react-lasso-select";
 import type { UploadedImage, CroppedCutout } from "../App";
 import { MIN_LASSO_POINTS, CROPPER_IMAGE_MAX_HEIGHT, CROPPER_IMAGE_MAX_WIDTH } from "../config";
 import { blobToDataUrl } from "../utils/blobToDataUrl";
+import FreehandCrop from "./FreehandCrop";
 
 interface Point {
     x: number;
@@ -23,6 +24,7 @@ export default function ImageCropper({ image, onDone, onCancel }: ImageCropperPr
 
     function handleComplete(path: Point[]) {
         if (path.length < MIN_LASSO_POINTS) return;
+        setPoints(path);
         getCanvas(image.src, path, (err, canvas) => {
             if (!err) {
                 setClippedSrc(canvas.toDataURL());
@@ -68,11 +70,11 @@ export default function ImageCropper({ image, onDone, onCancel }: ImageCropperPr
                 </p>
 
                 <div className="flex-1 overflow-auto">
-                    <ReactLassoSelect
+                    <FreehandCrop
                         src={image.src}
-                        value={points}
-                        onChange={setPoints}
+                        points={points}
                         onComplete={handleComplete}
+                        onReset={handleReset}
                         imageStyle={{
                             maxHeight: CROPPER_IMAGE_MAX_HEIGHT,
                             maxWidth: CROPPER_IMAGE_MAX_WIDTH,

@@ -50,7 +50,7 @@ export default function AnimatedCursor() {
             el.src = CURSORS[type].frames[frameRef.current];
         }
 
-        function handleMouseMove(e: MouseEvent) {
+        function handleMouseMove(e: MouseEvent | PointerEvent) {
             const el = imgRef.current;
             if (!el) return;
 
@@ -80,13 +80,13 @@ export default function AnimatedCursor() {
             updateCursorImage();
         }, FRAME_DURATION);
 
-        document.addEventListener("mousemove", handleMouseMove);
+        document.addEventListener("pointermove", handleMouseMove, true);
         document.addEventListener("mouseenter", handleMouseEnter);
         document.addEventListener("mouseleave", handleMouseLeave);
 
         return () => {
             clearInterval(intervalId);
-            document.removeEventListener("mousemove", handleMouseMove);
+            document.removeEventListener("pointermove", handleMouseMove, true);
             document.removeEventListener("mouseenter", handleMouseEnter);
             document.removeEventListener("mouseleave", handleMouseLeave);
             document.body.classList.remove("animated-cursor-ready");
