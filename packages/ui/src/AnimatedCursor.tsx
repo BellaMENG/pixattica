@@ -1,8 +1,21 @@
 import { useEffect, useRef, useState } from "react";
+import link0 from "./assets/cursors/link-0.png";
+import link1 from "./assets/cursors/link-1.png";
+import link2 from "./assets/cursors/link-2.png";
+import link3 from "./assets/cursors/link-3.png";
+import link4 from "./assets/cursors/link-4.png";
+import link5 from "./assets/cursors/link-5.png";
+import link6 from "./assets/cursors/link-6.png";
+import normal0 from "./assets/cursors/normal-0.png";
+import normal1 from "./assets/cursors/normal-1.png";
+import normal2 from "./assets/cursors/normal-2.png";
+import normal3 from "./assets/cursors/normal-3.png";
+import normal4 from "./assets/cursors/normal-4.png";
+import normal5 from "./assets/cursors/normal-5.png";
+import normal6 from "./assets/cursors/normal-6.png";
 
 const FRAME_COUNT = 7;
 const FRAME_DURATION = 166;
-const BASE_URL = import.meta.env.BASE_URL;
 
 interface CursorConfig {
     frames: string[];
@@ -11,11 +24,11 @@ interface CursorConfig {
 
 const CURSORS: Record<"normal" | "link", CursorConfig> = {
     normal: {
-        frames: Array.from({ length: FRAME_COUNT }, (_, i) => `${BASE_URL}cursors/normal-${i}.png`),
+        frames: [normal0, normal1, normal2, normal3, normal4, normal5, normal6],
         hotspot: { x: 1, y: 1 },
     },
     link: {
-        frames: Array.from({ length: FRAME_COUNT }, (_, i) => `${BASE_URL}cursors/link-${i}.png`),
+        frames: [link0, link1, link2, link3, link4, link5, link6],
         hotspot: { x: 7, y: 2 },
     },
 };
@@ -34,7 +47,7 @@ function preloadImages() {
     }
 }
 
-export default function AnimatedCursor() {
+export function AnimatedCursor() {
     const imgRef = useRef<HTMLImageElement>(null);
     const frameRef = useRef(0);
     const cursorTypeRef = useRef<CursorType>("normal");

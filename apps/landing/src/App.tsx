@@ -1,4 +1,4 @@
-import { Footer } from "@pixattica/ui";
+import { AnimatedCursor, Footer } from "@pixattica/ui";
 
 const ABOUT_ME_URL = import.meta.env.VITE_ABOUT_ME_URL ?? "/about-me/";
 const PIXEL_COLLAGE_URL = import.meta.env.VITE_PIXEL_COLLAGE_URL ?? "/pixel-collage/";
@@ -6,6 +6,7 @@ const PIXEL_COLLAGE_URL = import.meta.env.VITE_PIXEL_COLLAGE_URL ?? "/pixel-coll
 function App() {
     return (
         <div className="flex min-h-screen flex-col bg-pink-100 text-pink-700">
+            <AnimatedCursor />
             <main className="flex flex-1 flex-col items-center justify-center gap-6">
                 <div className="flex flex-col items-start gap-3">
                     <h1 className="text-2xl" style={{ color: "deeppink" }}>

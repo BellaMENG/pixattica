@@ -1,7 +1,6 @@
 import { useRef, useState } from "react";
 import type Konva from "konva";
-import { Footer } from "@pixattica/ui";
-import AnimatedCursor from "./components/AnimatedCursor";
+import { AnimatedCursor, Footer } from "@pixattica/ui";
 import Canvas from "./components/Canvas";
 import ImageCropper from "./components/ImageCropper";
 import Sidebar from "./components/Sidebar";

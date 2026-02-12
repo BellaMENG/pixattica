@@ -1,10 +1,11 @@
-import { Footer } from "@pixattica/ui";
+import { AnimatedCursor, Footer } from "@pixattica/ui";
 
 const LANDING_URL = import.meta.env.VITE_LANDING_URL ?? "/";
 
 function App() {
     return (
         <div className="relative flex min-h-screen flex-col bg-pink-100 text-pink-700">
+            <AnimatedCursor />
             <a
                 href={LANDING_URL}
                 className="absolute left-4 top-4 z-50 rounded border-2 border-pink-300 bg-pink-50 px-2 py-1 text-[10px] hover:bg-pink-200"

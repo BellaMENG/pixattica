@@ -1,6 +1,12 @@
 @import "tailwindcss";
 @source "../../../packages/ui/src";
 
+.animated-cursor-ready *,
+.animated-cursor-ready *::before,
+.animated-cursor-ready *::after {
+    cursor: none !important;
+}
+
 body {
     font-family: "Press Start 2P", cursive;
 }
