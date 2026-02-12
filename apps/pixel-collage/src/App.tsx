@@ -70,8 +70,20 @@ export interface BackgroundOption {
     style: string;
 }
 
+interface SampleManifest {
+    version: number;
+    selectedBgId?: BackgroundId;
+    uploadedImages: UploadedImage[];
+    croppedCutouts: CroppedCutout[];
+    canvasItems: CanvasItem[];
+}
+
 const BASE_URL = import.meta.env.BASE_URL;
 const LANDING_URL = import.meta.env.VITE_LANDING_URL ?? "/";
+const SAMPLE_MANIFEST_URL = `${BASE_URL}samples/default/manifest.json`;
+const SAMPLE_SEED_STORAGE_KEY = "pixelCollageSampleSeedVersion";
+const SAMPLE_SEED_VERSION = "1";
+const SHOULD_AUTO_SEED = import.meta.env.MODE !== "test";
 
 const BACKGROUNDS: BackgroundOption[] = [
     { id: BackgroundId.White, label: "White", style: "white" },
@@ -92,6 +104,32 @@ function measureTextWidth(text: string): number {
     return text.length * TEXT_FONT_SIZE * 0.6;
 }
 
+function isBackgroundId(value: unknown): value is BackgroundId {
+    return (
+        value === BackgroundId.White || value === BackgroundId.Pink || value === BackgroundId.Hearts
+    );
+}
+
+function parseSampleManifest(value: unknown): SampleManifest | null {
+    if (!value || typeof value !== "object") return null;
+    const raw = value as Partial<SampleManifest>;
+    if (
+        !Array.isArray(raw.uploadedImages) ||
+        !Array.isArray(raw.croppedCutouts) ||
+        !Array.isArray(raw.canvasItems)
+    ) {
+        return null;
+    }
+
+    return {
+        version: typeof raw.version === "number" ? raw.version : 1,
+        selectedBgId: isBackgroundId(raw.selectedBgId) ? raw.selectedBgId : undefined,
+        uploadedImages: raw.uploadedImages as UploadedImage[],
+        croppedCutouts: raw.croppedCutouts as CroppedCutout[],
+        canvasItems: raw.canvasItems as CanvasItem[],
+    };
+}
+
 export default function App() {
     const [uploadedImages, setUploadedImages, imagesLoading] = useIndexedDB<UploadedImage[]>(
         "uploadedImages",
@@ -106,6 +144,7 @@ export default function App() {
         [],
     );
     const isLoading = imagesLoading || cutoutsLoading || canvasItemsLoading;
+    const [hasCheckedSampleSeed, setHasCheckedSampleSeed] = useState(!SHOULD_AUTO_SEED);
     const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
     const [selectedCanvasItemId, setSelectedCanvasItemId] = useState<string | null>(null);
     const [croppingImageId, setCroppingImageId] = useState<string | null>(null);
@@ -119,6 +158,7 @@ export default function App() {
 
     const stageRef = useRef<Konva.Stage>(null);
     const uploadedImagesRef = useRef<UploadedImage[]>(uploadedImages);
+    const sampleSeedCheckedRef = useRef(false);
 
     useEffect(() => {
         uploadedImagesRef.current = uploadedImages;
@@ -131,6 +171,62 @@ export default function App() {
         (croppingImageId
             ? (uploadedImages.find((img) => img.id === croppingImageId) ?? null)
             : null);
+
+    useEffect(() => {
+        if (!SHOULD_AUTO_SEED) return;
+        if (isLoading || sampleSeedCheckedRef.current) return;
+        sampleSeedCheckedRef.current = true;
+
+        const hasSeedFlag = localStorage.getItem(SAMPLE_SEED_STORAGE_KEY) === SAMPLE_SEED_VERSION;
+        const hasExistingData =
+            uploadedImages.length > 0 || croppedCutouts.length > 0 || canvasItems.length > 0;
+
+        if (hasSeedFlag || hasExistingData) {
+            if (!hasSeedFlag && hasExistingData) {
+                localStorage.setItem(SAMPLE_SEED_STORAGE_KEY, SAMPLE_SEED_VERSION);
+            }
+            setHasCheckedSampleSeed(true);
+            return;
+        }
+
+        let cancelled = false;
+        async function seedFromSampleManifest() {
+            try {
+                const response = await fetch(SAMPLE_MANIFEST_URL, { cache: "no-store" });
+                if (!response.ok) return;
+                const manifest = parseSampleManifest(await response.json());
+                if (!manifest) return;
+
+                setUploadedImages(manifest.uploadedImages);
+                setCroppedCutouts(manifest.croppedCutouts);
+                setCanvasItems(manifest.canvasItems);
+                if (manifest.selectedBgId) {
+                    setSelectedBgId(manifest.selectedBgId);
+                }
+                localStorage.setItem(SAMPLE_SEED_STORAGE_KEY, SAMPLE_SEED_VERSION);
+            } catch {
+                // Seeding is best-effort; app falls back to empty state when sample assets are unavailable.
+            } finally {
+                if (!cancelled) {
+                    setHasCheckedSampleSeed(true);
+                }
+            }
+        }
+
+        seedFromSampleManifest();
+        return () => {
+            cancelled = true;
+        };
+    }, [
+        isLoading,
+        uploadedImages.length,
+        croppedCutouts.length,
+        canvasItems.length,
+        setUploadedImages,
+        setCroppedCutouts,
+        setCanvasItems,
+        setSelectedBgId,
+    ]);
 
     async function processUpload(file: File) {
         if (!ACCEPTED_IMAGE_TYPES.has(file.type)) return;
@@ -356,7 +452,22 @@ export default function App() {
         window.open("mailto:?subject=My%20Pixattica%20Collage");
     }
 
-    if (isLoading) {
+    function handleExportSampleData() {
+        const payload: SampleManifest & { generatedAt: string } = {
+            version: 1,
+            generatedAt: new Date().toISOString(),
+            selectedBgId,
+            uploadedImages,
+            croppedCutouts,
+            canvasItems,
+        };
+        const blob = new Blob([JSON.stringify(payload, null, 2)], {
+            type: "application/json",
+        });
+        downloadBlob(blob, "pixel-collage-sample-raw.json");
+    }
+
+    if (isLoading || !hasCheckedSampleSeed) {
         return (
             <>
                 <AnimatedCursor />
@@ -405,6 +516,9 @@ export default function App() {
                             onSelectBg={setSelectedBgId}
                             onSaveImage={handleSaveImage}
                             onEmailImage={handleEmailImage}
+                            onExportSampleData={
+                                import.meta.env.DEV ? handleExportSampleData : undefined
+                            }
                         />
                         <Canvas
                             items={canvasItems}

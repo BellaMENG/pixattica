@@ -27,6 +27,7 @@ interface SidebarProps {
     onSelectBg: (id: BackgroundId) => void;
     onSaveImage: () => void;
     onEmailImage: () => void;
+    onExportSampleData?: () => void;
 }
 
 function clampStartIndex(startIndex: number, totalCount: number): number {
@@ -265,6 +266,7 @@ export default function Sidebar({
     onSelectBg,
     onSaveImage,
     onEmailImage,
+    onExportSampleData,
 }: SidebarProps) {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -494,6 +496,14 @@ export default function Sidebar({
                             Email
                         </button>
                     </div>
+                    {onExportSampleData && (
+                        <button
+                            onClick={onExportSampleData}
+                            className="mt-2 w-full rounded bg-pink-100 px-2 py-1 text-[10px] text-pink-700 hover:bg-pink-200 transition-colors cursor-pointer"
+                        >
+                            Export Sample Data
+                        </button>
+                    )}
                 </section>
             </div>
             <div className="hidden md:flex">

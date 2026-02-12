@@ -8,6 +8,7 @@
         "build": "tsc -b && vite build",
         "test": "vitest run",
         "preview": "vite preview",
+        "samples:materialize": "node ./scripts/materialize-sample-fixtures.mjs",
         "clean": "rm -rf dist node_modules .turbo"
     },
     "dependencies": {
