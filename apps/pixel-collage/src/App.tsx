@@ -110,6 +110,61 @@ function isBackgroundId(value: unknown): value is BackgroundId {
     );
 }
 
+function normalizeSampleAssetSrc(src: string): string {
+    if (!src) return src;
+    if (/^(data:|blob:|https?:\/\/|\/\/)/i.test(src)) return src;
+    if (src.startsWith(BASE_URL)) return src;
+
+    if (src.startsWith("/samples/")) {
+        const baseNoTrailingSlash = BASE_URL.endsWith("/") ? BASE_URL.slice(0, -1) : BASE_URL;
+        return `${baseNoTrailingSlash}${src}`;
+    }
+    if (src.startsWith("samples/")) {
+        return `${BASE_URL}${src}`;
+    }
+    return src;
+}
+
+function normalizeUploadedImages(images: UploadedImage[]): [UploadedImage[], boolean] {
+    let changed = false;
+    const normalized = images.map((image) => {
+        const src = normalizeSampleAssetSrc(image.src);
+        if (src !== image.src) {
+            changed = true;
+            return { ...image, src };
+        }
+        return image;
+    });
+    return [normalized, changed];
+}
+
+function normalizeCroppedCutouts(cutouts: CroppedCutout[]): [CroppedCutout[], boolean] {
+    let changed = false;
+    const normalized = cutouts.map((cutout) => {
+        const src = normalizeSampleAssetSrc(cutout.src);
+        if (src !== cutout.src) {
+            changed = true;
+            return { ...cutout, src };
+        }
+        return cutout;
+    });
+    return [normalized, changed];
+}
+
+function normalizeCanvasItems(items: CanvasItem[]): [CanvasItem[], boolean] {
+    let changed = false;
+    const normalized = items.map((item) => {
+        if (item.type !== "image") return item;
+        const src = normalizeSampleAssetSrc(item.src);
+        if (src !== item.src) {
+            changed = true;
+            return { ...item, src };
+        }
+        return item;
+    });
+    return [normalized, changed];
+}
+
 function parseSampleManifest(value: unknown): SampleManifest | null {
     if (!value || typeof value !== "object") return null;
     const raw = value as Partial<SampleManifest>;
@@ -124,9 +179,17 @@ function parseSampleManifest(value: unknown): SampleManifest | null {
     return {
         version: typeof raw.version === "number" ? raw.version : 1,
         selectedBgId: isBackgroundId(raw.selectedBgId) ? raw.selectedBgId : undefined,
-        uploadedImages: raw.uploadedImages as UploadedImage[],
-        croppedCutouts: raw.croppedCutouts as CroppedCutout[],
-        canvasItems: raw.canvasItems as CanvasItem[],
+        uploadedImages: (raw.uploadedImages as UploadedImage[]).map((image) => ({
+            ...image,
+            src: normalizeSampleAssetSrc(image.src),
+        })),
+        croppedCutouts: (raw.croppedCutouts as CroppedCutout[]).map((cutout) => ({
+            ...cutout,
+            src: normalizeSampleAssetSrc(cutout.src),
+        })),
+        canvasItems: (raw.canvasItems as CanvasItem[]).map((item) =>
+            item.type === "image" ? { ...item, src: normalizeSampleAssetSrc(item.src) } : item,
+        ),
     };
 }
 
@@ -226,6 +289,26 @@ export default function App() {
         setCroppedCutouts,
         setCanvasItems,
         setSelectedBgId,
+    ]);
+
+    useEffect(() => {
+        if (isLoading) return;
+
+        const [normalizedImages, imagesChanged] = normalizeUploadedImages(uploadedImages);
+        const [normalizedCutouts, cutoutsChanged] = normalizeCroppedCutouts(croppedCutouts);
+        const [normalizedCanvasItems, canvasItemsChanged] = normalizeCanvasItems(canvasItems);
+
+        if (imagesChanged) setUploadedImages(normalizedImages);
+        if (cutoutsChanged) setCroppedCutouts(normalizedCutouts);
+        if (canvasItemsChanged) setCanvasItems(normalizedCanvasItems);
+    }, [
+        isLoading,
+        uploadedImages,
+        croppedCutouts,
+        canvasItems,
+        setUploadedImages,
+        setCroppedCutouts,
+        setCanvasItems,
     ]);
 
     async function processUpload(file: File) {
