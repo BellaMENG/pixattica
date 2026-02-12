@@ -70,10 +70,17 @@ export interface BackgroundOption {
     style: string;
 }
 
+const BASE_URL = import.meta.env.BASE_URL;
+const LANDING_URL = import.meta.env.VITE_LANDING_URL ?? "/";
+
 const BACKGROUNDS: BackgroundOption[] = [
     { id: BackgroundId.White, label: "White", style: "white" },
     { id: BackgroundId.Pink, label: "Light Pink", style: "#fce7f3" },
-    { id: BackgroundId.Hearts, label: "Pixel Hearts", style: "url('/bg-pixel-hearts.svg') repeat" },
+    {
+        id: BackgroundId.Hearts,
+        label: "Pixel Hearts",
+        style: `url('${BASE_URL}bg-pixel-hearts.svg') repeat`,
+    },
 ];
 
 function measureTextWidth(text: string): number {
@@ -288,7 +295,13 @@ export default function App() {
         return (
             <>
                 <AnimatedCursor />
-                <div className="flex h-screen items-center justify-center bg-pink-100">
+                <div className="relative flex h-screen items-center justify-center bg-pink-100">
+                    <a
+                        href={LANDING_URL}
+                        className="absolute left-4 top-4 z-50 rounded border-2 border-pink-300 bg-pink-50 px-2 py-1 text-[10px] text-pink-700 hover:bg-pink-200"
+                    >
+                        ← back
+                    </a>
                     <p className="text-pink-400">Loading...</p>
                 </div>
             </>
@@ -299,10 +312,16 @@ export default function App() {
         <>
             <AnimatedCursor />
             <div
-                className="flex h-screen flex-col bg-pink-100"
+                className="relative flex h-screen flex-col bg-pink-100"
                 onDragOver={(e) => e.preventDefault()}
                 onDrop={handleDrop}
             >
+                <a
+                    href={LANDING_URL}
+                    className="absolute left-4 top-4 z-50 rounded border-2 border-pink-300 bg-pink-50 px-2 py-1 text-[10px] text-pink-700 hover:bg-pink-200"
+                >
+                    ← back
+                </a>
                 <div className="flex flex-1 md:items-center md:justify-center">
                     <div className="flex flex-col w-full h-full md:flex-row md:h-[80vh] md:w-[80vw] overflow-hidden md:rounded-lg md:border-4 md:border-pink-300 md:shadow-lg">
                         <Sidebar

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 
 const FRAME_COUNT = 7;
 const FRAME_DURATION = 166;
+const BASE_URL = import.meta.env.BASE_URL;
 
 interface CursorConfig {
     frames: string[];
@@ -10,11 +11,11 @@ interface CursorConfig {
 
 const CURSORS: Record<"normal" | "link", CursorConfig> = {
     normal: {
-        frames: Array.from({ length: FRAME_COUNT }, (_, i) => `/cursors/normal-${i}.png`),
+        frames: Array.from({ length: FRAME_COUNT }, (_, i) => `${BASE_URL}cursors/normal-${i}.png`),
         hotspot: { x: 1, y: 1 },
     },
     link: {
-        frames: Array.from({ length: FRAME_COUNT }, (_, i) => `/cursors/link-${i}.png`),
+        frames: Array.from({ length: FRAME_COUNT }, (_, i) => `${BASE_URL}cursors/link-${i}.png`),
         hotspot: { x: 7, y: 2 },
     },
 };

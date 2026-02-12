@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://pixel-collage.pixattica.com/sitemap.xml
+Sitemap: https://pixattica.com/pixel-collage/sitemap.xml

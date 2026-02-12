@@ -8,9 +8,7 @@
     *,
     *::before,
     *::after {
-        cursor:
-            url("/cursors/normal-0.png") 1 1,
-            auto;
+        cursor: auto;
     }
 }
 

@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://pixattica.com/sitemap.xml
+Sitemap: https://pixattica.com/about-me/sitemap.xml
