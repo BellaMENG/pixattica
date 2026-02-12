@@ -1,6 +1,6 @@
 import { removeBackground } from "@imgly/background-removal";
 import { useState } from "react";
-import { getCanvas } from "react-lasso-select";
+import { ReactLassoSelect, getCanvas } from "react-lasso-select";
 import type { UploadedImage, CroppedCutout } from "../App";
 import { MIN_LASSO_POINTS, CROPPER_IMAGE_MAX_HEIGHT, CROPPER_IMAGE_MAX_WIDTH } from "../config";
 import { blobToDataUrl } from "../utils/blobToDataUrl";
@@ -9,6 +9,26 @@ import FreehandCrop from "./FreehandCrop";
 interface Point {
     x: number;
     y: number;
+}
+
+type CropMode = "freehand" | "click";
+
+function getDefaultCropMode(): CropMode {
+    if (typeof window === "undefined") return "click";
+
+    const navWithUAData = navigator as Navigator & {
+        userAgentData?: { mobile?: boolean };
+    };
+    const isMobileByUAData = navWithUAData.userAgentData?.mobile === true;
+    const isMobileByUA = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+        navigator.userAgent,
+    );
+    const isCoarsePointer = window.matchMedia?.("(pointer: coarse)").matches ?? false;
+    const isSmallViewport = window.matchMedia?.("(max-width: 768px)").matches ?? false;
+
+    return isMobileByUAData || isMobileByUA || (isCoarsePointer && isSmallViewport)
+        ? "freehand"
+        : "click";
 }
 
 interface ImageCropperProps {
@@ -21,6 +41,7 @@ export default function ImageCropper({ image, onDone, onCancel }: ImageCropperPr
     const [points, setPoints] = useState<Point[]>([]);
     const [clippedSrc, setClippedSrc] = useState<string | null>(null);
     const [isRemovingBg, setIsRemovingBg] = useState(false);
+    const [cropMode, setCropMode] = useState<CropMode>(getDefaultCropMode);
 
     function handleComplete(path: Point[]) {
         if (path.length < MIN_LASSO_POINTS) return;
@@ -46,6 +67,12 @@ export default function ImageCropper({ image, onDone, onCancel }: ImageCropperPr
         setClippedSrc(null);
     }
 
+    function handleModeChange(mode: CropMode) {
+        if (mode === cropMode) return;
+        setCropMode(mode);
+        handleReset();
+    }
+
     async function handleRemoveBg() {
         setIsRemovingBg(true);
         try {
@@ -66,20 +93,59 @@ export default function ImageCropper({ image, onDone, onCancel }: ImageCropperPr
             <div className="flex max-h-[90vh] max-w-[90vw] flex-col rounded-lg bg-white p-4 shadow-xl">
                 <h2 className="mb-3 text-sm font-medium text-pink-700">Crop: {image.name}</h2>
                 <p className="mb-2 text-[10px] text-pink-400">
-                    Draw a freehand selection around the area you want to keep
+                    {cropMode === "freehand"
+                        ? "Draw a freehand selection around the area you want to keep"
+                        : "Click to place points around the area you want to keep"}
                 </p>
+                <div className="mb-3 flex flex-wrap gap-2">
+                    <button
+                        onClick={() => handleModeChange("freehand")}
+                        disabled={isRemovingBg}
+                        className={`rounded px-3 py-1 text-[11px] transition-colors cursor-pointer disabled:opacity-40 ${
+                            cropMode === "freehand"
+                                ? "bg-pink-400 text-white"
+                                : "bg-pink-100 text-pink-600 hover:bg-pink-200"
+                        }`}
+                    >
+                        Freehand Crop
+                    </button>
+                    <button
+                        onClick={() => handleModeChange("click")}
+                        disabled={isRemovingBg}
+                        className={`rounded px-3 py-1 text-[11px] transition-colors cursor-pointer disabled:opacity-40 ${
+                            cropMode === "click"
+                                ? "bg-pink-400 text-white"
+                                : "bg-pink-100 text-pink-600 hover:bg-pink-200"
+                        }`}
+                    >
+                        Click Crop
+                    </button>
+                </div>
 
                 <div className="flex-1 overflow-auto">
-                    <FreehandCrop
-                        src={image.src}
-                        points={points}
-                        onComplete={handleComplete}
-                        onReset={handleReset}
-                        imageStyle={{
-                            maxHeight: CROPPER_IMAGE_MAX_HEIGHT,
-                            maxWidth: CROPPER_IMAGE_MAX_WIDTH,
-                        }}
-                    />
+                    {cropMode === "freehand" ? (
+                        <FreehandCrop
+                            src={image.src}
+                            points={points}
+                            onComplete={handleComplete}
+                            onReset={handleReset}
+                            imageStyle={{
+                                maxHeight: CROPPER_IMAGE_MAX_HEIGHT,
+                                maxWidth: CROPPER_IMAGE_MAX_WIDTH,
+                            }}
+                        />
+                    ) : (
+                        <ReactLassoSelect
+                            src={image.src}
+                            value={points}
+                            onChange={setPoints}
+                            onComplete={handleComplete}
+                            imageStyle={{
+                                maxHeight: CROPPER_IMAGE_MAX_HEIGHT,
+                                maxWidth: CROPPER_IMAGE_MAX_WIDTH,
+                            }}
+                        />
+                    )}
                 </div>
 
                 {clippedSrc && (
