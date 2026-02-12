@@ -1,9 +1,9 @@
 import "fake-indexeddb/auto";
-import { render, screen, fireEvent, cleanup, waitFor, act } from "@testing-library/react";
+import { render, screen, fireEvent, cleanup, waitFor, act, within } from "@testing-library/react";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 import App from "./App";
-import { ACCEPTED_IMAGE_TYPES } from "./App";
+import { ACCEPTED_IMAGE_TYPES, type CanvasItem } from "./App";
 import { saveValue } from "./utils/imageStorage";
 import { readImageFile } from "./utils/readImageFile";
 
@@ -34,6 +34,7 @@ vi.mock("./components/Canvas", () => ({
         onSelect,
         onBringToFront,
         onSendToBack,
+        onCrop,
         stageRef,
     }: {
         items: Array<{ id: string; type: string; text?: string }>;
@@ -41,6 +42,7 @@ vi.mock("./components/Canvas", () => ({
         onSelect: (id: string | null) => void;
         onBringToFront: (id: string) => void;
         onSendToBack: (id: string) => void;
+        onCrop?: (id: string) => void;
         onResize: (size: { width: number; height: number }) => void;
         stageRef?: React.RefObject<unknown>;
     }) => {
@@ -49,6 +51,9 @@ vi.mock("./components/Canvas", () => ({
                 toCanvas: () => document.createElement("canvas"),
             };
         }
+
+        const selectedItem = items.find((item) => item.id === selectedItemId) ?? null;
+
         return (
             <div data-testid="canvas">
                 {items.map((item) => (
@@ -67,6 +72,9 @@ vi.mock("./components/Canvas", () => ({
                             Bring to Front
                         </button>
                         <button onClick={() => onSendToBack(selectedItemId)}>Send to Back</button>
+                        {selectedItem?.type === "image" && onCrop && (
+                            <button onClick={() => onCrop(selectedItemId)}>Crop</button>
+                        )}
                     </div>
                 )}
             </div>
@@ -75,7 +83,31 @@ vi.mock("./components/Canvas", () => ({
 }));
 
 vi.mock("./components/ImageCropper", () => ({
-    default: () => null,
+    default: ({
+        image,
+        onDone,
+        onCancel,
+    }: {
+        image: { id: string; src: string; name: string };
+        onDone: (cutout: { id: string; src: string; sourceImageId: string }) => void;
+        onCancel: () => void;
+    }) => (
+        <div data-testid="image-cropper">
+            <p>{image.name}</p>
+            <button
+                onClick={() =>
+                    onDone({
+                        id: `${image.id}-cropped`,
+                        src: `${image.src}-cropped`,
+                        sourceImageId: image.id,
+                    })
+                }
+            >
+                Mock Crop Done
+            </button>
+            <button onClick={onCancel}>Mock Crop Cancel</button>
+        </div>
+    ),
 }));
 
 vi.mock("./utils/exportCanvas", () => ({
@@ -132,7 +164,7 @@ const canvasItem3 = {
 async function seedIndexedDB(
     images: (typeof img1)[],
     cutouts: (typeof cutout1)[],
-    items: (typeof canvasItem1)[],
+    items: CanvasItem[],
 ) {
     await saveValue("uploadedImages", images);
     await saveValue("croppedCutouts", cutouts);
@@ -710,6 +742,98 @@ describe("multi-file upload", () => {
             expect(screen.getByText("cat.png")).toBeInTheDocument();
         });
         expect(mockedReadImageFile).toHaveBeenCalledTimes(1);
+    });
+});
+
+describe("uploaded image canvas actions", () => {
+    const OriginalImage = globalThis.Image;
+
+    class InstantImage {
+        onload: (() => void) | null = null;
+        naturalWidth = 100;
+        naturalHeight = 100;
+
+        set src(_value: string) {
+            this.onload?.();
+        }
+    }
+
+    beforeEach(() => {
+        (globalThis as { Image: typeof Image }).Image = InstantImage as unknown as typeof Image;
+    });
+
+    afterEach(() => {
+        (globalThis as { Image: typeof Image }).Image = OriginalImage;
+        cleanup();
+    });
+
+    beforeEach(() => {
+        globalThis.indexedDB = new IDBFactory();
+        localStorage.clear();
+        mockedReadImageFile.mockReset();
+    });
+
+    it("automatically adds uploaded images to the canvas", async () => {
+        mockedReadImageFile.mockResolvedValueOnce("data:image/png;base64,uploaded");
+
+        await renderAndWaitForLoad();
+
+        await act(async () => {
+            simulateFileSelect(getFileInput(), "auto-add.png", "image/png");
+        });
+
+        await waitFor(() => {
+            expect(screen.getByText("auto-add.png")).toBeInTheDocument();
+        });
+
+        const canvas = screen.getByTestId("canvas");
+        const imageItems = canvas.querySelectorAll('[data-type="image"]');
+        expect(imageItems).toHaveLength(1);
+    });
+
+    it("adds an uploaded image to the canvas when Add is clicked", async () => {
+        await seedIndexedDB([img1], [], []);
+        await renderAndWaitForLoad();
+
+        const canvas = screen.getByTestId("canvas");
+        expect(canvas.querySelectorAll('[data-type="image"]')).toHaveLength(0);
+
+        fireEvent.click(screen.getByTitle("Add image to canvas"));
+
+        expect(canvas.querySelectorAll('[data-type="image"]')).toHaveLength(1);
+    });
+
+    it("crops a selected canvas image and adds the result to cutouts and canvas", async () => {
+        await seedIndexedDB(
+            [img1],
+            [],
+            [
+                {
+                    type: "image",
+                    id: "ci-1",
+                    src: img1.src,
+                    sourceImageId: img1.id,
+                    x: 0,
+                    y: 0,
+                    scaleX: 1,
+                    scaleY: 1,
+                    rotation: 0,
+                },
+            ],
+        );
+        await renderAndWaitForLoad();
+
+        fireEvent.click(screen.getByText("Select ci-1"));
+        fireEvent.click(within(screen.getByTestId("item-toolbar")).getByText("Crop"));
+        fireEvent.click(screen.getByText("Mock Crop Done"));
+
+        await waitFor(() => {
+            expect(screen.queryByTestId("image-cropper")).not.toBeInTheDocument();
+        });
+        expect(screen.getAllByTitle("Delete cutout")).toHaveLength(1);
+        expect(screen.getByTestId("canvas").querySelectorAll('[data-type="image"]')).toHaveLength(
+            2,
+        );
     });
 });
 

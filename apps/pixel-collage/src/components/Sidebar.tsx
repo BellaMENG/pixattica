@@ -18,6 +18,7 @@ interface SidebarProps {
     onFileSelect: (file: File) => void;
     onStartCrop: (imageId: string) => void;
     onAddToCanvas: (cutout: CroppedCutout) => void;
+    onAddImageToCanvas: (image: UploadedImage) => void;
     onDeleteImage: (id: string) => void;
     onDeleteCutout: (id: string) => void;
     onAddText: (text: string) => void;
@@ -158,10 +159,12 @@ function ScrollableCardList({
 
 function ImageCard({
     img,
+    onAddImageToCanvas,
     onStartCrop,
     onDeleteImage,
 }: {
     img: UploadedImage;
+    onAddImageToCanvas: (image: UploadedImage) => void;
     onStartCrop: (id: string) => void;
     onDeleteImage: (id: string) => void;
 }) {
@@ -171,6 +174,13 @@ function ImageCard({
             <div className="flex-1 min-w-0">
                 <p className="truncate text-[10px] text-pink-600">{img.name}</p>
                 <div className="mt-0.5 flex gap-1">
+                    <button
+                        onClick={() => onAddImageToCanvas(img)}
+                        className="rounded bg-pink-200 px-1.5 py-0.5 text-[10px] text-pink-700 hover:bg-pink-300 transition-colors cursor-pointer"
+                        title="Add image to canvas"
+                    >
+                        Add
+                    </button>
                     <button
                         onClick={() => onStartCrop(img.id)}
                         className="rounded bg-pink-200 px-1.5 py-0.5 text-[10px] text-pink-700 hover:bg-pink-300 transition-colors cursor-pointer"
@@ -246,6 +256,7 @@ export default function Sidebar({
     onFileSelect,
     onStartCrop,
     onAddToCanvas,
+    onAddImageToCanvas,
     onDeleteImage,
     onDeleteCutout,
     onAddText,
@@ -380,6 +391,7 @@ export default function Sidebar({
                                     <ImageCard
                                         key={entry.key}
                                         img={entry.img}
+                                        onAddImageToCanvas={onAddImageToCanvas}
                                         onStartCrop={onStartCrop}
                                         onDeleteImage={onDeleteImage}
                                     />

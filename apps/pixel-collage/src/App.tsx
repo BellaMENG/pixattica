@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type Konva from "konva";
 import { AnimatedCursor, Footer } from "@pixattica/ui";
 import Canvas from "./components/Canvas";
@@ -33,7 +33,8 @@ interface CanvasItemBase {
 
 export interface CanvasImageItem extends CanvasItemBase {
     type: "image";
-    cutoutId: string;
+    cutoutId?: string;
+    sourceImageId?: string;
     src: string;
 }
 
@@ -108,6 +109,7 @@ export default function App() {
     const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
     const [selectedCanvasItemId, setSelectedCanvasItemId] = useState<string | null>(null);
     const [croppingImageId, setCroppingImageId] = useState<string | null>(null);
+    const [canvasCroppingImage, setCanvasCroppingImage] = useState<UploadedImage | null>(null);
 
     const [uploadingNames, setUploadingNames] = useState<Map<string, string>>(new Map());
     const [selectedBgId, setSelectedBgId] = useLocalStorage<BackgroundId>(
@@ -116,12 +118,19 @@ export default function App() {
     );
 
     const stageRef = useRef<Konva.Stage>(null);
+    const uploadedImagesRef = useRef<UploadedImage[]>(uploadedImages);
+
+    useEffect(() => {
+        uploadedImagesRef.current = uploadedImages;
+    }, [uploadedImages]);
 
     const backgroundStyle = BACKGROUNDS.find((bg) => bg.id === selectedBgId)?.style ?? "white";
 
-    const croppingImage = croppingImageId
-        ? (uploadedImages.find((img) => img.id === croppingImageId) ?? null)
-        : null;
+    const croppingImage =
+        canvasCroppingImage ??
+        (croppingImageId
+            ? (uploadedImages.find((img) => img.id === croppingImageId) ?? null)
+            : null);
 
     async function processUpload(file: File) {
         if (!ACCEPTED_IMAGE_TYPES.has(file.type)) return;
@@ -131,10 +140,12 @@ export default function App() {
 
         try {
             const src = await readImageFile(file);
-            setUploadedImages((prev) => {
-                if (prev.some((img) => img.src === src)) return prev;
-                return [...prev, { id: crypto.randomUUID(), src, name: file.name }];
-            });
+            if (uploadedImagesRef.current.some((img) => img.src === src)) return;
+
+            const uploadedImage: UploadedImage = { id: crypto.randomUUID(), src, name: file.name };
+            uploadedImagesRef.current = [...uploadedImagesRef.current, uploadedImage];
+            setUploadedImages((prev) => [...prev, uploadedImage]);
+            handleAddImageToCanvas({ src: uploadedImage.src, sourceImageId: uploadedImage.id });
         } catch {
             // File read failures are silently ignored since there is
             // no actionable recovery path for the user beyond retrying.
@@ -157,10 +168,46 @@ export default function App() {
     function handleCropDone(cutout: CroppedCutout) {
         setCroppedCutouts((prev) => [...prev, cutout]);
         setCroppingImageId(null);
+        setCanvasCroppingImage(null);
         handleAddToCanvas(cutout);
     }
 
-    function handleAddToCanvas(cutout: CroppedCutout) {
+    function handleStartCrop(imageId: string) {
+        setCanvasCroppingImage(null);
+        setCroppingImageId(imageId);
+    }
+
+    function handleCropCanvasItem(itemId: string) {
+        const selectedItem = canvasItems.find(
+            (item): item is CanvasImageItem => item.id === itemId && item.type === "image",
+        );
+        if (!selectedItem) return;
+
+        const sourceImageId =
+            selectedItem.sourceImageId ??
+            (selectedItem.cutoutId
+                ? croppedCutouts.find((cutout) => cutout.id === selectedItem.cutoutId)
+                      ?.sourceImageId
+                : undefined) ??
+            selectedItem.id;
+
+        setCroppingImageId(null);
+        setCanvasCroppingImage({
+            id: sourceImageId,
+            src: selectedItem.src,
+            name: "Canvas image",
+        });
+    }
+
+    function handleAddImageToCanvas({
+        src,
+        cutoutId,
+        sourceImageId,
+    }: {
+        src: string;
+        cutoutId?: string;
+        sourceImageId?: string;
+    }) {
         const img = new Image();
         img.onload = () => {
             const maxW = canvasSize.width * MAX_CUTOUT_SIZE_RATIO;
@@ -175,8 +222,9 @@ export default function App() {
                 {
                     type: "image",
                     id: crypto.randomUUID(),
-                    cutoutId: cutout.id,
-                    src: cutout.src,
+                    cutoutId,
+                    sourceImageId,
+                    src,
                     x: canvasSize.width / 2 - (img.naturalWidth * scale) / 2,
                     y: canvasSize.height / 2 - (img.naturalHeight * scale) / 2,
                     scaleX: scale,
@@ -185,7 +233,19 @@ export default function App() {
                 },
             ]);
         };
-        img.src = cutout.src;
+        img.src = src;
+    }
+
+    function handleAddToCanvas(cutout: CroppedCutout) {
+        handleAddImageToCanvas({
+            src: cutout.src,
+            cutoutId: cutout.id,
+            sourceImageId: cutout.sourceImageId,
+        });
+    }
+
+    function handleAddUploadedImageToCanvas(image: UploadedImage) {
+        handleAddImageToCanvas({ src: image.src, sourceImageId: image.id });
     }
 
     function handleAddText(text: string) {
@@ -213,9 +273,15 @@ export default function App() {
         setUploadedImages((prev) => prev.filter((img) => img.id !== id));
         setCroppedCutouts((prev) => prev.filter((c) => c.sourceImageId !== id));
         setCanvasItems((prev) =>
-            prev.filter((item) => item.type !== "image" || !cutoutIdsToRemove.has(item.cutoutId)),
+            prev.filter(
+                (item) =>
+                    item.type !== "image" ||
+                    (item.sourceImageId !== id &&
+                        !(item.cutoutId && cutoutIdsToRemove.has(item.cutoutId))),
+            ),
         );
         if (croppingImageId === id) setCroppingImageId(null);
+        if (canvasCroppingImage?.id === id) setCanvasCroppingImage(null);
     }
 
     function handleDeleteCutout(id: string) {
@@ -328,8 +394,9 @@ export default function App() {
                             croppedCutouts={croppedCutouts}
                             uploadingNames={uploadingNames}
                             onFileSelect={processUpload}
-                            onStartCrop={setCroppingImageId}
+                            onStartCrop={handleStartCrop}
                             onAddToCanvas={handleAddToCanvas}
+                            onAddImageToCanvas={handleAddUploadedImageToCanvas}
                             onDeleteImage={handleDeleteImage}
                             onDeleteCutout={handleDeleteCutout}
                             onAddText={handleAddText}
@@ -346,6 +413,7 @@ export default function App() {
                             onDelete={handleDeleteCanvasItem}
                             onBringToFront={handleBringToFront}
                             onSendToBack={handleSendToBack}
+                            onCrop={handleCropCanvasItem}
                             onDragEnd={handleItemDragEnd}
                             onTransformEnd={handleItemTransformEnd}
                             onResize={setCanvasSize}
@@ -358,7 +426,10 @@ export default function App() {
                         <ImageCropper
                             image={croppingImage}
                             onDone={handleCropDone}
-                            onCancel={() => setCroppingImageId(null)}
+                            onCancel={() => {
+                                setCroppingImageId(null);
+                                setCanvasCroppingImage(null);
+                            }}
                         />
                     )}
                 </div>

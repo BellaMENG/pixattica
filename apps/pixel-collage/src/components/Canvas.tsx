@@ -27,6 +27,7 @@ interface CanvasProps {
     onDelete: (id: string) => void;
     onBringToFront: (id: string) => void;
     onSendToBack: (id: string) => void;
+    onCrop?: (id: string) => void;
     onDragEnd: (id: string, x: number, y: number) => void;
     onTransformEnd: (
         id: string,
@@ -114,6 +115,25 @@ function DeleteIcon() {
         >
             <polyline points="3 6 5 6 21 6" />
             <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+        </svg>
+    );
+}
+
+function CropIcon() {
+    return (
+        <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="12"
+            height="12"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+        >
+            <path d="M6 2v14a2 2 0 0 0 2 2h14" />
+            <path d="M18 2v14a2 2 0 0 1-2 2H2" />
         </svg>
     );
 }
@@ -364,6 +384,7 @@ export default function Canvas({
     onDelete,
     onBringToFront,
     onSendToBack,
+    onCrop,
     onDragEnd,
     onTransformEnd,
     onResize,
@@ -380,6 +401,7 @@ export default function Canvas({
         : null;
 
     const buttonPos = selectedItem ? (dragPos ?? { x: selectedItem.x, y: selectedItem.y }) : null;
+    const canCropSelectedImage = selectedItem?.type === "image" && Boolean(onCrop);
 
     const canvasWidth = canvasSizeRef.current?.width ?? 0;
     const canvasHeight = canvasSizeRef.current?.height ?? 0;
@@ -519,6 +541,13 @@ export default function Canvas({
                                 onClick={() => onSendToBack(selectedItemId)}
                                 icon={<SendToBackIcon />}
                             />
+                            {canCropSelectedImage && (
+                                <ToolbarButton
+                                    label="Crop"
+                                    onClick={() => onCrop?.(selectedItemId)}
+                                    icon={<CropIcon />}
+                                />
+                            )}
                             <ToolbarButton
                                 label="Delete"
                                 onClick={() => onDelete(selectedItemId)}
