@@ -23,7 +23,7 @@ function App() {
                             href={PIXEL_COLLAGE_URL}
                             className="text-sm text-pink-500 underline hover:text-pink-600"
                         >
-                            Pixel Collage
+                            Collage Maker
                         </a>
                     </nav>
                 </div>
