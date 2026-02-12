@@ -1,0 +1,225 @@
+{
+    "version": 1,
+    "selectedBgId": "hearts",
+    "uploadedImages": [
+        {
+            "id": "fb6c41e5-04e1-4a2b-9422-2356ba21b79b",
+            "src": "/samples/default/images/fb6c41e5-04e1-4a2b-9422-2356ba21b79b.jpg",
+            "name": "22496E7D-8D8A-445A-A395-8C273BB0DBFF_1_105_c.jpeg"
+        },
+        {
+            "id": "e81741e1-9ffc-4897-b5aa-95dd659b40fd",
+            "src": "/samples/default/images/e81741e1-9ffc-4897-b5aa-95dd659b40fd.jpg",
+            "name": "3A96F92C-B4DA-4367-A229-BAA8CB089611_1_105_c.jpeg"
+        },
+        {
+            "id": "138f9191-1b08-4910-b271-c392930a02fe",
+            "src": "/samples/default/images/138f9191-1b08-4910-b271-c392930a02fe.jpg",
+            "name": "BCA0E93F-5D53-438E-B2E5-9366EB0175F8_1_105_c.jpeg"
+        },
+        {
+            "id": "0496f10c-f4bd-4e89-8bd4-a5b184e551f7",
+            "src": "/samples/default/images/0496f10c-f4bd-4e89-8bd4-a5b184e551f7.jpg",
+            "name": "EAF86E3C-0F25-4D25-B3A8-911F4FB6CF04_4_5005_c.jpeg"
+        },
+        {
+            "id": "86e186c7-7e17-46e3-9c6d-b704f7649af3",
+            "src": "/samples/default/images/86e186c7-7e17-46e3-9c6d-b704f7649af3.jpg",
+            "name": "6BCBD987-6076-479F-A54E-1D5DAA715F8A_1_105_c.jpeg"
+        },
+        {
+            "id": "f793d6dd-cbb2-4af5-9037-91c064654158",
+            "src": "/samples/default/images/f793d6dd-cbb2-4af5-9037-91c064654158.jpg",
+            "name": "8C5DEE5B-A6B8-4661-B7D3-215BDBA49988_1_105_c.jpeg"
+        },
+        {
+            "id": "6db7fad5-d962-451e-a1af-42791cf76f59",
+            "src": "/samples/default/images/6db7fad5-d962-451e-a1af-42791cf76f59.jpg",
+            "name": "09BCF72B-0AD2-4DA8-A06F-20073AEBB03D_1_105_c.jpeg"
+        },
+        {
+            "id": "29639d09-f073-4d5f-9e7e-d2d4a9a7c19e",
+            "src": "/samples/default/images/29639d09-f073-4d5f-9e7e-d2d4a9a7c19e.jpg",
+            "name": "B44403CD-7D87-4317-82DD-14BA9684780D_1_105_c.jpeg"
+        },
+        {
+            "id": "61479218-289f-469f-a4b7-306701947ab3",
+            "src": "/samples/default/images/61479218-289f-469f-a4b7-306701947ab3.jpg",
+            "name": "410DA761-AEA6-42E9-ABE8-B222E1E1723D_1_105_c.jpeg"
+        }
+    ],
+    "croppedCutouts": [
+        {
+            "id": "a77f16e0-c984-4a6d-b3a2-34a6560d121f",
+            "src": "/samples/default/cutouts/a77f16e0-c984-4a6d-b3a2-34a6560d121f.png",
+            "sourceImageId": "fb6c41e5-04e1-4a2b-9422-2356ba21b79b"
+        },
+        {
+            "id": "7174a1d7-7f86-4431-9072-f79691dbb881",
+            "src": "/samples/default/cutouts/7174a1d7-7f86-4431-9072-f79691dbb881.png",
+            "sourceImageId": "e81741e1-9ffc-4897-b5aa-95dd659b40fd"
+        },
+        {
+            "id": "a8d1d6aa-a0b6-4e74-9510-6a0b0f4532f3",
+            "src": "/samples/default/cutouts/a8d1d6aa-a0b6-4e74-9510-6a0b0f4532f3.png",
+            "sourceImageId": "f793d6dd-cbb2-4af5-9037-91c064654158"
+        },
+        {
+            "id": "7700d6e5-cefa-4ed6-8490-a17554b005ae",
+            "src": "/samples/default/cutouts/7700d6e5-cefa-4ed6-8490-a17554b005ae.png",
+            "sourceImageId": "86e186c7-7e17-46e3-9c6d-b704f7649af3"
+        },
+        {
+            "id": "c2f45956-acb8-4cf2-947b-313dd815723b",
+            "src": "/samples/default/cutouts/c2f45956-acb8-4cf2-947b-313dd815723b.png",
+            "sourceImageId": "0496f10c-f4bd-4e89-8bd4-a5b184e551f7"
+        },
+        {
+            "id": "2a92ac2f-b0f9-421d-8d97-b920f62fc16e",
+            "src": "/samples/default/cutouts/2a92ac2f-b0f9-421d-8d97-b920f62fc16e.png",
+            "sourceImageId": "138f9191-1b08-4910-b271-c392930a02fe"
+        },
+        {
+            "id": "88559e84-ec2c-4db2-badd-d440a3a2e7d5",
+            "src": "/samples/default/cutouts/88559e84-ec2c-4db2-badd-d440a3a2e7d5.png",
+            "sourceImageId": "6db7fad5-d962-451e-a1af-42791cf76f59"
+        },
+        {
+            "id": "e3f13047-a73e-46b7-b68f-ea1e241bcfae",
+            "src": "/samples/default/cutouts/e3f13047-a73e-46b7-b68f-ea1e241bcfae.png",
+            "sourceImageId": "29639d09-f073-4d5f-9e7e-d2d4a9a7c19e"
+        },
+        {
+            "id": "a3ca85cd-2eca-48f5-93c0-c59b63589ad8",
+            "src": "/samples/default/cutouts/a3ca85cd-2eca-48f5-93c0-c59b63589ad8.png",
+            "sourceImageId": "61479218-289f-469f-a4b7-306701947ab3"
+        }
+    ],
+    "canvasItems": [
+        {
+            "type": "image",
+            "id": "c1753655-c964-429d-bcda-cade5b201298",
+            "cutoutId": "a77f16e0-c984-4a6d-b3a2-34a6560d121f",
+            "src": "/samples/default/cutouts/a77f16e0-c984-4a6d-b3a2-34a6560d121f.png",
+            "x": 43.177888718447434,
+            "y": 338.71722025236534,
+            "scaleX": 0.34627209409076243,
+            "scaleY": 0.3462720940907625,
+            "rotation": 0
+        },
+        {
+            "type": "image",
+            "id": "0ffe5aac-b488-4333-8257-e68bc557c4cd",
+            "cutoutId": "7174a1d7-7f86-4431-9072-f79691dbb881",
+            "sourceImageId": "e81741e1-9ffc-4897-b5aa-95dd659b40fd",
+            "src": "/samples/default/cutouts/7174a1d7-7f86-4431-9072-f79691dbb881.png",
+            "x": 467.31953534519766,
+            "y": 232.7791932013215,
+            "scaleX": 0.3194378260074117,
+            "scaleY": 0.31943782600741183,
+            "rotation": 0
+        },
+        {
+            "type": "image",
+            "id": "b115a589-8fe3-452a-801a-857b4b5bf282",
+            "cutoutId": "7700d6e5-cefa-4ed6-8490-a17554b005ae",
+            "sourceImageId": "86e186c7-7e17-46e3-9c6d-b704f7649af3",
+            "src": "/samples/default/cutouts/7700d6e5-cefa-4ed6-8490-a17554b005ae.png",
+            "x": 83.85261301668541,
+            "y": 132.33937079106784,
+            "scaleX": 0.24937588000443942,
+            "scaleY": 0.24937588000444286,
+            "rotation": 15.594974669446263
+        },
+        {
+            "type": "image",
+            "id": "f5b1abe1-5d15-484e-ae62-f65490f1669d",
+            "cutoutId": "c2f45956-acb8-4cf2-947b-313dd815723b",
+            "sourceImageId": "0496f10c-f4bd-4e89-8bd4-a5b184e551f7",
+            "src": "/samples/default/cutouts/c2f45956-acb8-4cf2-947b-313dd815723b.png",
+            "x": 277,
+            "y": 33.21047300025998,
+            "scaleX": 0.6422675826323234,
+            "scaleY": 0.6422675826323235,
+            "rotation": 0
+        },
+        {
+            "type": "image",
+            "id": "aeaea1ef-3b84-4dda-af3c-e687bf7c0409",
+            "cutoutId": "2a92ac2f-b0f9-421d-8d97-b920f62fc16e",
+            "sourceImageId": "138f9191-1b08-4910-b271-c392930a02fe",
+            "src": "/samples/default/cutouts/2a92ac2f-b0f9-421d-8d97-b920f62fc16e.png",
+            "x": 549.6753403933433,
+            "y": 1.3322442279555844,
+            "scaleX": 0.23338540964000729,
+            "scaleY": 0.23338540964000723,
+            "rotation": 0
+        },
+        {
+            "type": "text",
+            "id": "b25fed4d-9cdc-4c65-bbe2-865bc0860e11",
+            "text": "david",
+            "x": 91.99999999999987,
+            "y": 228.7278136733716,
+            "scaleX": 0.8446744302761818,
+            "scaleY": 0.8446744302761833,
+            "rotation": 0
+        },
+        {
+            "type": "text",
+            "id": "499ff528-7a6b-441d-9507-294e832df562",
+            "text": "princess peach",
+            "x": 457.99999999999994,
+            "y": 260.2789863642878,
+            "scaleX": 0.863375568154675,
+            "scaleY": 0.8633755681546759,
+            "rotation": 0
+        },
+        {
+            "type": "text",
+            "id": "f470d538-627b-4813-a398-c812052e322a",
+            "text": "me!",
+            "x": 353,
+            "y": 203,
+            "scaleX": 1,
+            "scaleY": 1,
+            "rotation": 0
+        },
+        {
+            "type": "image",
+            "id": "2659cdda-fd13-4353-acb2-f2735451db8b",
+            "cutoutId": "88559e84-ec2c-4db2-badd-d440a3a2e7d5",
+            "sourceImageId": "6db7fad5-d962-451e-a1af-42791cf76f59",
+            "src": "/samples/default/cutouts/88559e84-ec2c-4db2-badd-d440a3a2e7d5.png",
+            "x": 281.87176913425344,
+            "y": 319.20989340600113,
+            "scaleX": 0.3141657548230856,
+            "scaleY": 0.31416575482308556,
+            "rotation": 0
+        },
+        {
+            "type": "image",
+            "id": "8f5da2ee-6979-4910-9924-4c015f0bcc46",
+            "cutoutId": "e3f13047-a73e-46b7-b68f-ea1e241bcfae",
+            "sourceImageId": "29639d09-f073-4d5f-9e7e-d2d4a9a7c19e",
+            "src": "/samples/default/cutouts/e3f13047-a73e-46b7-b68f-ea1e241bcfae.png",
+            "x": 43.99999999999946,
+            "y": 36.46847641546958,
+            "scaleX": 0.3026463738196904,
+            "scaleY": 0.30264637381969045,
+            "rotation": 0
+        },
+        {
+            "type": "image",
+            "id": "caee1f93-c47d-4da1-aa22-6c74ee91d79f",
+            "cutoutId": "a3ca85cd-2eca-48f5-93c0-c59b63589ad8",
+            "sourceImageId": "61479218-289f-469f-a4b7-306701947ab3",
+            "src": "/samples/default/cutouts/a3ca85cd-2eca-48f5-93c0-c59b63589ad8.png",
+            "x": 564.4999999999997,
+            "y": 412.36319240760116,
+            "scaleX": 0.342686812917519,
+            "scaleY": 0.34268681291751907,
+            "rotation": 0
+        }
+    ]
+}
