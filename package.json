@@ -7,7 +7,7 @@
     ],
     "scripts": {
         "build": "turbo build",
-        "dev": "turbo dev",
+        "dev": "turbo dev --parallel",
         "lint": "oxlint .",
         "format": "oxfmt --list-different .",
         "format:check": "oxfmt --check .",

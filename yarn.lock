@@ -901,6 +901,25 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@pixattica/about-me@workspace:apps/about-me":
+  version: 0.0.0-use.local
+  resolution: "@pixattica/about-me@workspace:apps/about-me"
+  dependencies:
+    "@pixattica/tsconfig": "npm:*"
+    "@pixattica/ui": "npm:*"
+    "@tailwindcss/vite": "npm:^4"
+    "@types/react": "npm:^19"
+    "@types/react-dom": "npm:^19"
+    "@vitejs/plugin-react": "npm:^4"
+    react: "npm:^19"
+    react-dom: "npm:^19"
+    tailwindcss: "npm:^4"
+    typescript: "npm:^5"
+    vite: "npm:^6"
+    vitest: "npm:^3"
+  languageName: unknown
+  linkType: soft
+
 "@pixattica/landing@workspace:apps/landing":
   version: 0.0.0-use.local
   resolution: "@pixattica/landing@workspace:apps/landing"
