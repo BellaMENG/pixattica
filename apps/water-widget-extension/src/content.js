@@ -93,7 +93,7 @@
                 position: fixed;
                 right: 16px;
                 bottom: 16px;
-                z-index: 2147483647;
+                z-index: 8000;
                 width: 238px;
                 background: linear-gradient(180deg, rgba(255,255,255,0.72), rgba(254,205,211,0.62));
                 border: 2px solid #ec4899;
