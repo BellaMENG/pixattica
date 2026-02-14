@@ -8,7 +8,7 @@ function App() {
         <div className="flex min-h-screen flex-col bg-pink-100 text-pink-700">
             <AnimatedCursor />
             <main className="flex flex-1 flex-col items-center justify-center gap-6">
-                <div className="flex flex-col items-start gap-3">
+                <div className="flex flex-col items-start gap-3 px-4">
                     <h1 className="text-2xl" style={{ color: "deeppink" }}>
                         Pixattica
                     </h1>
@@ -16,7 +16,7 @@ function App() {
                         A playful pixel collage and Valentine's Day card maker you can use directly
                         in your browser.
                     </p>
-                    <nav className="flex flex-col items-start gap-3">
+                    <nav className="flex flex-col items-start gap-3 px-4">
                         <a
                             href={ABOUT_ME_URL}
                             className="text-sm text-pink-500 underline hover:text-pink-600"

@@ -88,8 +88,27 @@ interface SampleManifest {
     selectedBgId?: BackgroundId;
     uploadedImages: UploadedImage[];
     croppedCutouts: CroppedCutout[];
-    canvasItems: CanvasItem[];
+    canvasItems: SampleCanvasItem[];
+    canvasReferenceSize?: SampleCanvasSize;
+    canvasCoordinateMode?: "absolute" | "relative";
 }
+
+interface SampleCanvasSize {
+    width: number;
+    height: number;
+}
+
+type SampleCanvasItem = (
+    | (Omit<CanvasImageItem, "x" | "y"> & { x?: number; y?: number })
+    | (Omit<CanvasTextItem, "x" | "y"> & { x?: number; y?: number })
+) & {
+    xRatio?: number;
+    yRatio?: number;
+    scaleRatio?: number;
+    scaleXRatio?: number;
+    scaleYRatio?: number;
+    widthRatio?: number;
+};
 
 const BASE_URL = import.meta.env.BASE_URL;
 const LANDING_URL = import.meta.env.VITE_LANDING_URL ?? "/";
@@ -121,6 +140,150 @@ function isBackgroundId(value: unknown): value is BackgroundId {
     return (
         value === BackgroundId.White || value === BackgroundId.Pink || value === BackgroundId.Hearts
     );
+}
+
+function isSampleCanvasSize(value: unknown): value is SampleCanvasSize {
+    if (!value || typeof value !== "object") return false;
+    const raw = value as Partial<SampleCanvasSize>;
+    return (
+        typeof raw.width === "number" &&
+        Number.isFinite(raw.width) &&
+        raw.width > 0 &&
+        typeof raw.height === "number" &&
+        Number.isFinite(raw.height) &&
+        raw.height > 0
+    );
+}
+
+function hasRelativeSamplePosition(item: SampleCanvasItem): boolean {
+    return (
+        typeof item.xRatio === "number" &&
+        Number.isFinite(item.xRatio) &&
+        typeof item.yRatio === "number" &&
+        Number.isFinite(item.yRatio)
+    );
+}
+
+function hasRelativeSampleSizing(item: SampleCanvasItem): boolean {
+    return (
+        (typeof item.scaleRatio === "number" && Number.isFinite(item.scaleRatio)) ||
+        (typeof item.scaleXRatio === "number" && Number.isFinite(item.scaleXRatio)) ||
+        (typeof item.scaleYRatio === "number" && Number.isFinite(item.scaleYRatio)) ||
+        (typeof item.widthRatio === "number" && Number.isFinite(item.widthRatio))
+    );
+}
+
+function resolveSampleCoordinate(
+    value: number | undefined,
+    ratio: number | undefined,
+    targetSize: number,
+    referenceSize: number | undefined,
+): number {
+    if (typeof ratio === "number" && Number.isFinite(ratio)) {
+        return ratio * targetSize;
+    }
+    if (
+        typeof value === "number" &&
+        Number.isFinite(value) &&
+        typeof referenceSize === "number" &&
+        Number.isFinite(referenceSize) &&
+        referenceSize > 0 &&
+        targetSize > 0
+    ) {
+        return (value / referenceSize) * targetSize;
+    }
+    if (typeof value === "number" && Number.isFinite(value)) return value;
+    return 0;
+}
+
+function resolveSampleSize(
+    value: number | undefined,
+    ratio: number | undefined,
+    targetSize: number,
+    referenceSize: number | undefined,
+): number {
+    if (typeof ratio === "number" && Number.isFinite(ratio)) {
+        return ratio * targetSize;
+    }
+    if (
+        typeof value === "number" &&
+        Number.isFinite(value) &&
+        typeof referenceSize === "number" &&
+        Number.isFinite(referenceSize) &&
+        referenceSize > 0 &&
+        targetSize > 0
+    ) {
+        return (value / referenceSize) * targetSize;
+    }
+    if (typeof value === "number" && Number.isFinite(value)) return value;
+    return 1;
+}
+
+function resolveSampleCanvasItems(
+    items: SampleCanvasItem[],
+    targetSize: SampleCanvasSize,
+    referenceSize?: SampleCanvasSize,
+): CanvasItem[] {
+    return items.map((item) => {
+        const x = resolveSampleCoordinate(
+            item.x,
+            item.xRatio,
+            targetSize.width,
+            referenceSize?.width,
+        );
+        const y = resolveSampleCoordinate(
+            item.y,
+            item.yRatio,
+            targetSize.height,
+            referenceSize?.height,
+        );
+        const sourceScale =
+            typeof item.scaleX === "number"
+                ? item.scaleX
+                : typeof item.scaleY === "number"
+                  ? item.scaleY
+                  : undefined;
+        const scaleRatio =
+            typeof item.scaleRatio === "number"
+                ? item.scaleRatio
+                : typeof item.scaleXRatio === "number"
+                  ? item.scaleXRatio
+                  : item.scaleYRatio;
+        const uniformScale = resolveSampleSize(
+            sourceScale,
+            scaleRatio,
+            targetSize.width,
+            referenceSize?.width,
+        );
+
+        if (item.type === "image") {
+            return {
+                ...item,
+                x,
+                y,
+                // Keep artifact aspect ratio locked by using one scale driver.
+                scaleX: uniformScale,
+                scaleY: uniformScale,
+            };
+        }
+        return {
+            ...item,
+            x,
+            y,
+            // Keep artifact aspect ratio locked by using one scale driver.
+            scaleX: uniformScale,
+            scaleY: uniformScale,
+            width:
+                typeof item.width === "number"
+                    ? resolveSampleSize(
+                          item.width,
+                          item.widthRatio,
+                          targetSize.width,
+                          referenceSize?.width,
+                      )
+                    : item.width,
+        };
+    });
 }
 
 function normalizeSampleAssetSrc(src: string): string {
@@ -192,6 +355,10 @@ function parseSampleManifest(value: unknown): SampleManifest | null {
     return {
         version: typeof raw.version === "number" ? raw.version : 1,
         selectedBgId: isBackgroundId(raw.selectedBgId) ? raw.selectedBgId : undefined,
+        canvasReferenceSize: isSampleCanvasSize(raw.canvasReferenceSize)
+            ? raw.canvasReferenceSize
+            : undefined,
+        canvasCoordinateMode: raw.canvasCoordinateMode === "relative" ? "relative" : "absolute",
         uploadedImages: (raw.uploadedImages as UploadedImage[]).map((image) => ({
             ...image,
             src: normalizeSampleAssetSrc(image.src),
@@ -200,7 +367,7 @@ function parseSampleManifest(value: unknown): SampleManifest | null {
             ...cutout,
             src: normalizeSampleAssetSrc(cutout.src),
         })),
-        canvasItems: (raw.canvasItems as CanvasItem[]).map((item) =>
+        canvasItems: (raw.canvasItems as SampleCanvasItem[]).map((item) =>
             item.type === "image" ? { ...item, src: normalizeSampleAssetSrc(item.src) } : item,
         ),
     };
@@ -236,10 +403,27 @@ export default function App() {
     const stageRef = useRef<Konva.Stage>(null);
     const uploadedImagesRef = useRef<UploadedImage[]>(uploadedImages);
     const sampleSeedCheckedRef = useRef(false);
+    const pendingRelativeSampleManifestRef = useRef<SampleManifest | null>(null);
 
     useEffect(() => {
         uploadedImagesRef.current = uploadedImages;
     }, [uploadedImages]);
+
+    useEffect(() => {
+        const pendingManifest = pendingRelativeSampleManifestRef.current;
+        if (!pendingManifest) return;
+        if (canvasSize.width <= 0 || canvasSize.height <= 0) return;
+        const resolvedCanvasSize = { width: canvasSize.width, height: canvasSize.height };
+
+        setCanvasItems(
+            resolveSampleCanvasItems(
+                pendingManifest.canvasItems,
+                resolvedCanvasSize,
+                pendingManifest.canvasReferenceSize,
+            ),
+        );
+        pendingRelativeSampleManifestRef.current = null;
+    }, [canvasSize.width, canvasSize.height, setCanvasItems]);
 
     const backgroundStyle = BACKGROUNDS.find((bg) => bg.id === selectedBgId)?.style ?? "white";
 
@@ -276,7 +460,29 @@ export default function App() {
 
                 setUploadedImages(manifest.uploadedImages);
                 setCroppedCutouts(manifest.croppedCutouts);
-                setCanvasItems(manifest.canvasItems);
+                const shouldResolveRelative =
+                    manifest.canvasCoordinateMode === "relative" ||
+                    manifest.canvasItems.some(
+                        (item) => hasRelativeSamplePosition(item) || hasRelativeSampleSizing(item),
+                    );
+
+                if (!shouldResolveRelative) {
+                    setCanvasItems(manifest.canvasItems as CanvasItem[]);
+                } else if (canvasSize.width > 0 && canvasSize.height > 0) {
+                    const resolvedCanvasSize = {
+                        width: canvasSize.width,
+                        height: canvasSize.height,
+                    };
+                    setCanvasItems(
+                        resolveSampleCanvasItems(
+                            manifest.canvasItems,
+                            resolvedCanvasSize,
+                            manifest.canvasReferenceSize,
+                        ),
+                    );
+                } else {
+                    pendingRelativeSampleManifestRef.current = manifest;
+                }
                 if (manifest.selectedBgId) {
                     setSelectedBgId(manifest.selectedBgId);
                 }
@@ -303,6 +509,8 @@ export default function App() {
         setCroppedCutouts,
         setCanvasItems,
         setSelectedBgId,
+        canvasSize.width,
+        canvasSize.height,
     ]);
 
     useEffect(() => {

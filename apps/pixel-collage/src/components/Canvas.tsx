@@ -1,4 +1,4 @@
-import { useRef, useEffect, useState } from "react";
+import { useRef, useEffect, useLayoutEffect, useState } from "react";
 import { Stage, Layer, Image as KonvaImage, Text, Transformer } from "react-konva";
 import useImage from "use-image";
 import type { CanvasItem, CanvasImageItem, CanvasTextItem } from "../App";
@@ -11,7 +11,6 @@ import {
     TRANSFORMER_ANCHOR_STROKE,
     TRANSFORMER_ANCHOR_FILL,
     TRANSFORMER_ANCHOR_SIZE,
-    TOOLBAR_VERTICAL_OFFSET,
     CANVAS_FIT_PADDING,
     CANVAS_ASPECT_RATIO,
     TEXT_FONT_FAMILY,
@@ -42,6 +41,12 @@ interface CanvasProps {
     backgroundStyle: string;
     stageRef?: React.RefObject<Konva.Stage | null>;
 }
+
+const TOOLBAR_REFERENCE_CANVAS_WIDTH = 764;
+const TOOLBAR_BUTTON_MAX_HEIGHT = 28;
+const TOOLBAR_HORIZONTAL_MARGIN = 8;
+const TOOLBAR_VERTICAL_MARGIN = 8;
+const TOOLBAR_ITEM_CLEARANCE = 6;
 
 function ToolbarButton({
     label,
@@ -189,6 +194,7 @@ function CanvasImage({
         <>
             <KonvaImage
                 ref={imageRef}
+                id={item.id}
                 image={image}
                 x={item.x}
                 y={item.y}
@@ -290,6 +296,7 @@ function CanvasText({
         <>
             <Text
                 ref={textRef}
+                id={item.id}
                 text={item.text}
                 fontFamily={TEXT_FONT_FAMILY}
                 fontSize={TEXT_FONT_SIZE}
@@ -411,8 +418,11 @@ export default function Canvas({
 }: CanvasProps) {
     const containerRef = useRef<HTMLDivElement>(null);
     const canvasSizeRef = useRef<{ width: number; height: number } | null>(null);
+    const internalStageRef = useRef<Konva.Stage>(null);
+    const toolbarContentRef = useRef<HTMLDivElement>(null);
     const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
     const [dragPos, setDragPos] = useState<{ x: number; y: number } | null>(null);
+    const [toolbarBaseSize, setToolbarBaseSize] = useState({ width: 0, height: 0 });
 
     const selectedItem = selectedItemId
         ? (items.find((i) => i.id === selectedItemId) ?? null)
@@ -420,9 +430,73 @@ export default function Canvas({
 
     const buttonPos = selectedItem ? (dragPos ?? { x: selectedItem.x, y: selectedItem.y }) : null;
     const canCropSelectedImage = selectedItem?.type === "image" && Boolean(onCrop);
+    const activeStageRef = stageRef ?? internalStageRef;
+    const stageNode = activeStageRef.current;
+    const selectedNode = selectedItemId
+        ? stageNode?.findOne<Konva.Node>(`#${selectedItemId}`)
+        : null;
+    const selectedRect = selectedNode?.getClientRect({
+        skipShadow: true,
+        relativeTo: stageNode ?? undefined,
+    });
 
     const canvasWidth = canvasSizeRef.current?.width ?? 0;
     const canvasHeight = canvasSizeRef.current?.height ?? 0;
+    const toolbarButtonCount = selectedItemId ? (canCropSelectedImage ? 4 : 3) : 0;
+    const maxToolbarWidth = Math.max(canvasWidth - TOOLBAR_HORIZONTAL_MARGIN * 2, 0);
+    const measuredToolbarBaseWidth = toolbarBaseSize.width;
+    const measuredToolbarBaseHeight = toolbarBaseSize.height;
+    const fallbackToolbarBaseWidth = toolbarButtonCount > 0 ? maxToolbarWidth : 0;
+    const toolbarBaseWidth =
+        measuredToolbarBaseWidth > 0 ? measuredToolbarBaseWidth : fallbackToolbarBaseWidth;
+    const toolbarBaseHeight =
+        measuredToolbarBaseHeight > 0 ? measuredToolbarBaseHeight : TOOLBAR_BUTTON_MAX_HEIGHT;
+    const canvasRelativeToolbarScale =
+        canvasWidth > 0 ? Math.min(canvasWidth / TOOLBAR_REFERENCE_CANVAS_WIDTH, 1) : 1;
+    const overflowToolbarScale =
+        toolbarBaseWidth > 0 ? Math.min(maxToolbarWidth / toolbarBaseWidth, 1) : 1;
+    const toolbarScale = Math.min(canvasRelativeToolbarScale, overflowToolbarScale, 1);
+    const toolbarWidth = toolbarBaseWidth * toolbarScale;
+    const toolbarHeight = toolbarBaseHeight * toolbarScale;
+    const selectedCenterX = selectedRect
+        ? selectedRect.x + selectedRect.width / 2
+        : (buttonPos?.x ?? 0) + toolbarWidth / 2;
+    const selectedTop = selectedRect ? selectedRect.y : (buttonPos?.y ?? 0);
+    const selectedBottom = selectedRect
+        ? selectedRect.y + selectedRect.height
+        : (buttonPos?.y ?? 0);
+    const toolbarX =
+        selectedItemId && canvasWidth > 0
+            ? Math.min(
+                  Math.max(selectedCenterX - toolbarWidth / 2, TOOLBAR_HORIZONTAL_MARGIN),
+                  Math.max(
+                      TOOLBAR_HORIZONTAL_MARGIN,
+                      canvasWidth - TOOLBAR_HORIZONTAL_MARGIN - toolbarWidth,
+                  ),
+              )
+            : selectedCenterX - toolbarWidth / 2;
+    const selectedMidY = (selectedTop + selectedBottom) / 2;
+    const preferBelow = selectedMidY <= canvasHeight / 2;
+    const preferredTop = preferBelow
+        ? selectedBottom + TOOLBAR_ITEM_CLEARANCE
+        : selectedTop - TOOLBAR_ITEM_CLEARANCE - toolbarHeight;
+    const alternateTop = preferBelow
+        ? selectedTop - TOOLBAR_ITEM_CLEARANCE - toolbarHeight
+        : selectedBottom + TOOLBAR_ITEM_CLEARANCE;
+    const maxToolbarTop = Math.max(
+        TOOLBAR_VERTICAL_MARGIN,
+        canvasHeight - TOOLBAR_VERTICAL_MARGIN - toolbarHeight,
+    );
+    const preferredFits = preferredTop >= TOOLBAR_VERTICAL_MARGIN && preferredTop <= maxToolbarTop;
+    const alternateFits = alternateTop >= TOOLBAR_VERTICAL_MARGIN && alternateTop <= maxToolbarTop;
+    const toolbarY =
+        selectedItemId && canvasHeight > 0
+            ? preferredFits
+                ? preferredTop
+                : alternateFits
+                  ? alternateTop
+                  : Math.min(Math.max(preferredTop, TOOLBAR_VERTICAL_MARGIN), maxToolbarTop)
+            : preferredTop;
 
     const fitScale = computeFitScale(
         containerSize.width,
@@ -456,6 +530,27 @@ export default function Canvas({
     useEffect(() => {
         setDragPos(null);
     }, [selectedItemId]);
+
+    useLayoutEffect(() => {
+        const el = toolbarContentRef.current;
+        if (!selectedItemId || !el) {
+            setToolbarBaseSize({ width: 0, height: 0 });
+            return;
+        }
+
+        const updateToolbarSize = () => {
+            setToolbarBaseSize({
+                width: el.offsetWidth,
+                height: el.offsetHeight,
+            });
+        };
+
+        updateToolbarSize();
+
+        const observer = new ResizeObserver(updateToolbarSize);
+        observer.observe(el);
+        return () => observer.disconnect();
+    }, [selectedItemId, canCropSelectedImage]);
 
     useEffect(() => {
         function handleKeyDown(e: KeyboardEvent) {
@@ -495,7 +590,7 @@ export default function Canvas({
                     }}
                 >
                     <Stage
-                        ref={stageRef}
+                        ref={activeStageRef}
                         width={canvasWidth}
                         height={canvasHeight}
                         onMouseDown={handleStageMouseDown}
@@ -542,35 +637,42 @@ export default function Canvas({
                             style={{
                                 position: "absolute",
                                 zIndex: 10,
-                                left: buttonPos.x,
-                                top: Math.max(0, buttonPos.y - TOOLBAR_VERTICAL_OFFSET),
-                                transform: "translate(0, -100%)",
+                                left: toolbarX,
+                                top: toolbarY,
                                 pointerEvents: "auto",
                             }}
-                            className="flex gap-1"
                         >
-                            <ToolbarButton
-                                label="Front"
-                                onClick={() => onBringToFront(selectedItemId)}
-                                icon={<BringToFrontIcon />}
-                            />
-                            <ToolbarButton
-                                label="Back"
-                                onClick={() => onSendToBack(selectedItemId)}
-                                icon={<SendToBackIcon />}
-                            />
-                            {canCropSelectedImage && (
+                            <div
+                                ref={toolbarContentRef}
+                                className="flex gap-1"
+                                style={{
+                                    transform: `scale(${toolbarScale})`,
+                                    transformOrigin: "left top",
+                                }}
+                            >
                                 <ToolbarButton
-                                    label="Crop"
-                                    onClick={() => onCrop?.(selectedItemId)}
-                                    icon={<CropIcon />}
+                                    label="Front"
+                                    onClick={() => onBringToFront(selectedItemId)}
+                                    icon={<BringToFrontIcon />}
                                 />
-                            )}
-                            <ToolbarButton
-                                label="Delete"
-                                onClick={() => onDelete(selectedItemId)}
-                                icon={<DeleteIcon />}
-                            />
+                                <ToolbarButton
+                                    label="Back"
+                                    onClick={() => onSendToBack(selectedItemId)}
+                                    icon={<SendToBackIcon />}
+                                />
+                                {canCropSelectedImage && (
+                                    <ToolbarButton
+                                        label="Crop"
+                                        onClick={() => onCrop?.(selectedItemId)}
+                                        icon={<CropIcon />}
+                                    />
+                                )}
+                                <ToolbarButton
+                                    label="Delete"
+                                    onClick={() => onDelete(selectedItemId)}
+                                    icon={<DeleteIcon />}
+                                />
+                            </div>
                         </div>
                     )}
                 </div>
