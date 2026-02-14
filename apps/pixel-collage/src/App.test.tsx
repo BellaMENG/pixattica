@@ -34,14 +34,33 @@ vi.mock("./components/Canvas", () => ({
         onSelect,
         onBringToFront,
         onSendToBack,
+        onTransformEnd,
         onCrop,
         stageRef,
     }: {
-        items: Array<{ id: string; type: string; text?: string }>;
+        items: Array<{
+            id: string;
+            type: string;
+            text?: string;
+            width?: number;
+            x?: number;
+            y?: number;
+            scaleX?: number;
+            scaleY?: number;
+            rotation?: number;
+        }>;
         selectedItemId: string | null;
         onSelect: (id: string | null) => void;
         onBringToFront: (id: string) => void;
         onSendToBack: (id: string) => void;
+        onTransformEnd: (
+            id: string,
+            x: number,
+            y: number,
+            scaleX: number,
+            scaleY: number,
+            rotation: number,
+        ) => void;
         onCrop?: (id: string) => void;
         onResize: (size: { width: number; height: number }) => void;
         stageRef?: React.RefObject<unknown>;
@@ -62,6 +81,8 @@ vi.mock("./components/Canvas", () => ({
                         data-testid={`canvas-item-${item.id}`}
                         data-type={item.type}
                         data-text={item.text ?? ""}
+                        data-width={item.width ?? ""}
+                        data-scale-x={item.scaleX ?? ""}
                     >
                         <button onClick={() => onSelect(item.id)}>Select {item.id}</button>
                     </div>
@@ -74,6 +95,22 @@ vi.mock("./components/Canvas", () => ({
                         <button onClick={() => onSendToBack(selectedItemId)}>Send to Back</button>
                         {selectedItem?.type === "image" && onCrop && (
                             <button onClick={() => onCrop(selectedItemId)}>Crop</button>
+                        )}
+                        {selectedItem?.type === "text" && (
+                            <button
+                                onClick={() =>
+                                    onTransformEnd(
+                                        selectedItemId,
+                                        selectedItem.x ?? 0,
+                                        selectedItem.y ?? 0,
+                                        0.5,
+                                        selectedItem.scaleY ?? 1,
+                                        selectedItem.rotation ?? 0,
+                                    )
+                                }
+                            >
+                                Resize Text Box
+                            </button>
                         )}
                     </div>
                 )}
@@ -1014,5 +1051,34 @@ describe("add text to canvas", () => {
         fireEvent.change(input, { target: { value: "   " } });
 
         expect(screen.getByText("Add Text")).toBeDisabled();
+    });
+
+    it("reshapes text box width on text transform to support wrapping", async () => {
+        await seedIndexedDB(
+            [],
+            [],
+            [
+                {
+                    type: "text",
+                    id: "ct-wrap",
+                    text: "A long line that can wrap",
+                    width: 200,
+                    x: 50,
+                    y: 50,
+                    scaleX: 1,
+                    scaleY: 1,
+                    rotation: 0,
+                },
+            ],
+        );
+        await renderAndWaitForLoad();
+
+        fireEvent.click(screen.getByText("Select ct-wrap"));
+        fireEvent.click(screen.getByText("Resize Text Box"));
+
+        await waitFor(() => {
+            expect(screen.getByTestId("canvas-item-ct-wrap")).toHaveAttribute("data-width", "100");
+            expect(screen.getByTestId("canvas-item-ct-wrap")).toHaveAttribute("data-scale-x", "1");
+        });
     });
 });

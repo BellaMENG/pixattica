@@ -16,6 +16,7 @@ import {
     CANVAS_ASPECT_RATIO,
     TEXT_FONT_FAMILY,
     TEXT_FONT_SIZE,
+    TEXT_BOX_MIN_WIDTH,
     TEXT_FILL,
 } from "../config";
 import type Konva from "konva";
@@ -262,6 +263,7 @@ function CanvasText({
 }) {
     const textRef = useRef<Konva.Text>(null);
     const transformerRef = useRef<Konva.Transformer>(null);
+    const transformStartWidthRef = useRef<number | null>(null);
 
     useEffect(() => {
         if (!textRef.current) return;
@@ -292,6 +294,8 @@ function CanvasText({
                 fontFamily={TEXT_FONT_FAMILY}
                 fontSize={TEXT_FONT_SIZE}
                 fill={TEXT_FILL}
+                width={item.width}
+                wrap="word"
                 x={item.x}
                 y={item.y}
                 scaleX={item.scaleX}
@@ -306,28 +310,42 @@ function CanvasText({
                 onDragMove={(e) => {
                     onDragMove(e.target.x(), e.target.y());
                 }}
+                onTransformStart={() => {
+                    const node = textRef.current;
+                    if (!node) return;
+                    transformStartWidthRef.current = node.width();
+                }}
+                onTransform={() => {
+                    const node = textRef.current;
+                    if (!node) return;
+
+                    const nextWidth = Math.max(
+                        TEXT_BOX_MIN_WIDTH,
+                        node.width() * Math.abs(node.scaleX()),
+                    );
+                    node.width(nextWidth);
+                    node.scaleX(1);
+                    node.scaleY(1);
+                    node.getLayer()?.batchDraw();
+                }}
                 onTransformEnd={() => {
                     const node = textRef.current;
                     if (!node) return;
-                    onTransformEnd(
-                        node.x(),
-                        node.y(),
-                        node.scaleX(),
-                        node.scaleY(),
-                        node.rotation(),
-                    );
+                    const startWidth = transformStartWidthRef.current ?? node.width();
+                    const widthRatio = startWidth > 0 ? node.width() / startWidth : 1;
+                    transformStartWidthRef.current = null;
+                    onTransformEnd(node.x(), node.y(), widthRatio, 1, node.rotation());
                 }}
             />
             {isSelected && (
                 <Transformer
                     ref={transformerRef}
                     rotateEnabled={true}
-                    keepRatio={true}
+                    keepRatio={false}
+                    enabledAnchors={["top-left", "top-right", "bottom-left", "bottom-right"]}
+                    flipEnabled={false}
                     boundBoxFunc={(_oldBox, newBox) => {
-                        if (
-                            newBox.width < TRANSFORMER_MIN_SIZE ||
-                            newBox.height < TRANSFORMER_MIN_SIZE
-                        ) {
+                        if (Math.abs(newBox.width) < TEXT_BOX_MIN_WIDTH) {
                             return _oldBox;
                         }
                         return newBox;

@@ -34,6 +34,7 @@ export const TOOLBAR_VERTICAL_OFFSET = 8;
 export const TEXT_FONT_FAMILY = '"Press Start 2P"';
 export const TEXT_FONT_SIZE = 24;
 export const TEXT_FILL = "deeppink";
+export const TEXT_BOX_MIN_WIDTH = 80;
 
 // ---------------------------------------------------------------------------
 // Image cropper

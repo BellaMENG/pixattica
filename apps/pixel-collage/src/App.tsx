@@ -5,7 +5,12 @@ import Canvas from "./components/Canvas";
 import ConfirmModal from "./components/ConfirmModal";
 import ImageCropper from "./components/ImageCropper";
 import Sidebar from "./components/Sidebar";
-import { MAX_CUTOUT_SIZE_RATIO, TEXT_FONT_FAMILY, TEXT_FONT_SIZE } from "./config";
+import {
+    MAX_CUTOUT_SIZE_RATIO,
+    TEXT_BOX_MIN_WIDTH,
+    TEXT_FONT_FAMILY,
+    TEXT_FONT_SIZE,
+} from "./config";
 import { useIndexedDB } from "./hooks/useIndexedDB";
 import { useLocalStorage } from "./hooks/useLocalStorage";
 import { exportCanvasToBlob, downloadBlob } from "./utils/exportCanvas";
@@ -42,6 +47,7 @@ export interface CanvasImageItem extends CanvasItemBase {
 export interface CanvasTextItem extends CanvasItemBase {
     type: "text";
     text: string;
+    width?: number;
 }
 
 export type CanvasItem = CanvasImageItem | CanvasTextItem;
@@ -446,6 +452,7 @@ export default function App() {
                 text,
                 x: canvasSize.width / 2 - textWidth / 2,
                 y: canvasSize.height / 2 - TEXT_FONT_SIZE / 2,
+                width: Math.max(textWidth, TEXT_BOX_MIN_WIDTH),
                 scaleX: 1,
                 scaleY: 1,
                 rotation: 0,
@@ -534,11 +541,28 @@ export default function App() {
         scaleY: number,
         rotation: number,
     ) {
-        setCanvasItems((prev) =>
-            prev.map((item) =>
-                item.id === id ? { ...item, x, y, scaleX, scaleY, rotation } : item,
-            ),
-        );
+        setCanvasItems((prev) => {
+            return prev.map((item) => {
+                if (item.id !== id) return item;
+                if (item.type !== "text") {
+                    return { ...item, x, y, scaleX, scaleY, rotation };
+                }
+
+                const baseWidth =
+                    item.width ?? Math.max(measureTextWidth(item.text), TEXT_BOX_MIN_WIDTH);
+                const nextWidth = Math.max(TEXT_BOX_MIN_WIDTH, baseWidth * Math.abs(scaleX));
+                return {
+                    ...item,
+                    x,
+                    y,
+                    rotation,
+                    width: nextWidth,
+                    // For text we convert transform scaling into box width and keep glyph scale stable.
+                    scaleX: 1,
+                    scaleY: 1,
+                };
+            });
+        });
     }
 
     async function handleSaveImage() {
