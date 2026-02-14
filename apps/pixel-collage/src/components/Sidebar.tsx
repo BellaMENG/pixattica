@@ -27,6 +27,8 @@ interface SidebarProps {
     onSelectBg: (id: BackgroundId) => void;
     onSaveImage: () => void;
     onEmailImage: () => void;
+    onEraseCanvas: () => void;
+    hasCanvasItems: boolean;
     onExportSampleData?: () => void;
 }
 
@@ -266,6 +268,8 @@ export default function Sidebar({
     onSelectBg,
     onSaveImage,
     onEmailImage,
+    onEraseCanvas,
+    hasCanvasItems,
     onExportSampleData,
 }: SidebarProps) {
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -504,6 +508,17 @@ export default function Sidebar({
                             Export Sample Data
                         </button>
                     )}
+                </section>
+
+                <section className="mb-4">
+                    <h3 className="mb-2 text-xs text-pink-600">Canvas</h3>
+                    <button
+                        onClick={onEraseCanvas}
+                        disabled={!hasCanvasItems}
+                        className="w-full rounded bg-rose-500 px-2 py-1 text-[11px] text-white hover:bg-rose-600 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-default"
+                    >
+                        Erase Canvas
+                    </button>
                 </section>
             </div>
             <div className="hidden md:flex">

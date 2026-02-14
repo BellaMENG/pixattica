@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import type Konva from "konva";
 import { AnimatedCursor, Footer } from "@pixattica/ui";
 import Canvas from "./components/Canvas";
+import ConfirmModal from "./components/ConfirmModal";
 import ImageCropper from "./components/ImageCropper";
 import Sidebar from "./components/Sidebar";
 import { MAX_CUTOUT_SIZE_RATIO, TEXT_FONT_FAMILY, TEXT_FONT_SIZE } from "./config";
@@ -62,6 +63,12 @@ export enum BackgroundId {
     White = "white",
     Pink = "pink",
     Hearts = "hearts",
+}
+
+enum EraseConfirmationStep {
+    None = "none",
+    First = "first",
+    Second = "second",
 }
 
 export interface BackgroundOption {
@@ -212,6 +219,7 @@ export default function App() {
     const [selectedCanvasItemId, setSelectedCanvasItemId] = useState<string | null>(null);
     const [croppingImageId, setCroppingImageId] = useState<string | null>(null);
     const [canvasCroppingImage, setCanvasCroppingImage] = useState<UploadedImage | null>(null);
+    const [eraseConfirmationStep, setEraseConfirmationStep] = useState(EraseConfirmationStep.None);
 
     const [uploadingNames, setUploadingNames] = useState<Map<string, string>>(new Map());
     const [selectedBgId, setSelectedBgId] = useLocalStorage<BackgroundId>(
@@ -475,6 +483,27 @@ export default function App() {
         setSelectedCanvasItemId(null);
     }
 
+    function handleEraseCanvas() {
+        if (canvasItems.length === 0) return;
+        setEraseConfirmationStep(EraseConfirmationStep.First);
+    }
+
+    function handleCancelEraseCanvas() {
+        setEraseConfirmationStep(EraseConfirmationStep.None);
+    }
+
+    function handleConfirmEraseCanvas() {
+        if (eraseConfirmationStep === EraseConfirmationStep.First) {
+            setEraseConfirmationStep(EraseConfirmationStep.Second);
+            return;
+        }
+        if (eraseConfirmationStep !== EraseConfirmationStep.Second) return;
+
+        setCanvasItems([]);
+        setSelectedCanvasItemId(null);
+        setEraseConfirmationStep(EraseConfirmationStep.None);
+    }
+
     function handleBringToFront(id: string) {
         setCanvasItems((prev) => {
             const idx = prev.findIndex((item) => item.id === id);
@@ -599,6 +628,8 @@ export default function App() {
                             onSelectBg={setSelectedBgId}
                             onSaveImage={handleSaveImage}
                             onEmailImage={handleEmailImage}
+                            onEraseCanvas={handleEraseCanvas}
+                            hasCanvasItems={canvasItems.length > 0}
                             onExportSampleData={
                                 import.meta.env.DEV ? handleExportSampleData : undefined
                             }
@@ -629,6 +660,27 @@ export default function App() {
                             }}
                         />
                     )}
+                    <ConfirmModal
+                        isOpen={eraseConfirmationStep !== EraseConfirmationStep.None}
+                        title={
+                            eraseConfirmationStep === EraseConfirmationStep.Second
+                                ? "Final confirmation"
+                                : "Erase entire canvas?"
+                        }
+                        message={
+                            eraseConfirmationStep === EraseConfirmationStep.Second
+                                ? "This cannot be undone. Confirm to erase everything on the canvas."
+                                : "This will remove all images and texts currently placed on your canvas."
+                        }
+                        confirmLabel={
+                            eraseConfirmationStep === EraseConfirmationStep.Second
+                                ? "Erase Everything"
+                                : "Erase"
+                        }
+                        cancelLabel="Keep Canvas"
+                        onConfirm={handleConfirmEraseCanvas}
+                        onCancel={handleCancelEraseCanvas}
+                    />
                 </div>
                 <Footer instagramUrl={import.meta.env.VITE_INSTAGRAM_URL} />
             </div>

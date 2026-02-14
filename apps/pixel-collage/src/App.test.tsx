@@ -160,6 +160,16 @@ const canvasItem3 = {
     scaleY: 1,
     rotation: 0,
 };
+const canvasTextItem1 = {
+    type: "text" as const,
+    id: "ct-1",
+    text: "Hello",
+    x: 0,
+    y: 0,
+    scaleX: 1,
+    scaleY: 1,
+    rotation: 0,
+};
 
 async function seedIndexedDB(
     images: (typeof img1)[],
@@ -742,6 +752,65 @@ describe("multi-file upload", () => {
             expect(screen.getByText("cat.png")).toBeInTheDocument();
         });
         expect(mockedReadImageFile).toHaveBeenCalledTimes(1);
+    });
+});
+
+describe("erase canvas", () => {
+    afterEach(() => {
+        cleanup();
+    });
+
+    beforeEach(() => {
+        globalThis.indexedDB = new IDBFactory();
+        localStorage.clear();
+    });
+
+    it("renders Erase Canvas disabled when no canvas items exist", async () => {
+        await renderAndWaitForLoad();
+
+        expect(screen.getByText("Erase Canvas")).toBeDisabled();
+    });
+
+    it("shows a themed confirmation modal before erase", async () => {
+        await seedIndexedDB([img1], [cutout1], [canvasItem1, canvasTextItem1]);
+        await renderAndWaitForLoad();
+
+        fireEvent.click(screen.getByText("Erase Canvas"));
+
+        expect(screen.getByTestId("confirm-modal")).toBeInTheDocument();
+        expect(screen.getByText("Erase entire canvas?")).toBeInTheDocument();
+    });
+
+    it("erases all canvas items after double confirmation", async () => {
+        await seedIndexedDB([img1], [cutout1], [canvasItem1, canvasTextItem1]);
+        await renderAndWaitForLoad();
+
+        const canvas = screen.getByTestId("canvas");
+        expect(canvas.querySelectorAll("[data-testid^='canvas-item-']")).toHaveLength(2);
+
+        fireEvent.click(screen.getByText("Erase Canvas"));
+        fireEvent.click(screen.getByText("Erase"));
+        expect(screen.getByText("Final confirmation")).toBeInTheDocument();
+        fireEvent.click(screen.getByText("Erase Everything"));
+
+        await waitFor(() => {
+            expect(canvas.querySelectorAll("[data-testid^='canvas-item-']")).toHaveLength(0);
+        });
+        expect(screen.queryByTestId("confirm-modal")).not.toBeInTheDocument();
+    });
+
+    it("does not erase when the second confirmation is canceled", async () => {
+        await seedIndexedDB([img1], [cutout1], [canvasItem1, canvasTextItem1]);
+        await renderAndWaitForLoad();
+
+        const canvas = screen.getByTestId("canvas");
+
+        fireEvent.click(screen.getByText("Erase Canvas"));
+        fireEvent.click(screen.getByText("Erase"));
+        fireEvent.click(screen.getByText("Keep Canvas"));
+
+        expect(canvas.querySelectorAll("[data-testid^='canvas-item-']")).toHaveLength(2);
+        expect(screen.queryByTestId("confirm-modal")).not.toBeInTheDocument();
     });
 });
 
