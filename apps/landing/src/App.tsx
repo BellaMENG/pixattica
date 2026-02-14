@@ -10,8 +10,12 @@ function App() {
             <main className="flex flex-1 flex-col items-center justify-center gap-6">
                 <div className="flex flex-col items-start gap-3">
                     <h1 className="text-2xl" style={{ color: "deeppink" }}>
-                        Hello world
+                        Pixattica
                     </h1>
+                    <p className="max-w-md text-sm text-pink-600">
+                        A playful pixel collage and Valentine's Day card maker you can use directly
+                        in your browser.
+                    </p>
                     <nav className="flex flex-col items-start gap-3">
                         <a
                             href={ABOUT_ME_URL}
@@ -23,7 +27,7 @@ function App() {
                             href={PIXEL_COLLAGE_URL}
                             className="text-sm text-pink-500 underline hover:text-pink-600"
                         >
-                            Collage Maker
+                            Valentine's Day Card Maker
                         </a>
                     </nav>
                 </div>
