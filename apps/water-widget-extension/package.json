@@ -1,0 +1,12 @@
+{
+    "name": "@pixattica/water-widget-extension",
+    "version": "0.0.0",
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "dev": "yarn build && echo 'Load apps/water-widget-extension/dist as an unpacked extension in chrome://extensions'",
+        "build": "rm -rf dist && mkdir -p dist && cp -R src/* dist/",
+        "test": "echo 'No tests yet'",
+        "clean": "rm -rf dist node_modules .turbo"
+    }
+}

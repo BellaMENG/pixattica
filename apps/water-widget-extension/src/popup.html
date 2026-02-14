@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Water Reminder</title>
+        <link rel="stylesheet" href="popup.css" />
+    </head>
+    <body>
+        <main class="popup">
+            <header class="top">
+                <h1>Water Glass</h1>
+                <button id="remindNow" class="ghost" type="button">Remind now</button>
+            </header>
+
+            <section class="glass-card">
+                <div class="glass-shell">
+                    <div id="glassFill" class="glass-fill"></div>
+                </div>
+                <div class="glass-meta">
+                    <div id="percent">0%</div>
+                    <div id="progressCopy">0 / 2000 ml</div>
+                </div>
+            </section>
+
+            <section class="actions">
+                <button id="drinkBtn" type="button">+250 ml</button>
+                <button id="resetBtn" class="ghost" type="button">Reset</button>
+            </section>
+
+            <section class="controls">
+                <label>
+                    <span>Enable reminders</span>
+                    <input id="enabled" type="checkbox" />
+                </label>
+                <label>
+                    <span>Reminder every (min)</span>
+                    <input id="reminderMinutes" type="number" min="15" max="240" />
+                </label>
+                <label>
+                    <span>Daily goal (ml)</span>
+                    <input id="dailyGoalMl" type="number" min="500" max="8000" />
+                </label>
+                <label>
+                    <span>Sip size (ml)</span>
+                    <input id="sipAmountMl" type="number" min="50" max="1000" />
+                </label>
+            </section>
+
+            <footer class="bottom">
+                <button id="saveBtn" type="button">Save</button>
+                <p id="status">Ready</p>
+            </footer>
+        </main>
+
+        <script type="module" src="popup.js"></script>
+    </body>
+</html>

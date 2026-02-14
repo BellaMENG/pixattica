@@ -1,0 +1,29 @@
+{
+    "manifest_version": 3,
+    "name": "Pixattica Water Glass Reminder",
+    "description": "Pink pixel-art glass widget that reminds you to drink water throughout the day.",
+    "version": "0.1.0",
+    "permissions": ["storage", "alarms", "notifications"],
+    "host_permissions": ["<all_urls>"],
+    "background": {
+        "service_worker": "background.js",
+        "type": "module"
+    },
+    "action": {
+        "default_title": "Water Reminder",
+        "default_popup": "popup.html"
+    },
+    "content_scripts": [
+        {
+            "matches": ["<all_urls>"],
+            "js": ["content.js"],
+            "run_at": "document_idle"
+        }
+    ],
+    "icons": {
+        "16": "icons/water-48.png",
+        "32": "icons/water-48.png",
+        "48": "icons/water-48.png",
+        "128": "icons/water-48.png"
+    }
+}

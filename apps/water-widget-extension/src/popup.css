@@ -1,0 +1,140 @@
+:root {
+    color-scheme: light;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    width: 310px;
+    background: linear-gradient(180deg, #fde7f3, #fbcfe8);
+    color: #9d174d;
+    font:
+        11px/1.4 "Press Start 2P",
+        "Courier New",
+        monospace;
+}
+
+.popup {
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.top h1 {
+    margin: 0;
+    font-size: 12px;
+    color: #be185d;
+}
+
+.glass-card {
+    border: 2px solid #ec4899;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.72);
+    box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.4);
+    padding: 10px;
+    display: flex;
+    align-items: flex-end;
+    gap: 10px;
+}
+
+.glass-shell {
+    width: 42px;
+    height: 70px;
+    border: 2px solid #db2777;
+    border-radius: 8px 8px 10px 10px;
+    background: rgba(255, 255, 255, 0.75);
+    overflow: hidden;
+    position: relative;
+}
+
+.glass-shell::after {
+    content: "";
+    position: absolute;
+    left: 6px;
+    top: 6px;
+    width: 8px;
+    height: 24px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.7);
+}
+
+.glass-fill {
+    position: absolute;
+    inset: auto 0 0 0;
+    height: 0;
+    background: linear-gradient(180deg, #f472b6, #ec4899);
+    transition: height 0.25s ease;
+}
+
+.glass-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.actions,
+.bottom {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+}
+
+.controls {
+    display: grid;
+    gap: 8px;
+}
+
+label {
+    display: grid;
+    grid-template-columns: 1fr 96px;
+    align-items: center;
+    gap: 8px;
+}
+
+input[type="number"] {
+    width: 100%;
+}
+
+input,
+button {
+    font: inherit;
+}
+
+input[type="number"] {
+    border: 2px solid #f472b6;
+    border-radius: 6px;
+    padding: 4px;
+    color: #9d174d;
+    background: #fff;
+}
+
+button {
+    border: 2px solid #db2777;
+    border-radius: 8px;
+    background: #ec4899;
+    color: white;
+    padding: 6px 8px;
+    cursor: pointer;
+}
+
+button.ghost {
+    background: rgba(255, 255, 255, 0.85);
+    color: #9d174d;
+}
+
+#status {
+    margin: 0;
+    color: #be185d;
+    font-size: 9px;
+}
