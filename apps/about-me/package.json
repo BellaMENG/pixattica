@@ -12,14 +12,19 @@
     },
     "dependencies": {
         "@pixattica/ui": "*",
+        "prop-types": "^15.8.1",
         "react": "^19",
-        "react-dom": "^19"
+        "react-dom": "^19",
+        "react-simple-maps": "^3.0.0",
+        "world-atlas": "^2.0.2"
     },
     "devDependencies": {
         "@pixattica/tsconfig": "*",
         "@tailwindcss/vite": "^4",
+        "@types/prop-types": "^15",
         "@types/react": "^19",
         "@types/react-dom": "^19",
+        "@types/react-simple-maps": "^3",
         "@vitejs/plugin-react": "^4",
         "tailwindcss": "^4",
         "typescript": "^5",
