@@ -74,8 +74,8 @@ export function BooksSection() {
             <p className="mt-3 text-[10px] leading-relaxed sm:text-[11px]">
                 and some random reviews by me
             </p>
-            <article className="mt-5 flex items-start gap-4 rounded-lg border-2 border-pink-300 bg-pink-50 p-4 shadow-[4px_4px_0px_#f9a8d4] sm:p-5">
-                <div className="shrink-0">
+            <article className="mt-5 flex flex-col gap-4 rounded-lg border-2 border-pink-300 bg-pink-50 p-4 shadow-[4px_4px_0px_#f9a8d4] sm:flex-row sm:items-start sm:p-5">
+                <div className="shrink-0 self-center sm:self-auto">
                     <img
                         key={activeBook.coverSrc}
                         src={activeBook.coverSrc}
@@ -93,15 +93,18 @@ export function BooksSection() {
                     </p>
                 </div>
             </article>
-            <div className="mt-4 flex items-center justify-between gap-2">
+            <div className="mt-4 grid grid-cols-[auto_1fr_auto] items-center gap-2">
                 <button
                     type="button"
                     onClick={showPreviousBook}
-                    className="rounded border-2 border-pink-300 bg-pink-50 px-3 py-2 text-[10px] hover:bg-pink-200"
+                    className="inline-flex shrink-0 items-center whitespace-nowrap rounded border-2 border-pink-300 bg-pink-50 px-2 py-2 text-[10px] hover:bg-pink-200 sm:px-3"
                 >
                     ← Prev
                 </button>
-                <div className="flex items-center gap-2" aria-label="Book slides">
+                <div
+                    className="flex min-w-0 items-center justify-center gap-2"
+                    aria-label="Book slides"
+                >
                     {books2025.map((book, index) => (
                         <button
                             key={book.title}
@@ -117,7 +120,7 @@ export function BooksSection() {
                 <button
                     type="button"
                     onClick={showNextBook}
-                    className="rounded border-2 border-pink-300 bg-pink-50 px-3 py-2 text-[10px] hover:bg-pink-200"
+                    className="inline-flex shrink-0 items-center whitespace-nowrap rounded border-2 border-pink-300 bg-pink-50 px-2 py-2 text-[10px] hover:bg-pink-200 sm:px-3"
                 >
                     Next →
                 </button>
