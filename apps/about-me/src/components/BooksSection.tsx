@@ -6,6 +6,23 @@ import martyrCover from "../assets/book-covers/martyr.jpg";
 import neverLetMeGoCover from "../assets/book-covers/never-let-me-go.jpg";
 import tomorrowAndTomorrowCover from "../assets/book-covers/tomorrow-and-tomorrow-and-tomorrow.jpg";
 
+const sectionClassName = "mt-8 rounded-xl border-2 border-pink-300 bg-pink-100/80 p-4 sm:p-6";
+const bodyTextClassName = "mt-3 text-[10px] leading-relaxed sm:text-[11px]";
+const cardClassName =
+    "mt-5 flex flex-col gap-4 rounded-lg border-2 border-pink-300 bg-pink-50 p-4 " +
+    "shadow-[4px_4px_0px_#f9a8d4] sm:flex-row sm:items-start sm:p-5";
+const coverWrapperClassName = "shrink-0 self-center sm:self-auto";
+const coverImageClassName =
+    "h-40 w-auto rounded border-2 border-pink-300 bg-pink-100 object-cover sm:h-48";
+const bookMetaClassName = "text-[11px] leading-snug sm:text-xs";
+const bookAuthorClassName = "mt-1 text-[10px] sm:text-[11px]";
+const navRowClassName = "mt-4 grid grid-cols-[auto_1fr_auto] items-center gap-2";
+const navButtonClassName =
+    "inline-flex shrink-0 items-center whitespace-nowrap rounded border-2 border-pink-300 " +
+    "bg-pink-50 px-2 py-2 text-[10px] hover:bg-pink-200 sm:px-3";
+const paginationDotsClassName = "flex min-w-0 items-center justify-center gap-2";
+const paginationDotBaseClassName = "h-2 w-2 rounded-sm border border-pink-300";
+
 const books2025 = [
     {
         title: "Glorious Exploits",
@@ -69,59 +86,44 @@ export function BooksSection() {
     };
 
     return (
-        <section className="mt-8 rounded-xl border-2 border-pink-300 bg-pink-100/80 p-4 sm:p-6">
+        <section className={sectionClassName}>
             <h2 className="text-sm sm:text-base">Books I read and loved in 2025</h2>
-            <p className="mt-3 text-[10px] leading-relaxed sm:text-[11px]">
-                and some random reviews by me
-            </p>
-            <article className="mt-5 flex flex-col gap-4 rounded-lg border-2 border-pink-300 bg-pink-50 p-4 shadow-[4px_4px_0px_#f9a8d4] sm:flex-row sm:items-start sm:p-5">
-                <div className="shrink-0 self-center sm:self-auto">
+            <p className={bodyTextClassName}>and some random reviews by me</p>
+            <article className={cardClassName}>
+                <div className={coverWrapperClassName}>
                     <img
                         key={activeBook.coverSrc}
                         src={activeBook.coverSrc}
                         alt={`Cover of ${activeBook.title}`}
-                        className="h-40 w-auto rounded border-2 border-pink-300 bg-pink-100 object-cover sm:h-48"
+                        className={coverImageClassName}
                         loading="eager"
                         fetchPriority="high"
                     />
                 </div>
                 <div className="min-w-0">
-                    <h3 className="text-[11px] leading-snug sm:text-xs">{activeBook.title}</h3>
-                    <p className="mt-1 text-[10px] sm:text-[11px]">{activeBook.author}</p>
-                    <p className="mt-3 text-[10px] leading-relaxed sm:text-[11px]">
-                        {activeBook.review}
-                    </p>
+                    <h3 className={bookMetaClassName}>{activeBook.title}</h3>
+                    <p className={bookAuthorClassName}>{activeBook.author}</p>
+                    <p className={bodyTextClassName}>{activeBook.review}</p>
                 </div>
             </article>
-            <div className="mt-4 grid grid-cols-[auto_1fr_auto] items-center gap-2">
-                <button
-                    type="button"
-                    onClick={showPreviousBook}
-                    className="inline-flex shrink-0 items-center whitespace-nowrap rounded border-2 border-pink-300 bg-pink-50 px-2 py-2 text-[10px] hover:bg-pink-200 sm:px-3"
-                >
+            <div className={navRowClassName}>
+                <button type="button" onClick={showPreviousBook} className={navButtonClassName}>
                     ← Prev
                 </button>
-                <div
-                    className="flex min-w-0 items-center justify-center gap-2"
-                    aria-label="Book slides"
-                >
+                <div className={paginationDotsClassName} aria-label="Book slides">
                     {books2025.map((book, index) => (
                         <button
                             key={book.title}
                             type="button"
                             onClick={() => setActiveBookIndex(index)}
                             aria-label={`Go to ${book.title}`}
-                            className={`h-2 w-2 rounded-sm border border-pink-300 ${
+                            className={`${paginationDotBaseClassName} ${
                                 index === activeBookIndex ? "bg-pink-500" : "bg-pink-100"
                             }`}
                         />
                     ))}
                 </div>
-                <button
-                    type="button"
-                    onClick={showNextBook}
-                    className="inline-flex shrink-0 items-center whitespace-nowrap rounded border-2 border-pink-300 bg-pink-50 px-2 py-2 text-[10px] hover:bg-pink-200 sm:px-3"
-                >
+                <button type="button" onClick={showNextBook} className={navButtonClassName}>
                     Next →
                 </button>
             </div>

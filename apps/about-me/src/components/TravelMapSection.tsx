@@ -2,6 +2,24 @@ import { useState, type WheelEvent } from "react";
 import { ComposableMap, Geographies, Geography, ZoomableGroup } from "react-simple-maps";
 import worldMap from "world-atlas/countries-50m.json";
 
+const sectionClassName = "mt-8 rounded-xl border-2 border-pink-300 bg-pink-100/80 p-4 sm:p-6";
+const bodyTextClassName = "mt-3 text-[10px] leading-relaxed sm:text-[11px]";
+const mapPanelClassName =
+    "relative rounded-lg border-2 border-pink-300 bg-pink-50 p-2 shadow-[4px_4px_0px_#f9a8d4] " +
+    "sm:p-3";
+const sideCardClassName =
+    "flex h-full flex-col rounded-lg border-2 border-pink-300 bg-pink-50 p-4 " +
+    "shadow-[4px_4px_0px_#f9a8d4]";
+const imageFrameClassName =
+    "mt-3 flex h-52 w-full items-center justify-center rounded border-2 border-pink-300 " +
+    "bg-pink-100 p-2";
+const emptyStateFrameClassName =
+    "mt-3 flex h-52 w-full items-center justify-center rounded border-2 border-pink-300 " +
+    "bg-pink-100 px-4 text-center text-[10px] leading-relaxed sm:text-[11px]";
+const navRowClassName = "mt-4 flex items-center justify-between gap-2";
+const navButtonClassName =
+    "rounded border-2 border-pink-300 bg-pink-50 px-3 py-2 text-[10px] hover:bg-pink-200";
+
 type CatPhoto = {
     src: string;
     alt: string;
@@ -302,14 +320,11 @@ export function TravelMapSection() {
     };
 
     return (
-        <section className="mt-8 rounded-xl border-2 border-pink-300 bg-pink-100/80 p-4 sm:p-6">
+        <section className={sectionClassName}>
             <h2 className="text-sm sm:text-base">cats of the world</h2>
-            <p className="mt-3 text-[10px] leading-relaxed sm:text-[11px]">photographed by me</p>
+            <p className={bodyTextClassName}>photographed by me</p>
             <div className="mt-5 grid gap-4 lg:grid-cols-[2fr_1fr]">
-                <div
-                    className="relative rounded-lg border-2 border-pink-300 bg-pink-50 p-2 shadow-[4px_4px_0px_#f9a8d4] sm:p-3"
-                    onWheel={handleMapWheel}
-                >
+                <div className={mapPanelClassName} onWheel={handleMapWheel}>
                     <ComposableMap
                         projectionConfig={{ scale: 145 }}
                         className="h-auto w-full"
@@ -367,14 +382,14 @@ export function TravelMapSection() {
                         </ZoomableGroup>
                     </ComposableMap>
                 </div>
-                <aside className="flex h-full flex-col rounded-lg border-2 border-pink-300 bg-pink-50 p-4 shadow-[4px_4px_0px_#f9a8d4]">
+                <aside className={sideCardClassName}>
                     <div className="flex-1">
                         <h3 className="text-[11px] sm:text-xs">
                             {activeCountry?.name ?? "Hover a country"}
                         </h3>
                         {activeCountry ? (
                             activePhoto ? (
-                                <div className="mt-3 flex h-52 w-full items-center justify-center rounded border-2 border-pink-300 bg-pink-100 p-2">
+                                <div className={imageFrameClassName}>
                                     <img
                                         src={activePhoto.src}
                                         alt={`${activeCountry.name}: ${activePhoto.alt}`}
@@ -382,28 +397,26 @@ export function TravelMapSection() {
                                     />
                                 </div>
                             ) : (
-                                <div className="mt-3 flex h-52 w-full items-center justify-center rounded border-2 border-pink-300 bg-pink-100 px-4 text-center text-[10px] leading-relaxed sm:text-[11px]">
+                                <div className={emptyStateFrameClassName}>
                                     I need to go back there and take some cat photos ;(
                                 </div>
                             )
                         ) : (
-                            <p className="mt-3 text-[10px] leading-relaxed sm:text-[11px]">
-                                Hover to see cat pics!
-                            </p>
+                            <p className={bodyTextClassName}>Hover to see cat pics!</p>
                         )}
                     </div>
-                    <div className="mt-4 flex items-center justify-between gap-2">
+                    <div className={navRowClassName}>
                         <button
                             type="button"
                             onClick={() => showAdjacentCountry("prev")}
-                            className="rounded border-2 border-pink-300 bg-pink-50 px-3 py-2 text-[10px] hover:bg-pink-200"
+                            className={navButtonClassName}
                         >
                             ← Prev
                         </button>
                         <button
                             type="button"
                             onClick={() => showAdjacentCountry("next")}
-                            className="rounded border-2 border-pink-300 bg-pink-50 px-3 py-2 text-[10px] hover:bg-pink-200"
+                            className={navButtonClassName}
                         >
                             Next →
                         </button>
