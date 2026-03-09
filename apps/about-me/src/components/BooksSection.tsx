@@ -87,7 +87,17 @@ export function BooksSection() {
 
     return (
         <section className={sectionClassName}>
-            <h2 className="text-sm sm:text-base">Books I read and loved in 2025</h2>
+            <h2 className="text-sm sm:text-base">
+                <a
+                    href="https://www.goodreads.com/user/show/183742584"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="underline decoration-pink-400 underline-offset-2 hover:text-pink-500"
+                >
+                    Books
+                </a>{" "}
+                I read and loved in 2025
+            </h2>
             <p className={bodyTextClassName}>and some random reviews by me</p>
             <article className={cardClassName}>
                 <div className={coverWrapperClassName}>
