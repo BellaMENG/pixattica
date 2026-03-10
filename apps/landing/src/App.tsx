@@ -1,126 +1,101 @@
-import { useState } from "react";
+import { useEffect, useEffectEvent, useRef, useState, type KeyboardEvent } from "react";
 import { AnimatedCursor, Footer } from "@pixattica/ui";
-import {
-    APP_MODULES,
-    BOOT_SEQUENCE,
-    HELP_TEXT,
-    INITIAL_TRANSCRIPT,
-    PROMPT,
-    SHELL_LABEL,
-    type AppId,
-    type TranscriptEntry,
-} from "./osData";
-
-function getModuleByCommand(command: string) {
-    return APP_MODULES.find((module) => module.command === command);
-}
-
-function createOutputEntry(index: number, text: string): TranscriptEntry {
-    return { id: `line-${index}`, kind: "output", text };
-}
-
-function createCommandResponse(
-    input: string,
-    activeModuleId: AppId,
-    lineIndex: number,
-): { entries: TranscriptEntry[]; nextModuleId: AppId } {
-    const trimmedInput = input.trim().toLowerCase();
-
-    if (!trimmedInput) {
-        return { entries: [], nextModuleId: activeModuleId };
-    }
-
-    if (trimmedInput === "help") {
-        return {
-            entries: [createOutputEntry(lineIndex, HELP_TEXT)],
-            nextModuleId: activeModuleId,
-        };
-    }
-
-    if (trimmedInput === "clear") {
-        return {
-            entries: [
-                createOutputEntry(
-                    lineIndex,
-                    "screen cleared. boot log preserved in memory until reboot.",
-                ),
-            ],
-            nextModuleId: activeModuleId,
-        };
-    }
-
-    if (trimmedInput === "reboot") {
-        return {
-            entries: [
-                createOutputEntry(lineIndex, "restarting PIXATTICA OS shell..."),
-                ...BOOT_SEQUENCE.map((entry, index) => ({
-                    ...entry,
-                    id: `reboot-${lineIndex}-${index}`,
-                })),
-            ],
-            nextModuleId: "about",
-        };
-    }
-
-    const directModule = getModuleByCommand(trimmedInput);
-    if (directModule) {
-        return {
-            entries: [createOutputEntry(lineIndex, `launching ${directModule.label}`)],
-            nextModuleId: directModule.id,
-        };
-    }
-
-    if (trimmedInput.startsWith("open ")) {
-        const target = trimmedInput.replace(/^open\s+/, "");
-        const module = getModuleByCommand(target);
-
-        if (module) {
-            return {
-                entries: [createOutputEntry(lineIndex, `launch request accepted: ${module.label}`)],
-                nextModuleId: module.id,
-            };
-        }
-    }
-
-    return {
-        entries: [
-            createOutputEntry(
-                lineIndex,
-                `command not found: ${trimmedInput}. try \`help\` or \`open books\`.`,
-            ),
-        ],
-        nextModuleId: activeModuleId,
-    };
-}
+import { PROMPT, SHELL_LABEL, type AppId, type TranscriptEntry } from "./osData";
+import { getModuleById, INITIAL_TRANSCRIPT, runShellCommand } from "./osShell";
 
 function App() {
-    const [activeModuleId, setActiveModuleId] = useState<AppId>("books");
+    const [activeModuleId, setActiveModuleId] = useState<AppId>("about");
+    const [isAppWindowOpen, setIsAppWindowOpen] = useState(false);
     const [commandInput, setCommandInput] = useState("");
     const [transcript, setTranscript] = useState<TranscriptEntry[]>(INITIAL_TRANSCRIPT);
+    const [commandHistory, setCommandHistory] = useState<string[]>([]);
+    const [historyIndex, setHistoryIndex] = useState<number | null>(null);
+    const [draftBeforeHistory, setDraftBeforeHistory] = useState("");
+    const transcriptEndRef = useRef<HTMLDivElement | null>(null);
+    const commandInputRef = useRef<HTMLInputElement | null>(null);
 
-    const activeModule =
-        APP_MODULES.find((module) => module.id === activeModuleId) ?? APP_MODULES[0];
+    const activeModule = getModuleById(activeModuleId);
 
-    const focusModule = (moduleId: AppId) => {
-        const module = APP_MODULES.find((item) => item.id === moduleId);
-        if (!module) {
+    useEffect(() => {
+        transcriptEndRef.current?.scrollIntoView({ block: "end" });
+    }, [transcript]);
+
+    const terminateActiveApp = useEffectEvent(() => {
+        setIsAppWindowOpen(false);
+        setTranscript((currentTranscript) => [
+            ...currentTranscript,
+            activeModule
+                ? {
+                      id: `terminate-${currentTranscript.length + 1}`,
+                      kind: "output" as const,
+                      text: `^C terminated ${activeModule.label}`,
+                  }
+                : {
+                      id: `terminate-${currentTranscript.length + 1}`,
+                      kind: "output" as const,
+                      text: "^C terminated active app",
+                  },
+        ]);
+        requestAnimationFrame(() => {
+            commandInputRef.current?.focus();
+        });
+    });
+
+    const closeActiveAppWindow = () => {
+        terminateActiveApp();
+    };
+
+    useEffect(() => {
+        if (!isAppWindowOpen) {
             return;
         }
 
-        setActiveModuleId(moduleId);
-        setTranscript((currentTranscript) => [
-            ...currentTranscript,
-            {
-                id: `focus-${currentTranscript.length + 1}`,
-                kind: "command",
-                text: `open ${module.command}`,
-            },
-            {
-                id: `focus-output-${currentTranscript.length + 2}`,
-                kind: "output",
-                text: `launch request accepted: ${module.label}`,
-            },
-        ]);
+        const handleWindowKeyDown = (event: globalThis.KeyboardEvent) => {
+            if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "c") {
+                event.preventDefault();
+                terminateActiveApp();
+            }
+        };
+
+        window.addEventListener("keydown", handleWindowKeyDown);
+        return () => window.removeEventListener("keydown", handleWindowKeyDown);
+    }, [isAppWindowOpen]);
+
+    const handleCommandHistoryKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+        if (commandHistory.length === 0) {
+            return;
+        }
+
+        if (event.key === "ArrowUp") {
+            event.preventDefault();
+
+            if (historyIndex === null) {
+                setDraftBeforeHistory(commandInput);
+                const nextIndex = commandHistory.length - 1;
+                setHistoryIndex(nextIndex);
+                setCommandInput(commandHistory[nextIndex]);
+                return;
+            }
+
+            const nextIndex = Math.max(0, historyIndex - 1);
+            setHistoryIndex(nextIndex);
+            setCommandInput(commandHistory[nextIndex]);
+            return;
+        }
+
+        if (event.key === "ArrowDown" && historyIndex !== null) {
+            event.preventDefault();
+
+            const nextIndex = historyIndex + 1;
+            if (nextIndex >= commandHistory.length) {
+                setHistoryIndex(null);
+                setCommandInput(draftBeforeHistory);
+                return;
+            }
+
+            setHistoryIndex(nextIndex);
+            setCommandInput(commandHistory[nextIndex]);
+        }
     };
 
     const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
@@ -131,17 +106,27 @@ function App() {
             return;
         }
 
-        if (trimmedInput.toLowerCase() === "clear") {
-            setTranscript([]);
-            setCommandInput("");
-            return;
-        }
+        setCommandHistory((currentHistory) => [...currentHistory, trimmedInput]);
+        setHistoryIndex(null);
+        setDraftBeforeHistory("");
 
         setTranscript((currentTranscript) => {
             const lineIndex = currentTranscript.length + 1;
-            const response = createCommandResponse(trimmedInput, activeModuleId, lineIndex);
+            const response = runShellCommand(trimmedInput, activeModuleId, lineIndex);
 
-            setActiveModuleId(response.nextModuleId);
+            if (response.clearTranscript) {
+                setActiveModuleId(response.nextModuleId);
+                setIsAppWindowOpen(false);
+                return [];
+            }
+
+            if (response.windowState === "open") {
+                setIsAppWindowOpen(true);
+            } else if (response.windowState === "close") {
+                setIsAppWindowOpen(false);
+            }
+
+            setActiveModuleId(response.openedModuleId ?? response.nextModuleId);
 
             return [
                 ...currentTranscript,
@@ -175,12 +160,12 @@ function App() {
                     </div>
 
                     <div className="os-shell-grid">
-                        <section className="os-terminal-panel">
-                            <div className="os-panel-header">
-                                <span>shell</span>
-                                <span>{PROMPT}</span>
-                            </div>
+                        <div className="os-panel-header">
+                            <span>shell</span>
+                            <span>{PROMPT}</span>
+                        </div>
 
+                        <div className="os-terminal-stage">
                             <div className="os-transcript" aria-live="polite">
                                 {transcript.length > 0 ? (
                                     transcript.map((entry) => (
@@ -205,69 +190,80 @@ function App() {
                                         <span className="os-inline-code">reboot</span>.
                                     </div>
                                 )}
+                                <div ref={transcriptEndRef} />
                             </div>
+                        </div>
 
-                            <form className="os-prompt-form" onSubmit={handleSubmit}>
-                                <label
-                                    className="os-prompt-label"
-                                    htmlFor="pixattica-command-input"
-                                >
-                                    {PROMPT}
-                                </label>
-                                <div className="os-input-frame">
-                                    <input
-                                        id="pixattica-command-input"
-                                        value={commandInput}
-                                        onChange={(event) => setCommandInput(event.target.value)}
-                                        className="os-command-input"
-                                        spellCheck={false}
-                                        autoComplete="off"
-                                        placeholder="try `help`, `open cats`, or `collage`"
-                                    />
-                                    <span className="os-caret" aria-hidden="true" />
-                                </div>
-                            </form>
-                        </section>
-
-                        <aside className="os-side-panel">
-                            <div className="os-panel-header">
-                                <span>launched app</span>
-                                <span>{activeModule.label}</span>
+                        <form className="os-prompt-form" onSubmit={handleSubmit}>
+                            <label className="os-prompt-label" htmlFor="pixattica-command-input">
+                                {PROMPT}
+                            </label>
+                            <div className="os-input-frame">
+                                <input
+                                    ref={commandInputRef}
+                                    id="pixattica-command-input"
+                                    value={commandInput}
+                                    onChange={(event) => setCommandInput(event.target.value)}
+                                    className="os-command-input"
+                                    spellCheck={false}
+                                    autoComplete="off"
+                                    placeholder="try `help`, `open cats`, or `collage`"
+                                    onKeyDown={handleCommandHistoryKeyDown}
+                                />
+                                <span className="os-caret" aria-hidden="true" />
                             </div>
-
-                            <article className="os-app-preview">
-                                <p className="os-app-chip">{activeModule.label}</p>
-                                <h2 className="os-app-title">{activeModule.title}</h2>
-                                <a className="os-app-link" href={activeModule.href}>
-                                    {activeModule.actionLabel}
-                                </a>
-                            </article>
-
-                            <div className="os-launch-grid" aria-label="Quick launch modules">
-                                {APP_MODULES.map((module) => (
-                                    <button
-                                        key={module.id}
-                                        type="button"
-                                        onClick={() => focusModule(module.id)}
-                                        className={`os-launch-card ${
-                                            module.id === activeModule.id
-                                                ? "os-launch-card--active"
-                                                : ""
-                                        }`}
-                                    >
-                                        <span className="os-launch-command">{module.command}</span>
-                                        <span className="os-launch-label">{module.label}</span>
-                                    </button>
-                                ))}
-                            </div>
-                        </aside>
+                        </form>
                     </div>
 
                     <div className="os-status-bar">
                         <span>theme // rosepaper</span>
-                        <span>focus // {activeModule.label}</span>
+                        <span>
+                            focus //{" "}
+                            {isAppWindowOpen && activeModule ? activeModule.label : "shell"}
+                        </span>
                         <span>time // {currentTime}</span>
                     </div>
+
+                    {isAppWindowOpen && activeModule ? (
+                        <div className="os-app-window-layer">
+                            <article className="os-app-window">
+                                <div className="os-app-window-bar">
+                                    <div className="os-app-window-lights">
+                                        <button
+                                            type="button"
+                                            className="os-window-light os-window-light--close"
+                                            aria-label={`Close ${activeModule.label}`}
+                                            onClick={closeActiveAppWindow}
+                                        />
+                                        <span
+                                            className="os-window-light os-window-light--minimize"
+                                            aria-hidden="true"
+                                        />
+                                        <span
+                                            className="os-window-light os-window-light--expand"
+                                            aria-hidden="true"
+                                        />
+                                    </div>
+                                    <span>{activeModule.label}</span>
+                                    <span>running</span>
+                                </div>
+                                <div className="os-app-window-body">
+                                    <p className="os-app-chip">{activeModule.label}</p>
+                                    <h2 className="os-app-title">{activeModule.title}</h2>
+                                    <p className="os-app-window-copy">
+                                        This window opened over the shell, like a second desktop
+                                        app. The real {activeModule.command} content will replace
+                                        this body next.
+                                    </p>
+                                    <p className="os-app-window-copy">
+                                        Press the top-left button or{" "}
+                                        <span className="os-inline-code">Cmd/Ctrl+C</span> to
+                                        terminate the active app and return to the shell.
+                                    </p>
+                                </div>
+                            </article>
+                        </div>
+                    ) : null}
                 </section>
             </main>
             <Footer instagramUrl={import.meta.env.VITE_INSTAGRAM_URL} />

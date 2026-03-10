@@ -18,8 +18,6 @@ export type AppModule = {
 
 export const PROMPT = "bella@pixattica:~$";
 export const SHELL_LABEL = "PIXATTICA OS // home shell";
-export const HELP_TEXT =
-    "available commands: help, about, books, cats, collage, open <app>, clear, reboot";
 
 export const BOOT_SEQUENCE: TranscriptEntry[] = [
     { id: "boot-1", kind: "system", text: "booting PIXATTICA OS v0.1..." },
@@ -61,17 +59,5 @@ export const APP_MODULES: AppModule[] = [
         title: "Collage Maker",
         href: PIXEL_COLLAGE_URL,
         actionLabel: "Open Collage Maker",
-    },
-];
-
-export const INITIAL_TRANSCRIPT: TranscriptEntry[] = [
-    ...BOOT_SEQUENCE,
-    { id: "demo-1", kind: "command", text: "help" },
-    { id: "demo-2", kind: "output", text: HELP_TEXT },
-    { id: "demo-3", kind: "command", text: "open cats" },
-    {
-        id: "demo-4",
-        kind: "output",
-        text: "launch request accepted: cats.app",
     },
 ];

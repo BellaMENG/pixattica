@@ -1,0 +1,176 @@
+import {
+    APP_MODULES,
+    BOOT_SEQUENCE,
+    type AppId,
+    type AppModule,
+    type TranscriptEntry,
+} from "./osData";
+
+type ShellCommandContext = {
+    activeModuleId: AppId;
+    args: string[];
+    lineIndex: number;
+};
+
+type ShellCommandResult = {
+    clearTranscript?: boolean;
+    entries: TranscriptEntry[];
+    nextModuleId: AppId;
+    openedModuleId?: AppId;
+    windowState?: "open" | "close";
+};
+
+type ShellCommandDefinition = {
+    aliases?: string[];
+    command: string;
+    description: string;
+    usage?: string;
+    run: (context: ShellCommandContext) => ShellCommandResult;
+};
+
+function createOutputEntry(index: number, text: string): TranscriptEntry {
+    return { id: `line-${index}`, kind: "output", text };
+}
+
+export function getModuleById(moduleId: AppId) {
+    return APP_MODULES.find((module) => module.id === moduleId);
+}
+
+function getModuleByCommand(command: string) {
+    return APP_MODULES.find((module) => module.command === command);
+}
+
+function createLaunchEntries(module: AppModule, lineIndex: number, verb: string) {
+    return [createOutputEntry(lineIndex, `${verb}: ${module.label}`)];
+}
+
+const CORE_COMMANDS: ShellCommandDefinition[] = [
+    {
+        command: "help",
+        aliases: ["?"],
+        description: "show the current command index",
+        run: ({ activeModuleId, lineIndex }) => ({
+            entries: [createOutputEntry(lineIndex, HELP_TEXT)],
+            nextModuleId: activeModuleId,
+        }),
+    },
+    {
+        command: "open",
+        aliases: ["launch"],
+        usage: "open <app>",
+        description: "open one of the available app modules",
+        run: ({ activeModuleId, args, lineIndex }) => {
+            const target = args[0]?.toLowerCase();
+            const module = target ? getModuleByCommand(target) : undefined;
+
+            if (!module) {
+                return {
+                    entries: [
+                        createOutputEntry(
+                            lineIndex,
+                            "unknown app target. try `open books`, `open cats`, or `open collage`.",
+                        ),
+                    ],
+                    nextModuleId: activeModuleId,
+                };
+            }
+
+            return {
+                entries: createLaunchEntries(module, lineIndex, "launch request accepted"),
+                nextModuleId: module.id,
+                openedModuleId: module.id,
+                windowState: "open",
+            };
+        },
+    },
+    {
+        command: "clear",
+        aliases: ["cls"],
+        description: "clear the current transcript",
+        run: ({ activeModuleId }) => ({
+            clearTranscript: true,
+            entries: [],
+            nextModuleId: activeModuleId,
+            windowState: "close",
+        }),
+    },
+    {
+        command: "reboot",
+        aliases: ["restart"],
+        description: "rerun the shell boot sequence",
+        run: ({ lineIndex }) => ({
+            entries: [
+                createOutputEntry(lineIndex, "restarting PIXATTICA OS shell..."),
+                ...BOOT_SEQUENCE.map((entry, index) => ({
+                    ...entry,
+                    id: `reboot-${lineIndex}-${index}`,
+                })),
+            ],
+            nextModuleId: "about",
+            windowState: "close",
+        }),
+    },
+];
+
+const MODULE_COMMANDS: ShellCommandDefinition[] = APP_MODULES.map((module) => ({
+    command: module.command,
+    description: `open ${module.label}`,
+    run: ({ lineIndex }) => ({
+        entries: createLaunchEntries(module, lineIndex, "launching"),
+        nextModuleId: module.id,
+        openedModuleId: module.id,
+        windowState: "open",
+    }),
+}));
+
+const ALL_COMMANDS = [...CORE_COMMANDS, ...MODULE_COMMANDS];
+
+const COMMAND_LOOKUP = new Map<string, ShellCommandDefinition>(
+    ALL_COMMANDS.flatMap((definition) => [
+        [definition.command, definition] as const,
+        ...(definition.aliases ?? []).map((alias) => [alias, definition] as const),
+    ]),
+);
+
+export const HELP_TEXT = [
+    "available commands",
+    "help, ?              show the current command index",
+    "open <app>, launch   open one of the available app modules",
+    "about                open about.app",
+    "books                open books.app",
+    "cats                 open cats.app",
+    "collage              open collage.app",
+    "clear, cls           clear the current transcript",
+    "reboot, restart      rerun the shell boot sequence",
+].join("\n");
+
+export const INITIAL_TRANSCRIPT: TranscriptEntry[] = [...BOOT_SEQUENCE];
+
+export function runShellCommand(
+    input: string,
+    activeModuleId: AppId,
+    lineIndex: number,
+): ShellCommandResult {
+    const trimmedInput = input.trim().toLowerCase();
+
+    if (!trimmedInput) {
+        return { entries: [], nextModuleId: activeModuleId };
+    }
+
+    const [commandName, ...args] = trimmedInput.split(/\s+/);
+    const command = COMMAND_LOOKUP.get(commandName);
+
+    if (!command) {
+        return {
+            entries: [
+                createOutputEntry(
+                    lineIndex,
+                    `command not found: ${trimmedInput}. try \`help\` or \`open books\`.`,
+                ),
+            ],
+            nextModuleId: activeModuleId,
+        };
+    }
+
+    return command.run({ activeModuleId, args, lineIndex });
+}
