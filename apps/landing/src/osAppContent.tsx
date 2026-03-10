@@ -6,10 +6,22 @@ type OsAppContentProps = {
     onLaunchApp: (appId: AppId) => void;
 };
 
-const AboutApp = lazy(() => import("./osApps/AboutApp"));
-const BooksApp = lazy(() => import("./osApps/BooksApp"));
-const CatsApp = lazy(() => import("./osApps/CatsApp"));
-const CollageApp = lazy(() => import("./osApps/CollageApp"));
+const loadAboutApp = () => import("./osApps/AboutApp");
+const loadBooksApp = () => import("./osApps/BooksApp");
+const loadCatsApp = () => import("./osApps/CatsApp");
+const loadCollageApp = () => import("./osApps/CollageApp");
+
+const AboutApp = lazy(loadAboutApp);
+const BooksApp = lazy(loadBooksApp);
+const CatsApp = lazy(loadCatsApp);
+const CollageApp = lazy(loadCollageApp);
+
+const APP_PRELOADERS: Record<AppId, () => Promise<unknown>> = {
+    about: loadAboutApp,
+    books: loadBooksApp,
+    cats: loadCatsApp,
+    collage: loadCollageApp,
+};
 
 function OsAppLoadingState({ activeModule }: { activeModule: AppModule }) {
     return (
@@ -40,4 +52,8 @@ export function OsAppContent({ activeModule, onLaunchApp }: OsAppContentProps) {
     return (
         <Suspense fallback={<OsAppLoadingState activeModule={activeModule} />}>{content}</Suspense>
     );
+}
+
+export async function preloadOsAppWindow(appId: AppId) {
+    await APP_PRELOADERS[appId]();
 }

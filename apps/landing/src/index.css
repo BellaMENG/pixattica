@@ -223,6 +223,7 @@ input {
 
 .os-line {
     display: flex;
+    align-items: baseline;
     gap: 0.75rem;
     white-space: pre-wrap;
     word-break: break-word;
@@ -233,7 +234,13 @@ input {
 }
 
 .os-line--command {
+    gap: 0.55rem;
     color: #fff3f8;
+}
+
+.os-line-command-text {
+    min-width: 0;
+    flex: 1;
 }
 
 .os-line--output {
@@ -244,6 +251,14 @@ input {
 .os-prompt-label,
 .os-inline-code {
     color: #ff92c7;
+}
+
+.os-line-prompt,
+.os-prompt-label {
+    font-family: var(--os-display-font);
+    font-size: 0.66rem;
+    line-height: 1.4;
+    letter-spacing: 0.06em;
 }
 
 .os-inline-code {
@@ -261,8 +276,6 @@ input {
 
 .os-prompt-label {
     flex: none;
-    font-size: 0.66rem;
-    line-height: 1.4;
     color: #ff9ed0;
 }
 
@@ -365,7 +378,15 @@ input {
         gap: 0.45rem;
     }
 
+    .os-line--command {
+        gap: 0.45rem;
+    }
+
     .os-prompt-label {
+        font-size: 0.56rem;
+    }
+
+    .os-line-prompt {
         font-size: 0.56rem;
     }
 }

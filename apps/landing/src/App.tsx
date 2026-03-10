@@ -1,20 +1,23 @@
 import { useEffect, useEffectEvent, useRef, useState, type KeyboardEvent } from "react";
 import { AnimatedCursor, Footer } from "@pixattica/ui";
 import { PROMPT, type AppId, type TranscriptEntry } from "./osData";
+import { runBootSequence } from "./osBoot";
 import { OsAppContent } from "./osAppContent";
-import { getModuleById, INITIAL_TRANSCRIPT, runShellCommand } from "./osShell";
+import { getModuleById, runShellCommand } from "./osShell";
 
 function App() {
     const [activeModuleId, setActiveModuleId] = useState<AppId>("about");
     const [isAppWindowOpen, setIsAppWindowOpen] = useState(false);
+    const [isBooting, setIsBooting] = useState(true);
     const [commandInput, setCommandInput] = useState("");
-    const [transcript, setTranscript] = useState<TranscriptEntry[]>(INITIAL_TRANSCRIPT);
+    const [transcript, setTranscript] = useState<TranscriptEntry[]>([]);
     const [commandHistory, setCommandHistory] = useState<string[]>([]);
     const [historyIndex, setHistoryIndex] = useState<number | null>(null);
     const [draftBeforeHistory, setDraftBeforeHistory] = useState("");
     const transcriptEndRef = useRef<HTMLDivElement | null>(null);
     const commandInputRef = useRef<HTMLInputElement | null>(null);
     const rebootTimerRef = useRef<number | null>(null);
+    const bootRunIdRef = useRef(0);
 
     const activeModule = getModuleById(activeModuleId);
 
@@ -23,14 +26,59 @@ function App() {
     }, [transcript]);
 
     useEffect(() => {
-        commandInputRef.current?.focus();
-    }, []);
-
-    useEffect(() => {
         return () => {
+            bootRunIdRef.current += 1;
             if (rebootTimerRef.current !== null) {
                 window.clearTimeout(rebootTimerRef.current);
             }
+        };
+    }, []);
+
+    const startBootSequence = useEffectEvent((lineIndexStart: number) => {
+        const bootRunId = bootRunIdRef.current + 1;
+        bootRunIdRef.current = bootRunId;
+        setIsBooting(true);
+
+        void runBootSequence({
+            lineIndexStart,
+            onEntryAdd: (entry) => {
+                if (bootRunIdRef.current !== bootRunId) {
+                    return;
+                }
+
+                setTranscript((currentTranscript) => [...currentTranscript, entry]);
+            },
+            onEntryUpdate: (entryId, text) => {
+                if (bootRunIdRef.current !== bootRunId) {
+                    return;
+                }
+
+                setTranscript((currentTranscript) =>
+                    currentTranscript.map((entry) =>
+                        entry.id === entryId ? { ...entry, text } : entry,
+                    ),
+                );
+            },
+            shouldCancel: () => bootRunIdRef.current !== bootRunId,
+        }).finally(() => {
+            if (bootRunIdRef.current !== bootRunId) {
+                return;
+            }
+
+            setIsBooting(false);
+            requestAnimationFrame(() => {
+                commandInputRef.current?.focus();
+            });
+        });
+    });
+
+    useEffect(() => {
+        const initialBootTimerId = window.setTimeout(() => {
+            startBootSequence(1);
+        }, 0);
+
+        return () => {
+            window.clearTimeout(initialBootTimerId);
         };
     }, []);
 
@@ -131,15 +179,16 @@ function App() {
             if (response.clearTranscript) {
                 setActiveModuleId(response.nextModuleId);
                 setIsAppWindowOpen(false);
+                bootRunIdRef.current += 1;
+                setIsBooting(Boolean(response.rebootShell));
 
                 if (rebootTimerRef.current !== null) {
                     window.clearTimeout(rebootTimerRef.current);
                 }
 
-                if (response.rebootTranscript) {
+                if (response.rebootShell) {
                     rebootTimerRef.current = window.setTimeout(() => {
-                        setTranscript(response.rebootTranscript ?? []);
-                        commandInputRef.current?.focus();
+                        startBootSequence(lineIndex);
                         rebootTimerRef.current = null;
                     }, 180);
                 }
@@ -191,40 +240,48 @@ function App() {
                                         >
                                             {entry.kind === "command" ? (
                                                 <>
-                                                    <span className="os-line-prompt">{PROMPT}</span>
-                                                    <span>{entry.text}</span>
+                                                    <span className="os-line-prompt os-accent-font">
+                                                        {PROMPT}
+                                                    </span>
+                                                    <span className="os-line-command-text">
+                                                        {entry.text}
+                                                    </span>
                                                 </>
                                             ) : (
                                                 <span>{entry.text}</span>
                                             )}
                                         </div>
                                     ))
-                                ) : (
+                                ) : !isBooting ? (
                                     <div className="os-line os-line--system">
                                         screen cleared. type{" "}
                                         <span className="os-inline-code">help</span> or{" "}
                                         <span className="os-inline-code">reboot</span>.
                                     </div>
-                                )}
-                                <form className="os-prompt-form" onSubmit={handleSubmit}>
-                                    <label
-                                        className="os-prompt-label os-accent-font"
-                                        htmlFor="pixattica-command-input"
-                                    >
-                                        {PROMPT}
-                                    </label>
-                                    <input
-                                        ref={commandInputRef}
-                                        id="pixattica-command-input"
-                                        value={commandInput}
-                                        onChange={(event) => setCommandInput(event.target.value)}
-                                        className="os-command-input"
-                                        spellCheck={false}
-                                        autoComplete="off"
-                                        placeholder="help"
-                                        onKeyDown={handleCommandHistoryKeyDown}
-                                    />
-                                </form>
+                                ) : null}
+                                {!isBooting ? (
+                                    <form className="os-prompt-form" onSubmit={handleSubmit}>
+                                        <label
+                                            className="os-prompt-label os-accent-font"
+                                            htmlFor="pixattica-command-input"
+                                        >
+                                            {PROMPT}
+                                        </label>
+                                        <input
+                                            ref={commandInputRef}
+                                            id="pixattica-command-input"
+                                            value={commandInput}
+                                            onChange={(event) =>
+                                                setCommandInput(event.target.value)
+                                            }
+                                            className="os-command-input"
+                                            spellCheck={false}
+                                            autoComplete="off"
+                                            placeholder="help"
+                                            onKeyDown={handleCommandHistoryKeyDown}
+                                        />
+                                    </form>
+                                ) : null}
                                 <div ref={transcriptEndRef} />
                             </div>
                         </div>

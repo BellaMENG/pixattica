@@ -17,7 +17,7 @@ type ShellCommandResult = {
     entries: TranscriptEntry[];
     nextModuleId: AppId;
     openedModuleId?: AppId;
-    rebootTranscript?: TranscriptEntry[];
+    rebootShell?: boolean;
     windowState?: "open" | "close";
 };
 
@@ -99,15 +99,10 @@ const CORE_COMMANDS: ShellCommandDefinition[] = [
         command: "reboot",
         aliases: ["restart"],
         description: "rerun the shell boot sequence",
-        run: ({ lineIndex }) => ({
+        run: () => ({
             clearTranscript: true,
             entries: [],
-            rebootTranscript: [
-                ...BOOT_SEQUENCE.map((entry, index) => ({
-                    ...entry,
-                    id: `reboot-${lineIndex}-${index}`,
-                })),
-            ],
+            rebootShell: true,
             nextModuleId: "about",
             windowState: "close",
         }),

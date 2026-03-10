@@ -16,16 +16,28 @@ export type AppModule = {
     actionLabel: string;
 };
 
+export type BootStep = {
+    id: string;
+    preloadAppId?: AppId;
+    text: string;
+};
+
 export const PROMPT = "bella@pixattica:~$";
 export const SHELL_LABEL = "PIXATTICA OS // home shell";
 
-export const BOOT_SEQUENCE: TranscriptEntry[] = [
-    { id: "boot-1", kind: "system", text: "booting PIXATTICA OS v0.1..." },
-    { id: "boot-2", kind: "system", text: "mounting books archive..." },
-    { id: "boot-3", kind: "system", text: "indexing cats of the world..." },
-    { id: "boot-4", kind: "system", text: "linking collage maker..." },
-    { id: "boot-5", kind: "system", text: "shell ready. type `help`." },
+export const BOOT_STEPS: BootStep[] = [
+    { id: "boot-1", text: "booting PIXATTICA OS v0.1..." },
+    { id: "boot-2", preloadAppId: "books", text: "mounting books archive..." },
+    { id: "boot-3", preloadAppId: "cats", text: "indexing cats of the world..." },
+    { id: "boot-4", preloadAppId: "collage", text: "linking collage maker..." },
+    { id: "boot-5", text: "shell ready. type `help`." },
 ];
+
+export const BOOT_SEQUENCE: TranscriptEntry[] = BOOT_STEPS.map((step) => ({
+    id: step.id,
+    kind: "system",
+    text: step.text,
+}));
 
 export const APP_MODULES: AppModule[] = [
     {
