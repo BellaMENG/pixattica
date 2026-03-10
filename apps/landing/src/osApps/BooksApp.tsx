@@ -1,0 +1,157 @@
+import { useEffect, useState } from "react";
+import aThousandSplendidSunsCover from "../../../about-me/src/assets/book-covers/a-thousand-splendid-suns.jpg";
+import cryingInHMartCover from "../../../about-me/src/assets/book-covers/crying-in-h-mart.jpg";
+import gloriousExploitsCover from "../../../about-me/src/assets/book-covers/glorious-exploits.jpg";
+import martyrCover from "../../../about-me/src/assets/book-covers/martyr.jpg";
+import neverLetMeGoCover from "../../../about-me/src/assets/book-covers/never-let-me-go.jpg";
+import tomorrowAndTomorrowCover from "../../../about-me/src/assets/book-covers/tomorrow-and-tomorrow-and-tomorrow.jpg";
+
+type BookEntry = {
+    title: string;
+    author: string;
+    coverSrc: string;
+    review: string;
+};
+
+const sectionClassName = "rounded-xl border-2 border-pink-300 bg-pink-100/80 p-4 sm:p-6";
+const bodyTextClassName = "mt-3 text-[10px] leading-relaxed sm:text-[11px]";
+const cardClassName =
+    "mt-5 flex flex-col gap-4 rounded-lg border-2 border-pink-300 bg-pink-50 p-4 " +
+    "shadow-[4px_4px_0px_#f9a8d4] sm:flex-row sm:items-start sm:p-5";
+const coverWrapperClassName = "shrink-0 self-center sm:self-auto";
+const coverImageClassName =
+    "h-40 w-auto rounded border-2 border-pink-300 bg-pink-100 object-cover sm:h-48";
+const bookMetaClassName = "text-[11px] leading-snug sm:text-xs";
+const bookAuthorClassName = "mt-1 text-[10px] sm:text-[11px]";
+const navRowClassName = "mt-4 grid grid-cols-[auto_1fr_auto] items-center gap-2";
+const navButtonClassName =
+    "inline-flex shrink-0 items-center whitespace-nowrap rounded border-2 border-pink-300 " +
+    "bg-pink-50 px-2 py-2 text-[10px] hover:bg-pink-200 sm:px-3";
+const paginationDotsClassName = "flex min-w-0 items-center justify-center gap-2";
+const paginationDotBaseClassName = "h-2 w-2 rounded-sm border border-pink-300";
+
+const books2025: BookEntry[] = [
+    {
+        title: "Glorious Exploits",
+        author: "Ferdia Lennon",
+        coverSrc: gloriousExploitsCover,
+        review: "something about the way the story being told from the perspective of Lampo is so touching. Although it is a tragedy, all I felt when reading is love. I do believe no matter what situation we are put in, it is part of human instinct to find beauty and survive, because we always have love for life, and that is being alive.",
+    },
+    {
+        title: "Tomorrow, and Tomorrow, and Tomorrow",
+        author: "Gabrielle Zevin",
+        coverSrc: tomorrowAndTomorrowCover,
+        review: "i finished this book while waiting in line to board a Ryan air flight, and cried",
+    },
+    {
+        title: "Crying in H Mart",
+        author: "Michelle Zauner",
+        coverSrc: cryingInHMartCover,
+        review: "before during and after turning vegetarian, the only major doubt for me was the identity carried by food. To say bye to meat, is to say bye to some (majority of) dishes i grew up with, which is to say bye to the culture, the childhood, the connection i could always savor from food",
+    },
+    {
+        title: "A Thousand Splendid Suns",
+        author: "Khaled Hosseini",
+        coverSrc: aThousandSplendidSunsCover,
+        review: "sometimes I don’t write reviews because I finished the book and was left speechless and felt like if I wrote down anything it would just disappoint me, because I don’t know how to put the feelings into words. This book is one of those books.",
+    },
+    {
+        title: "Martyr!",
+        author: "Kaveh Akbar",
+        coverSrc: martyrCover,
+        review: "i need to get my book back and read it again",
+    },
+    {
+        title: "Never Let Me Go",
+        author: "Kazuo Ishiguro",
+        coverSrc: neverLetMeGoCover,
+        review: "the writing, the story, the character portrait, the thoughts behind the plotlines, the ideology the Ishiguro's trying to convery, or at least how i understand it, are coming together like spices that perfects a dish",
+    },
+];
+
+export default function BooksApp() {
+    const [activeBookIndex, setActiveBookIndex] = useState(0);
+    const activeBook = books2025[activeBookIndex];
+
+    useEffect(() => {
+        books2025.forEach((book) => {
+            const preloadedImage = new Image();
+            preloadedImage.src = book.coverSrc;
+        });
+    }, []);
+
+    const showPreviousBook = () => {
+        setActiveBookIndex((currentIndex) =>
+            currentIndex === 0 ? books2025.length - 1 : currentIndex - 1,
+        );
+    };
+
+    const showNextBook = () => {
+        setActiveBookIndex((currentIndex) =>
+            currentIndex === books2025.length - 1 ? 0 : currentIndex + 1,
+        );
+    };
+
+    return (
+        <section className={sectionClassName}>
+            <h2 className="os-accent-font text-sm sm:text-base">
+                <a
+                    href="https://www.goodreads.com/user/show/183742584"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="underline decoration-pink-400 underline-offset-2 hover:text-pink-500"
+                >
+                    Books
+                </a>{" "}
+                I read and loved in 2025
+            </h2>
+            <p className={bodyTextClassName}>and some random reviews by me</p>
+            <article className={cardClassName}>
+                <div className={coverWrapperClassName}>
+                    <img
+                        key={activeBook.coverSrc}
+                        src={activeBook.coverSrc}
+                        alt={`Cover of ${activeBook.title}`}
+                        className={coverImageClassName}
+                        loading="eager"
+                        fetchPriority="high"
+                    />
+                </div>
+                <div className="min-w-0">
+                    <h3 className={`os-accent-font ${bookMetaClassName}`}>{activeBook.title}</h3>
+                    <p className={bookAuthorClassName}>{activeBook.author}</p>
+                    <p className={bodyTextClassName}>{activeBook.review}</p>
+                </div>
+            </article>
+            <div className={navRowClassName}>
+                <button
+                    type="button"
+                    onClick={showPreviousBook}
+                    className={`os-accent-font ${navButtonClassName}`}
+                >
+                    ← Prev
+                </button>
+                <div className={paginationDotsClassName} aria-label="Book slides">
+                    {books2025.map((book, index) => (
+                        <button
+                            key={book.title}
+                            type="button"
+                            onClick={() => setActiveBookIndex(index)}
+                            aria-label={`Go to ${book.title}`}
+                            className={`${paginationDotBaseClassName} ${
+                                index === activeBookIndex ? "bg-pink-500" : "bg-pink-100"
+                            }`}
+                        />
+                    ))}
+                </div>
+                <button
+                    type="button"
+                    onClick={showNextBook}
+                    className={`os-accent-font ${navButtonClassName}`}
+                >
+                    Next →
+                </button>
+            </div>
+        </section>
+    );
+}

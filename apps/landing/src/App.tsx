@@ -1,6 +1,7 @@
 import { useEffect, useEffectEvent, useRef, useState, type KeyboardEvent } from "react";
 import { AnimatedCursor, Footer } from "@pixattica/ui";
-import { PROMPT, SHELL_LABEL, type AppId, type TranscriptEntry } from "./osData";
+import { PROMPT, type AppId, type TranscriptEntry } from "./osData";
+import { OsAppContent } from "./osAppContent";
 import { getModuleById, INITIAL_TRANSCRIPT, runShellCommand } from "./osShell";
 
 function App() {
@@ -19,6 +20,10 @@ function App() {
     useEffect(() => {
         transcriptEndRef.current?.scrollIntoView({ block: "end" });
     }, [transcript]);
+
+    useEffect(() => {
+        commandInputRef.current?.focus();
+    }, []);
 
     const terminateActiveApp = useEffectEvent(() => {
         setIsAppWindowOpen(false);
@@ -138,33 +143,22 @@ function App() {
         setCommandInput("");
     };
 
-    const currentTime = new Intl.DateTimeFormat("en-GB", {
-        hour: "2-digit",
-        minute: "2-digit",
-        hour12: false,
-    }).format(new Date());
+    const openAppWindow = (appId: AppId) => {
+        setActiveModuleId(appId);
+        setIsAppWindowOpen(true);
+    };
 
     return (
         <div className="os-app">
             <AnimatedCursor />
             <main className="os-main">
-                <section className="os-shell">
-                    <div className="os-shell-bar">
-                        <div className="os-shell-lights" aria-hidden="true">
-                            <span />
-                            <span />
-                            <span />
-                        </div>
-                        <div className="os-shell-label">{SHELL_LABEL}</div>
-                        <div className="os-shell-meta">ready</div>
-                    </div>
-
+                <section
+                    className="os-shell"
+                    onClick={() => {
+                        commandInputRef.current?.focus();
+                    }}
+                >
                     <div className="os-shell-grid">
-                        <div className="os-panel-header">
-                            <span>shell</span>
-                            <span>{PROMPT}</span>
-                        </div>
-
                         <div className="os-terminal-stage">
                             <div className="os-transcript" aria-live="polite">
                                 {transcript.length > 0 ? (
@@ -190,38 +184,28 @@ function App() {
                                         <span className="os-inline-code">reboot</span>.
                                     </div>
                                 )}
+                                <form className="os-prompt-form" onSubmit={handleSubmit}>
+                                    <label
+                                        className="os-prompt-label os-accent-font"
+                                        htmlFor="pixattica-command-input"
+                                    >
+                                        {PROMPT}
+                                    </label>
+                                    <input
+                                        ref={commandInputRef}
+                                        id="pixattica-command-input"
+                                        value={commandInput}
+                                        onChange={(event) => setCommandInput(event.target.value)}
+                                        className="os-command-input"
+                                        spellCheck={false}
+                                        autoComplete="off"
+                                        placeholder="help"
+                                        onKeyDown={handleCommandHistoryKeyDown}
+                                    />
+                                </form>
                                 <div ref={transcriptEndRef} />
                             </div>
                         </div>
-
-                        <form className="os-prompt-form" onSubmit={handleSubmit}>
-                            <label className="os-prompt-label" htmlFor="pixattica-command-input">
-                                {PROMPT}
-                            </label>
-                            <div className="os-input-frame">
-                                <input
-                                    ref={commandInputRef}
-                                    id="pixattica-command-input"
-                                    value={commandInput}
-                                    onChange={(event) => setCommandInput(event.target.value)}
-                                    className="os-command-input"
-                                    spellCheck={false}
-                                    autoComplete="off"
-                                    placeholder="try `help`, `open cats`, or `collage`"
-                                    onKeyDown={handleCommandHistoryKeyDown}
-                                />
-                                <span className="os-caret" aria-hidden="true" />
-                            </div>
-                        </form>
-                    </div>
-
-                    <div className="os-status-bar">
-                        <span>theme // rosepaper</span>
-                        <span>
-                            focus //{" "}
-                            {isAppWindowOpen && activeModule ? activeModule.label : "shell"}
-                        </span>
-                        <span>time // {currentTime}</span>
                     </div>
 
                     {isAppWindowOpen && activeModule ? (
@@ -244,22 +228,14 @@ function App() {
                                             aria-hidden="true"
                                         />
                                     </div>
-                                    <span>{activeModule.label}</span>
-                                    <span>running</span>
+                                    <span className="os-accent-font">{activeModule.label}</span>
+                                    <span className="os-accent-font">running</span>
                                 </div>
                                 <div className="os-app-window-body">
-                                    <p className="os-app-chip">{activeModule.label}</p>
-                                    <h2 className="os-app-title">{activeModule.title}</h2>
-                                    <p className="os-app-window-copy">
-                                        This window opened over the shell, like a second desktop
-                                        app. The real {activeModule.command} content will replace
-                                        this body next.
-                                    </p>
-                                    <p className="os-app-window-copy">
-                                        Press the top-left button or{" "}
-                                        <span className="os-inline-code">Cmd/Ctrl+C</span> to
-                                        terminate the active app and return to the shell.
-                                    </p>
+                                    <OsAppContent
+                                        activeModule={activeModule}
+                                        onLaunchApp={openAppWindow}
+                                    />
                                 </div>
                             </article>
                         </div>
