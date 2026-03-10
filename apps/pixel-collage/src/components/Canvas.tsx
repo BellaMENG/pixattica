@@ -40,6 +40,7 @@ interface CanvasProps {
     onResize: (size: { width: number; height: number }) => void;
     backgroundStyle: string;
     stageRef?: React.RefObject<Konva.Stage | null>;
+    isEmbedded?: boolean;
 }
 
 const TOOLBAR_REFERENCE_CANVAS_WIDTH = 764;
@@ -370,12 +371,13 @@ function CanvasText({
 function computeInitialCanvasSize(
     containerWidth: number,
     containerHeight: number,
+    options?: { forceLandscape?: boolean },
 ): { width: number; height: number } {
     const availW = containerWidth - CANVAS_FIT_PADDING * 2;
     const availH = containerHeight - CANVAS_FIT_PADDING * 2;
     if (availW <= 0 || availH <= 0) return { width: 0, height: 0 };
 
-    const isLandscape = containerWidth >= containerHeight;
+    const isLandscape = options?.forceLandscape ? true : containerWidth >= containerHeight;
     const ratio = isLandscape ? CANVAS_ASPECT_RATIO : 1 / CANVAS_ASPECT_RATIO;
 
     let canvasW = Math.min(availW, availH * ratio);
@@ -415,6 +417,7 @@ export default function Canvas({
     onResize,
     backgroundStyle,
     stageRef,
+    isEmbedded = false,
 }: CanvasProps) {
     const containerRef = useRef<HTMLDivElement>(null);
     const canvasSizeRef = useRef<{ width: number; height: number } | null>(null);
@@ -516,7 +519,9 @@ export default function Canvas({
             if (entry) {
                 const { width, height } = entry.contentRect;
                 if (!canvasSizeRef.current) {
-                    const size = computeInitialCanvasSize(width, height);
+                    const size = computeInitialCanvasSize(width, height, {
+                        forceLandscape: isEmbedded,
+                    });
                     canvasSizeRef.current = size;
                     onResize(size);
                 }
@@ -525,7 +530,7 @@ export default function Canvas({
         });
         observer.observe(el);
         return () => observer.disconnect();
-    }, [onResize]);
+    }, [isEmbedded, onResize]);
 
     useEffect(() => {
         setDragPos(null);
@@ -573,10 +578,14 @@ export default function Canvas({
     return (
         <main
             ref={containerRef}
-            className="relative flex-1 flex items-center justify-center bg-pink-100"
+            className="relative flex min-h-0 flex-1 items-center justify-center bg-pink-100"
         >
             <div
-                className="overflow-hidden rounded-lg border-4 border-pink-400"
+                className={
+                    isEmbedded
+                        ? "overflow-hidden"
+                        : "overflow-hidden rounded-lg border-4 border-pink-400"
+                }
                 style={{ width: visualWidth, height: visualHeight }}
             >
                 <div

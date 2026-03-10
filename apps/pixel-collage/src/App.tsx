@@ -116,6 +116,9 @@ const SAMPLE_MANIFEST_URL = `${BASE_URL}samples/default/manifest.json`;
 const SAMPLE_SEED_STORAGE_KEY = "pixelCollageSampleSeedVersion";
 const SAMPLE_SEED_VERSION = "1";
 const SHOULD_AUTO_SEED = import.meta.env.MODE !== "test";
+const IS_EMBEDDED =
+    typeof window !== "undefined" &&
+    new URLSearchParams(window.location.search).get("embedded") === "1";
 
 const BACKGROUNDS: BackgroundOption[] = [
     { id: BackgroundId.White, label: "White", style: "white" },
@@ -815,13 +818,19 @@ export default function App() {
         return (
             <>
                 <AnimatedCursor />
-                <div className="relative flex h-screen items-center justify-center bg-pink-100">
-                    <a
-                        href={LANDING_URL}
-                        className="absolute left-4 top-4 z-50 rounded border-2 border-pink-300 bg-pink-50 px-2 py-1 text-[10px] text-pink-700 hover:bg-pink-200"
-                    >
-                        ← back
-                    </a>
+                <div
+                    className={`relative flex items-center justify-center bg-pink-100 ${
+                        IS_EMBEDDED ? "h-full overflow-hidden" : "h-screen"
+                    }`}
+                >
+                    {!IS_EMBEDDED ? (
+                        <a
+                            href={LANDING_URL}
+                            className="absolute left-4 top-4 z-50 rounded border-2 border-pink-300 bg-pink-50 px-2 py-1 text-[10px] text-pink-700 hover:bg-pink-200"
+                        >
+                            ← back
+                        </a>
+                    ) : null}
                     <p className="text-pink-400">Loading...</p>
                 </div>
             </>
@@ -832,18 +841,34 @@ export default function App() {
         <>
             <AnimatedCursor />
             <div
-                className="relative flex h-screen flex-col bg-pink-100"
+                className={`relative flex min-h-0 flex-col bg-pink-100 ${
+                    IS_EMBEDDED ? "h-full overflow-hidden" : "h-screen"
+                }`}
                 onDragOver={(e) => e.preventDefault()}
                 onDrop={handleDrop}
             >
-                <a
-                    href={LANDING_URL}
-                    className="absolute left-4 top-4 z-50 rounded border-2 border-pink-300 bg-pink-50 px-2 py-1 text-[10px] text-pink-700 hover:bg-pink-200"
+                {!IS_EMBEDDED ? (
+                    <a
+                        href={LANDING_URL}
+                        className="absolute left-4 top-4 z-50 rounded border-2 border-pink-300 bg-pink-50 px-2 py-1 text-[10px] text-pink-700 hover:bg-pink-200"
+                    >
+                        ← back
+                    </a>
+                ) : null}
+                <div
+                    className={`flex flex-1 ${
+                        IS_EMBEDDED
+                            ? "min-h-0 overflow-hidden"
+                            : "md:items-center md:justify-center"
+                    }`}
                 >
-                    ← back
-                </a>
-                <div className="flex flex-1 md:items-center md:justify-center">
-                    <div className="flex flex-col w-full h-full md:flex-row md:h-[80vh] md:w-[80vw] overflow-hidden md:rounded-lg md:border-4 md:border-pink-300 md:shadow-lg">
+                    <div
+                        className={`flex h-full min-h-0 w-full flex-col overflow-hidden md:flex-row ${
+                            IS_EMBEDDED
+                                ? ""
+                                : "md:h-[80vh] md:w-[80vw] md:rounded-lg md:border-4 md:border-pink-300 md:shadow-lg"
+                        }`}
+                    >
                         <Sidebar
                             uploadedImages={uploadedImages}
                             croppedCutouts={croppedCutouts}
@@ -879,6 +904,7 @@ export default function App() {
                             onResize={setCanvasSize}
                             backgroundStyle={backgroundStyle}
                             stageRef={stageRef}
+                            isEmbedded={IS_EMBEDDED}
                         />
                     </div>
 
@@ -914,7 +940,7 @@ export default function App() {
                         onCancel={handleCancelEraseCanvas}
                     />
                 </div>
-                <Footer instagramUrl={import.meta.env.VITE_INSTAGRAM_URL} />
+                {!IS_EMBEDDED ? <Footer instagramUrl={import.meta.env.VITE_INSTAGRAM_URL} /> : null}
             </div>
         </>
     );

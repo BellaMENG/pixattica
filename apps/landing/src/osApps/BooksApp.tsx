@@ -127,7 +127,7 @@ export default function BooksApp() {
                 <button
                     type="button"
                     onClick={showPreviousBook}
-                    className={`os-accent-font ${navButtonClassName}`}
+                    className={`os-button-font ${navButtonClassName}`}
                 >
                     ← Prev
                 </button>
@@ -147,7 +147,7 @@ export default function BooksApp() {
                 <button
                     type="button"
                     onClick={showNextBook}
-                    className={`os-accent-font ${navButtonClassName}`}
+                    className={`os-button-font ${navButtonClassName}`}
                 >
                     Next →
                 </button>

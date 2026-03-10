@@ -117,6 +117,14 @@ input {
     letter-spacing: 0.06em;
 }
 
+.os-button-font {
+    color: var(--os-accent-strong);
+    font-family: var(--os-display-font);
+    font-size: 0.5rem;
+    line-height: 1.2;
+    letter-spacing: 0.03em;
+}
+
 .os-terminal-stage {
     position: relative;
     display: flex;
@@ -140,18 +148,17 @@ input {
 .os-app-window-layer {
     position: absolute;
     inset: 0;
-    display: flex;
-    align-items: flex-start;
-    justify-content: flex-start;
-    padding: 3rem 3rem 5rem 5.5rem;
     pointer-events: none;
     z-index: 20;
 }
 
 .os-app-window {
+    position: absolute;
     display: flex;
-    width: min(48rem, 100%);
-    height: min(37rem, 100%);
+    min-width: 32rem;
+    min-height: 22rem;
+    max-width: calc(100% - 1.5rem);
+    max-height: calc(100% - 1.5rem);
     flex-direction: column;
     border: 3px solid var(--os-border);
     border-radius: 1.35rem;
@@ -172,6 +179,12 @@ input {
     background: rgba(255, 255, 255, 0.76);
     font-size: 0.55rem;
     color: var(--os-ink-soft);
+    user-select: none;
+    cursor: grab;
+}
+
+.os-app-window-bar:active {
+    cursor: grabbing;
 }
 
 .os-app-window-lights {
@@ -213,12 +226,43 @@ input {
 .os-app-window-body {
     display: flex;
     flex: 1;
+    min-height: 0;
     flex-direction: column;
     gap: 1rem;
     padding: 1.25rem;
     color: var(--os-ink);
     font-family: var(--os-mono-font);
     overflow: auto;
+}
+
+.os-app-window-body--collage {
+    padding: 0;
+    overflow: hidden;
+}
+
+.os-app-window-resize-handle {
+    position: absolute;
+    right: 0.35rem;
+    bottom: 0.35rem;
+    width: 1.1rem;
+    height: 1.1rem;
+    border: 0;
+    background:
+        linear-gradient(
+            135deg,
+            transparent 0 52%,
+            rgba(216, 27, 120, 0.18) 52% 62%,
+            transparent 62%
+        ),
+        linear-gradient(
+            135deg,
+            transparent 0 68%,
+            rgba(216, 27, 120, 0.34) 68% 78%,
+            transparent 78%
+        );
+    cursor: nwse-resize;
+    pointer-events: auto;
+    padding: 0;
 }
 
 .os-line {
@@ -334,13 +378,9 @@ input {
 }
 
 @media (max-width: 900px) {
-    .os-app-window-layer {
-        padding: 1.25rem 1rem 4.5rem 1.5rem;
-    }
-
     .os-app-window {
-        width: min(100%, 42rem);
-        height: min(34rem, 100%);
+        min-width: 26rem;
+        min-height: 20rem;
     }
 
     .os-shell-grid {
@@ -357,15 +397,17 @@ input {
         padding: 1.1rem 1rem;
     }
 
-    .os-app-window-layer {
-        padding: 0.75rem 0.75rem 3.75rem;
-    }
-
     .os-app-window {
-        width: 100%;
-        height: 100%;
         border-radius: 1rem;
         box-shadow: 8px 8px 0 rgba(216, 27, 120, 0.14);
+    }
+
+    .os-app-window-bar {
+        cursor: default;
+    }
+
+    .os-app-window-resize-handle {
+        display: none;
     }
 
     .os-transcript,
@@ -388,5 +430,9 @@ input {
 
     .os-line-prompt {
         font-size: 0.56rem;
+    }
+
+    .os-button-font {
+        font-size: 0.46rem;
     }
 }

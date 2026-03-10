@@ -348,7 +348,7 @@ export default function Sidebar({
     );
 
     return (
-        <aside className="flex w-full flex-col border-b-4 border-pink-300 bg-pink-50 overflow-hidden md:w-64 md:border-b-0 md:border-r-4 max-h-[40vh] md:max-h-none">
+        <aside className="flex min-h-0 w-full flex-col overflow-hidden border-b-4 border-pink-300 bg-pink-50 max-h-[40vh] md:w-64 md:max-h-none md:border-b-0 md:border-r-4">
             <div className="hidden md:flex">
                 <SidebarScrollArrow
                     direction="up"
@@ -359,7 +359,7 @@ export default function Sidebar({
             <div
                 ref={scrollContainerRef}
                 onScroll={updateSidebarScrollState}
-                className="flex-1 overflow-y-auto scrollbar-hide p-4 pt-0 pb-0"
+                className="min-h-0 flex-1 overflow-y-auto scrollbar-hide p-4 pt-0 pb-0"
             >
                 <section className="mb-6 mt-4">
                     <h3 className="mb-2 text-xs text-pink-600">Images</h3>
