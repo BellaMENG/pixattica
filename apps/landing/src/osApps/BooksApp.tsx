@@ -14,6 +14,9 @@ type BookEntry = {
 };
 
 const sectionClassName = "rounded-xl border-2 border-pink-300 bg-pink-100/80 p-4 sm:p-6";
+const sectionTitleClassName = "os-accent-font text-sm sm:text-base";
+const goodreadsLinkClassName =
+    "underline decoration-pink-400 underline-offset-2 hover:text-pink-500";
 const bodyTextClassName = "mt-3 text-[10px] leading-relaxed sm:text-[11px]";
 const cardClassName =
     "mt-5 flex flex-col gap-4 rounded-lg border-2 border-pink-300 bg-pink-50 p-4 " +
@@ -21,6 +24,7 @@ const cardClassName =
 const coverWrapperClassName = "shrink-0 self-center sm:self-auto";
 const coverImageClassName =
     "h-40 w-auto rounded border-2 border-pink-300 bg-pink-100 object-cover sm:h-48";
+const bookContentClassName = "min-w-0";
 const bookMetaClassName = "text-[11px] leading-snug sm:text-xs";
 const bookAuthorClassName = "mt-1 text-[10px] sm:text-[11px]";
 const navRowClassName = "mt-4 grid grid-cols-[auto_1fr_auto] items-center gap-2";
@@ -29,6 +33,8 @@ const navButtonClassName =
     "bg-pink-50 px-2 py-2 text-[10px] hover:bg-pink-200 sm:px-3";
 const paginationDotsClassName = "flex min-w-0 items-center justify-center gap-2";
 const paginationDotBaseClassName = "h-2 w-2 rounded-sm border border-pink-300";
+const paginationDotActiveClassName = "bg-pink-500";
+const paginationDotInactiveClassName = "bg-pink-100";
 
 const books2025: BookEntry[] = [
     {
@@ -94,12 +100,12 @@ export default function BooksApp() {
 
     return (
         <section className={sectionClassName}>
-            <h2 className="os-accent-font text-sm sm:text-base">
+            <h2 className={sectionTitleClassName}>
                 <a
                     href="https://www.goodreads.com/user/show/183742584"
                     target="_blank"
                     rel="noreferrer"
-                    className="underline decoration-pink-400 underline-offset-2 hover:text-pink-500"
+                    className={goodreadsLinkClassName}
                 >
                     Books
                 </a>{" "}
@@ -117,7 +123,7 @@ export default function BooksApp() {
                         fetchPriority="high"
                     />
                 </div>
-                <div className="min-w-0">
+                <div className={bookContentClassName}>
                     <h3 className={`os-accent-font ${bookMetaClassName}`}>{activeBook.title}</h3>
                     <p className={bookAuthorClassName}>{activeBook.author}</p>
                     <p className={bodyTextClassName}>{activeBook.review}</p>
@@ -139,7 +145,9 @@ export default function BooksApp() {
                             onClick={() => setActiveBookIndex(index)}
                             aria-label={`Go to ${book.title}`}
                             className={`${paginationDotBaseClassName} ${
-                                index === activeBookIndex ? "bg-pink-500" : "bg-pink-100"
+                                index === activeBookIndex
+                                    ? paginationDotActiveClassName
+                                    : paginationDotInactiveClassName
                             }`}
                         />
                     ))}
