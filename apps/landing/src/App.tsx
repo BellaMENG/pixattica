@@ -14,6 +14,7 @@ function App() {
     const [draftBeforeHistory, setDraftBeforeHistory] = useState("");
     const transcriptEndRef = useRef<HTMLDivElement | null>(null);
     const commandInputRef = useRef<HTMLInputElement | null>(null);
+    const rebootTimerRef = useRef<number | null>(null);
 
     const activeModule = getModuleById(activeModuleId);
 
@@ -23,6 +24,14 @@ function App() {
 
     useEffect(() => {
         commandInputRef.current?.focus();
+    }, []);
+
+    useEffect(() => {
+        return () => {
+            if (rebootTimerRef.current !== null) {
+                window.clearTimeout(rebootTimerRef.current);
+            }
+        };
     }, []);
 
     const terminateActiveApp = useEffectEvent(() => {
@@ -122,6 +131,19 @@ function App() {
             if (response.clearTranscript) {
                 setActiveModuleId(response.nextModuleId);
                 setIsAppWindowOpen(false);
+
+                if (rebootTimerRef.current !== null) {
+                    window.clearTimeout(rebootTimerRef.current);
+                }
+
+                if (response.rebootTranscript) {
+                    rebootTimerRef.current = window.setTimeout(() => {
+                        setTranscript(response.rebootTranscript ?? []);
+                        commandInputRef.current?.focus();
+                        rebootTimerRef.current = null;
+                    }, 180);
+                }
+
                 return [];
             }
 

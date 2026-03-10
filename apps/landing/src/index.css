@@ -112,6 +112,7 @@ input {
 }
 
 .os-accent-font {
+    color: var(--os-accent-strong);
     font-family: var(--os-display-font);
     letter-spacing: 0.06em;
 }
@@ -215,6 +216,7 @@ input {
     flex-direction: column;
     gap: 1rem;
     padding: 1.25rem;
+    color: var(--os-ink);
     font-family: var(--os-mono-font);
     overflow: auto;
 }
@@ -271,6 +273,8 @@ input {
     background: transparent;
     color: #fff3f8;
     caret-color: #ff9ed0;
+    caret-shape: block;
+    caret-animation: manual;
     font-family: var(--os-mono-font);
     font-size: 1rem;
     line-height: 1.75;

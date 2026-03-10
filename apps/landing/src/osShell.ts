@@ -17,6 +17,7 @@ type ShellCommandResult = {
     entries: TranscriptEntry[];
     nextModuleId: AppId;
     openedModuleId?: AppId;
+    rebootTranscript?: TranscriptEntry[];
     windowState?: "open" | "close";
 };
 
@@ -99,8 +100,9 @@ const CORE_COMMANDS: ShellCommandDefinition[] = [
         aliases: ["restart"],
         description: "rerun the shell boot sequence",
         run: ({ lineIndex }) => ({
-            entries: [
-                createOutputEntry(lineIndex, "restarting PIXATTICA OS shell..."),
+            clearTranscript: true,
+            entries: [],
+            rebootTranscript: [
                 ...BOOT_SEQUENCE.map((entry, index) => ({
                     ...entry,
                     id: `reboot-${lineIndex}-${index}`,
