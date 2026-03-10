@@ -11,6 +11,7 @@ import { PROMPT, type TranscriptEntry } from "./osData";
 import { runBootSequence } from "./osBoot";
 import { OsAppContent } from "./osAppContent";
 import { INITIAL_OS_STATE, osStore, useOsStore } from "./osStore";
+import { getWindowIdToClose } from "./osShortcuts";
 import { getModuleById, runShellCommand } from "./osShell";
 import { MOBILE_BREAKPOINT, type AppWindowFrame } from "./osWindowing";
 
@@ -171,15 +172,15 @@ function App() {
     }, []);
 
     useEffect(() => {
-        if (!focusedWindowId) {
-            endWindowInteraction();
-            return;
-        }
-
         const handleWindowKeyDown = (event: globalThis.KeyboardEvent) => {
             if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "c") {
+                const targetWindowId = getWindowIdToClose(focusedWindowId, windows);
+                if (!targetWindowId) {
+                    return;
+                }
+
                 event.preventDefault();
-                closeWindowAndEndInteraction(focusedWindowId);
+                closeWindowAndEndInteraction(targetWindowId);
                 requestAnimationFrame(() => {
                     commandInputRef.current?.focus();
                 });
@@ -188,7 +189,7 @@ function App() {
 
         window.addEventListener("keydown", handleWindowKeyDown);
         return () => window.removeEventListener("keydown", handleWindowKeyDown);
-    }, [focusedWindowId]);
+    }, [focusedWindowId, windows]);
 
     const handleCommandHistoryKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
         if (event.key === "ArrowUp") {
