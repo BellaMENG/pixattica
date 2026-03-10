@@ -934,13 +934,16 @@ __metadata:
     "@tailwindcss/vite": "npm:^4"
     "@types/react": "npm:^19"
     "@types/react-dom": "npm:^19"
+    "@types/react-simple-maps": "npm:^3"
     "@vitejs/plugin-react": "npm:^4"
     react: "npm:^19"
     react-dom: "npm:^19"
+    react-simple-maps: "npm:^3.0.0"
     tailwindcss: "npm:^4"
     typescript: "npm:^5"
     vite: "npm:^6"
     vitest: "npm:^3"
+    world-atlas: "npm:^2.0.2"
   languageName: unknown
   linkType: soft
 
