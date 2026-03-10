@@ -13,6 +13,7 @@ import { OsAppContent } from "./osAppContent";
 import { INITIAL_OS_STATE, osStore, useOsStore } from "./osStore";
 import { getWindowIdToClose } from "./osShortcuts";
 import { getModuleById, runShellCommand } from "./osShell";
+import { renderLinkifiedText } from "./linkifyText";
 import { MOBILE_BREAKPOINT, type AppWindowFrame } from "./osWindowing";
 
 type WindowInteraction = {
@@ -330,7 +331,7 @@ function App() {
                                                     </span>
                                                 </>
                                             ) : (
-                                                <span>{entry.text}</span>
+                                                <span>{renderLinkifiedText(entry.text)}</span>
                                             )}
                                         </div>
                                     ))

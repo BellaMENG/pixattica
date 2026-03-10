@@ -296,6 +296,16 @@ a {
     color: #ffd5e7;
 }
 
+.os-inline-link {
+    color: #ff92c7;
+    text-decoration: underline;
+    text-underline-offset: 0.18em;
+}
+
+.os-inline-link:hover {
+    color: #ffc4de;
+}
+
 .os-line-prompt,
 .os-prompt-label,
 .os-inline-code {

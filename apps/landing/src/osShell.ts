@@ -45,6 +45,11 @@ function createLaunchEntries(module: AppModule, lineIndex: number, verb: string)
     return [createOutputEntry(lineIndex, `${verb}: ${module.label}`)];
 }
 
+const WHOAMI_TEXT = [
+    "bellameng, I like making random things (not just softwares), I’m always active (either running or BJJing or boxing or gyming or hiking or cycling or …)",
+    "Just in case though, here is my LinkedIn if you are interested in my experiences: https://www.linkedin.com/in/bella-meng/, or you can email me at bellamengzihan@gmail.com. I’m based in London. Let’s be friends!",
+].join("\n\n");
+
 const CORE_COMMANDS: ShellCommandDefinition[] = [
     {
         command: "help",
@@ -52,6 +57,14 @@ const CORE_COMMANDS: ShellCommandDefinition[] = [
         description: "show the current command index",
         run: ({ activeModuleId, lineIndex }) => ({
             entries: [createOutputEntry(lineIndex, HELP_TEXT)],
+            nextModuleId: activeModuleId,
+        }),
+    },
+    {
+        command: "whoami",
+        description: "hidden easter egg",
+        run: ({ activeModuleId, lineIndex }) => ({
+            entries: [createOutputEntry(lineIndex, WHOAMI_TEXT)],
             nextModuleId: activeModuleId,
         }),
     },
