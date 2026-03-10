@@ -77,7 +77,7 @@ const CORE_COMMANDS: ShellCommandDefinition[] = [
             }
 
             return {
-                entries: createLaunchEntries(module, lineIndex, "launch request accepted"),
+                entries: createLaunchEntries(module, lineIndex, "launched"),
                 nextModuleId: module.id,
                 openedModuleId: module.id,
                 windowState: "open",
@@ -113,7 +113,7 @@ const MODULE_COMMANDS: ShellCommandDefinition[] = APP_MODULES.map((module) => ({
     command: module.command,
     description: `open ${module.label}`,
     run: ({ lineIndex }) => ({
-        entries: createLaunchEntries(module, lineIndex, "launching"),
+        entries: createLaunchEntries(module, lineIndex, "launched"),
         nextModuleId: module.id,
         openedModuleId: module.id,
         windowState: "open",

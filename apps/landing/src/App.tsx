@@ -25,11 +25,18 @@ type WindowBounds = {
     height: number;
 };
 
+type OsWindow = {
+    frame: AppWindowFrame;
+    id: string;
+    moduleId: AppId;
+};
+
 type WindowInteraction = {
-    type: "drag" | "resize";
+    startFrame: AppWindowFrame;
     startPointerX: number;
     startPointerY: number;
-    startFrame: AppWindowFrame;
+    type: "drag" | "resize";
+    windowId: string;
 };
 
 const MOBILE_BREAKPOINT = 640;
@@ -67,7 +74,11 @@ function clampWindowFrame(frame: AppWindowFrame, bounds: WindowBounds): AppWindo
     return { x, y, width, height };
 }
 
-function getPreferredWindowFrame(appId: AppId, bounds: WindowBounds): AppWindowFrame {
+function getPreferredWindowFrame(
+    appId: AppId,
+    bounds: WindowBounds,
+    options?: { index?: number },
+): AppWindowFrame {
     if (appId === "collage") {
         return clampWindowFrame(
             {
@@ -80,27 +91,51 @@ function getPreferredWindowFrame(appId: AppId, bounds: WindowBounds): AppWindowF
         );
     }
 
-    return clampWindowFrame(DEFAULT_APP_WINDOW_FRAME, bounds);
+    const offsetIndex = options?.index ?? 0;
+    const offsetFrame = {
+        ...DEFAULT_APP_WINDOW_FRAME,
+        x: DEFAULT_APP_WINDOW_FRAME.x + offsetIndex * 28,
+        y: DEFAULT_APP_WINDOW_FRAME.y + offsetIndex * 20,
+    };
+
+    return clampWindowFrame(offsetFrame, bounds);
 }
 
 function App() {
     const [activeModuleId, setActiveModuleId] = useState<AppId>("about");
-    const [isAppWindowOpen, setIsAppWindowOpen] = useState(false);
     const [isBooting, setIsBooting] = useState(true);
     const [commandInput, setCommandInput] = useState("");
     const [transcript, setTranscript] = useState<TranscriptEntry[]>([]);
     const [commandHistory, setCommandHistory] = useState<string[]>([]);
     const [historyIndex, setHistoryIndex] = useState<number | null>(null);
     const [draftBeforeHistory, setDraftBeforeHistory] = useState("");
-    const [appWindowFrame, setAppWindowFrame] = useState<AppWindowFrame>(DEFAULT_APP_WINDOW_FRAME);
+    const [windows, setWindows] = useState<OsWindow[]>([]);
+    const [focusedWindowId, setFocusedWindowId] = useState<string | null>(null);
     const shellRef = useRef<HTMLElement | null>(null);
+    const windowsRef = useRef<OsWindow[]>([]);
     const transcriptEndRef = useRef<HTMLDivElement | null>(null);
     const commandInputRef = useRef<HTMLInputElement | null>(null);
     const rebootTimerRef = useRef<number | null>(null);
     const bootRunIdRef = useRef(0);
+    const nextWindowIdRef = useRef(1);
     const windowInteractionRef = useRef<WindowInteraction | null>(null);
 
-    const activeModule = getModuleById(activeModuleId);
+    const setWindowsState = useCallback(
+        (
+            updater: OsWindow[] | ((currentWindows: OsWindow[]) => OsWindow[]),
+            options?: { focusedWindowId?: string | null },
+        ) => {
+            const currentWindows = windowsRef.current;
+            const nextWindows = typeof updater === "function" ? updater(currentWindows) : updater;
+            windowsRef.current = nextWindows;
+            setWindows(nextWindows);
+
+            if (options && "focusedWindowId" in options) {
+                setFocusedWindowId(options.focusedWindowId ?? null);
+            }
+        },
+        [],
+    );
 
     const getShellBounds = useCallback(() => {
         const shellBounds = shellRef.current?.getBoundingClientRect();
@@ -110,6 +145,28 @@ function App() {
             height: Math.round(shellBounds?.height ?? window.innerHeight),
         };
     }, []);
+
+    const bringWindowToFront = useCallback(
+        (windowId: string) => {
+            setWindowsState(
+                (currentWindows) => {
+                    const windowIndex = currentWindows.findIndex(
+                        (windowItem) => windowItem.id === windowId,
+                    );
+                    if (windowIndex === -1 || windowIndex === currentWindows.length - 1) {
+                        return currentWindows;
+                    }
+
+                    const nextWindows = [...currentWindows];
+                    const [windowItem] = nextWindows.splice(windowIndex, 1);
+                    nextWindows.push(windowItem);
+                    return nextWindows;
+                },
+                { focusedWindowId: windowId },
+            );
+        },
+        [setWindowsState],
+    );
 
     const handleWindowPointerMove = useCallback(
         (event: PointerEvent) => {
@@ -122,24 +179,33 @@ function App() {
             const deltaX = event.clientX - activeInteraction.startPointerX;
             const deltaY = event.clientY - activeInteraction.startPointerY;
 
-            setAppWindowFrame(() => {
-                const nextFrame =
-                    activeInteraction.type === "drag"
-                        ? {
-                              ...activeInteraction.startFrame,
-                              x: activeInteraction.startFrame.x + deltaX,
-                              y: activeInteraction.startFrame.y + deltaY,
-                          }
-                        : {
-                              ...activeInteraction.startFrame,
-                              width: activeInteraction.startFrame.width + deltaX,
-                              height: activeInteraction.startFrame.height + deltaY,
-                          };
+            setWindowsState((currentWindows) =>
+                currentWindows.map((windowItem) => {
+                    if (windowItem.id !== activeInteraction.windowId) {
+                        return windowItem;
+                    }
 
-                return clampWindowFrame(nextFrame, getShellBounds());
-            });
+                    const nextFrame =
+                        activeInteraction.type === "drag"
+                            ? {
+                                  ...activeInteraction.startFrame,
+                                  x: activeInteraction.startFrame.x + deltaX,
+                                  y: activeInteraction.startFrame.y + deltaY,
+                              }
+                            : {
+                                  ...activeInteraction.startFrame,
+                                  width: activeInteraction.startFrame.width + deltaX,
+                                  height: activeInteraction.startFrame.height + deltaY,
+                              };
+
+                    return {
+                        ...windowItem,
+                        frame: clampWindowFrame(nextFrame, getShellBounds()),
+                    };
+                }),
+            );
         },
-        [getShellBounds],
+        [getShellBounds, setWindowsState],
     );
 
     const endWindowInteraction = useCallback(() => {
@@ -149,28 +215,88 @@ function App() {
         window.removeEventListener("pointercancel", endWindowInteraction);
     }, [handleWindowPointerMove]);
 
+    const closeWindow = useCallback(
+        (windowId: string) => {
+            endWindowInteraction();
+            setWindowsState(
+                (currentWindows) => {
+                    const nextWindows = currentWindows.filter(
+                        (windowItem) => windowItem.id !== windowId,
+                    );
+                    return nextWindows;
+                },
+                {
+                    focusedWindowId:
+                        windowsRef.current.length > 1
+                            ? (windowsRef.current
+                                  .filter((windowItem) => windowItem.id !== windowId)
+                                  .slice(-1)[0]?.id ?? null)
+                            : null,
+                },
+            );
+        },
+        [endWindowInteraction, setWindowsState],
+    );
+
+    const focusOrOpenAppWindow = useCallback(
+        (appId: AppId) => {
+            const existingWindow = windowsRef.current.find(
+                (windowItem) => windowItem.moduleId === appId,
+            );
+            if (existingWindow) {
+                bringWindowToFront(existingWindow.id);
+                setActiveModuleId(appId);
+                return false;
+            }
+
+            const shellBounds = getShellBounds();
+            const windowId = `window-${nextWindowIdRef.current}`;
+            nextWindowIdRef.current += 1;
+            const nextWindow: OsWindow = {
+                id: windowId,
+                moduleId: appId,
+                frame: getPreferredWindowFrame(appId, shellBounds, {
+                    index: windowsRef.current.length,
+                }),
+            };
+
+            setWindowsState((currentWindows) => [...currentWindows, nextWindow], {
+                focusedWindowId: windowId,
+            });
+            setActiveModuleId(appId);
+            return true;
+        },
+        [bringWindowToFront, getShellBounds, setWindowsState],
+    );
+
     useEffect(() => {
         transcriptEndRef.current?.scrollIntoView({ block: "end" });
     }, [transcript]);
 
     useEffect(() => {
-        const syncWindowFrame = () => {
-            setAppWindowFrame((currentFrame) => clampWindowFrame(currentFrame, getShellBounds()));
+        const syncWindowFrames = () => {
+            const shellBounds = getShellBounds();
+            setWindowsState((currentWindows) =>
+                currentWindows.map((windowItem) => ({
+                    ...windowItem,
+                    frame: clampWindowFrame(windowItem.frame, shellBounds),
+                })),
+            );
         };
 
-        syncWindowFrame();
-        window.addEventListener("resize", syncWindowFrame);
+        syncWindowFrames();
+        window.addEventListener("resize", syncWindowFrames);
 
         return () => {
             bootRunIdRef.current += 1;
             endWindowInteraction();
-            window.removeEventListener("resize", syncWindowFrame);
+            window.removeEventListener("resize", syncWindowFrames);
 
             if (rebootTimerRef.current !== null) {
                 window.clearTimeout(rebootTimerRef.current);
             }
         };
-    }, [endWindowInteraction, getShellBounds]);
+    }, [endWindowInteraction, getShellBounds, setWindowsState]);
 
     const startBootSequence = useEffectEvent((lineIndexStart: number) => {
         const bootRunId = bootRunIdRef.current + 1;
@@ -220,55 +346,25 @@ function App() {
         };
     }, []);
 
-    const terminateActiveApp = useEffectEvent(() => {
-        endWindowInteraction();
-        setIsAppWindowOpen(false);
-        setTranscript((currentTranscript) => [
-            ...currentTranscript,
-            activeModule
-                ? {
-                      id: `terminate-${currentTranscript.length + 1}`,
-                      kind: "output" as const,
-                      text: `^C terminated ${activeModule.label}`,
-                  }
-                : {
-                      id: `terminate-${currentTranscript.length + 1}`,
-                      kind: "output" as const,
-                      text: "^C terminated active app",
-                  },
-        ]);
-        requestAnimationFrame(() => {
-            commandInputRef.current?.focus();
-        });
-    });
-
-    const closeActiveAppWindow = () => {
-        terminateActiveApp();
-    };
-
     useEffect(() => {
-        if (!isAppWindowOpen) {
+        if (!focusedWindowId) {
             endWindowInteraction();
             return;
         }
 
-        const shellBounds = getShellBounds();
-        setAppWindowFrame((currentFrame) =>
-            activeModuleId === "collage"
-                ? getPreferredWindowFrame("collage", shellBounds)
-                : clampWindowFrame(currentFrame, shellBounds),
-        );
-
         const handleWindowKeyDown = (event: globalThis.KeyboardEvent) => {
             if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "c") {
                 event.preventDefault();
-                terminateActiveApp();
+                closeWindow(focusedWindowId);
+                requestAnimationFrame(() => {
+                    commandInputRef.current?.focus();
+                });
             }
         };
 
         window.addEventListener("keydown", handleWindowKeyDown);
         return () => window.removeEventListener("keydown", handleWindowKeyDown);
-    }, [activeModuleId, endWindowInteraction, getShellBounds, isAppWindowOpen]);
+    }, [closeWindow, endWindowInteraction, focusedWindowId]);
 
     const handleCommandHistoryKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
         if (commandHistory.length === 0) {
@@ -319,46 +415,55 @@ function App() {
         setHistoryIndex(null);
         setDraftBeforeHistory("");
 
-        setTranscript((currentTranscript) => {
-            const lineIndex = currentTranscript.length + 1;
-            const response = runShellCommand(trimmedInput, activeModuleId, lineIndex);
+        const lineIndex = transcript.length + 1;
+        const response = runShellCommand(trimmedInput, activeModuleId, lineIndex);
 
-            if (response.clearTranscript) {
-                setActiveModuleId(response.nextModuleId);
-                setIsAppWindowOpen(false);
-                bootRunIdRef.current += 1;
-                setIsBooting(Boolean(response.rebootShell));
-                endWindowInteraction();
+        if (response.clearTranscript) {
+            setActiveModuleId(response.nextModuleId);
+            setWindowsState([], { focusedWindowId: null });
+            bootRunIdRef.current += 1;
+            setIsBooting(Boolean(response.rebootShell));
+            endWindowInteraction();
 
-                if (rebootTimerRef.current !== null) {
-                    window.clearTimeout(rebootTimerRef.current);
-                }
-
-                if (response.rebootShell) {
-                    rebootTimerRef.current = window.setTimeout(() => {
-                        startBootSequence(lineIndex);
-                        rebootTimerRef.current = null;
-                    }, 180);
-                }
-
-                return [];
+            if (rebootTimerRef.current !== null) {
+                window.clearTimeout(rebootTimerRef.current);
             }
 
-            if (response.windowState === "open") {
-                setIsAppWindowOpen(true);
-            } else if (response.windowState === "close") {
-                setIsAppWindowOpen(false);
-                endWindowInteraction();
+            if (response.rebootShell) {
+                rebootTimerRef.current = window.setTimeout(() => {
+                    startBootSequence(lineIndex);
+                    rebootTimerRef.current = null;
+                }, 180);
             }
 
-            setActiveModuleId(response.openedModuleId ?? response.nextModuleId);
+            setTranscript([]);
+            setCommandInput("");
+            return;
+        }
 
-            return [
-                ...currentTranscript,
-                { id: `command-${lineIndex}`, kind: "command", text: trimmedInput },
-                ...response.entries,
-            ];
-        });
+        let nextEntries = response.entries;
+        if (response.windowState === "open" && response.openedModuleId) {
+            const didOpenWindow = focusOrOpenAppWindow(response.openedModuleId);
+            if (!didOpenWindow) {
+                const openedModule = getModuleById(response.openedModuleId);
+                if (openedModule) {
+                    nextEntries = [
+                        {
+                            id: `line-${lineIndex}`,
+                            kind: "output",
+                            text: `focused: ${openedModule.label}`,
+                        },
+                    ];
+                }
+            }
+        }
+
+        setActiveModuleId(response.openedModuleId ?? response.nextModuleId);
+        setTranscript((currentTranscript) => [
+            ...currentTranscript,
+            { id: `command-${lineIndex}`, kind: "command", text: trimmedInput },
+            ...nextEntries,
+        ]);
 
         setCommandInput("");
     };
@@ -366,6 +471,7 @@ function App() {
     const startWindowInteraction = (
         event: ReactPointerEvent<HTMLDivElement | HTMLButtonElement>,
         type: WindowInteraction["type"],
+        windowId: string,
     ) => {
         if (event.button !== 0 || window.innerWidth <= MOBILE_BREAKPOINT) {
             return;
@@ -375,28 +481,24 @@ function App() {
             return;
         }
 
+        const activeWindow = windowsRef.current.find((windowItem) => windowItem.id === windowId);
+        if (!activeWindow) {
+            return;
+        }
+
         event.preventDefault();
         event.stopPropagation();
+        bringWindowToFront(windowId);
         windowInteractionRef.current = {
             type,
+            windowId,
             startPointerX: event.clientX,
             startPointerY: event.clientY,
-            startFrame: appWindowFrame,
+            startFrame: activeWindow.frame,
         };
         window.addEventListener("pointermove", handleWindowPointerMove);
         window.addEventListener("pointerup", endWindowInteraction);
         window.addEventListener("pointercancel", endWindowInteraction);
-    };
-
-    const openAppWindow = (appId: AppId) => {
-        const shellBounds = getShellBounds();
-        setActiveModuleId(appId);
-        setIsAppWindowOpen(true);
-        setAppWindowFrame(
-            appId === "collage"
-                ? getPreferredWindowFrame("collage", shellBounds)
-                : clampWindowFrame(DEFAULT_APP_WINDOW_FRAME, shellBounds),
-        );
     };
 
     return (
@@ -407,6 +509,7 @@ function App() {
                     ref={shellRef}
                     className="os-shell"
                     onClick={() => {
+                        setFocusedWindowId(null);
                         commandInputRef.current?.focus();
                     }}
                 >
@@ -468,60 +571,85 @@ function App() {
                         </div>
                     </div>
 
-                    {isAppWindowOpen && activeModule ? (
+                    {windows.length > 0 ? (
                         <div className="os-app-window-layer">
-                            <article
-                                className="os-app-window"
-                                style={{
-                                    transform: `translate(${appWindowFrame.x}px, ${appWindowFrame.y}px)`,
-                                    width: `${appWindowFrame.width}px`,
-                                    height: `${appWindowFrame.height}px`,
-                                }}
-                            >
-                                <div
-                                    className="os-app-window-bar"
-                                    onPointerDown={(event) => startWindowInteraction(event, "drag")}
-                                >
-                                    <div className="os-app-window-lights">
+                            {windows.map((windowItem, index) => {
+                                const module = getModuleById(windowItem.moduleId);
+                                if (!module) {
+                                    return null;
+                                }
+
+                                return (
+                                    <article
+                                        key={windowItem.id}
+                                        className={`os-app-window ${
+                                            focusedWindowId === windowItem.id
+                                                ? "os-app-window--focused"
+                                                : ""
+                                        }`}
+                                        style={{
+                                            transform: `translate(${windowItem.frame.x}px, ${windowItem.frame.y}px)`,
+                                            width: `${windowItem.frame.width}px`,
+                                            height: `${windowItem.frame.height}px`,
+                                            zIndex: index + 1,
+                                        }}
+                                        onPointerDown={() => bringWindowToFront(windowItem.id)}
+                                    >
+                                        <div
+                                            className="os-app-window-bar"
+                                            onPointerDown={(event) =>
+                                                startWindowInteraction(event, "drag", windowItem.id)
+                                            }
+                                        >
+                                            <div className="os-app-window-lights">
+                                                <button
+                                                    type="button"
+                                                    className="os-window-light os-window-light--close"
+                                                    aria-label={`Close ${module.label}`}
+                                                    onClick={(event) => {
+                                                        event.stopPropagation();
+                                                        closeWindow(windowItem.id);
+                                                    }}
+                                                />
+                                                <span
+                                                    className="os-window-light os-window-light--minimize"
+                                                    aria-hidden="true"
+                                                />
+                                                <span
+                                                    className="os-window-light os-window-light--expand"
+                                                    aria-hidden="true"
+                                                />
+                                            </div>
+                                            <span className="os-accent-font">{module.label}</span>
+                                            <span className="os-accent-font">running</span>
+                                        </div>
+                                        <div
+                                            className={`os-app-window-body ${
+                                                module.id === "collage"
+                                                    ? "os-app-window-body--collage"
+                                                    : ""
+                                            }`}
+                                        >
+                                            <OsAppContent
+                                                activeModule={module}
+                                                onLaunchApp={focusOrOpenAppWindow}
+                                            />
+                                        </div>
                                         <button
                                             type="button"
-                                            className="os-window-light os-window-light--close"
-                                            aria-label={`Close ${activeModule.label}`}
-                                            onClick={closeActiveAppWindow}
+                                            className="os-app-window-resize-handle"
+                                            aria-label={`Resize ${module.label}`}
+                                            onPointerDown={(event) =>
+                                                startWindowInteraction(
+                                                    event,
+                                                    "resize",
+                                                    windowItem.id,
+                                                )
+                                            }
                                         />
-                                        <span
-                                            className="os-window-light os-window-light--minimize"
-                                            aria-hidden="true"
-                                        />
-                                        <span
-                                            className="os-window-light os-window-light--expand"
-                                            aria-hidden="true"
-                                        />
-                                    </div>
-                                    <span className="os-accent-font">{activeModule.label}</span>
-                                    <span className="os-accent-font">running</span>
-                                </div>
-                                <div
-                                    className={`os-app-window-body ${
-                                        activeModule.id === "collage"
-                                            ? "os-app-window-body--collage"
-                                            : ""
-                                    }`}
-                                >
-                                    <OsAppContent
-                                        activeModule={activeModule}
-                                        onLaunchApp={openAppWindow}
-                                    />
-                                </div>
-                                <button
-                                    type="button"
-                                    className="os-app-window-resize-handle"
-                                    aria-label={`Resize ${activeModule.label}`}
-                                    onPointerDown={(event) =>
-                                        startWindowInteraction(event, "resize")
-                                    }
-                                />
-                            </article>
+                                    </article>
+                                );
+                            })}
                         </div>
                     ) : null}
                 </section>
