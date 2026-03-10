@@ -11,6 +11,11 @@ import {
     TEXT_FONT_FAMILY,
     TEXT_FONT_SIZE,
 } from "./config";
+import {
+    getPixelHeartsBackgroundStyle,
+    getSampleManifestUrl,
+    resolveCollageAssetSrc,
+} from "./assetPaths";
 import { useIndexedDB } from "./hooks/useIndexedDB";
 import { useLocalStorage } from "./hooks/useLocalStorage";
 import { exportCanvasToBlob, downloadBlob } from "./utils/exportCanvas";
@@ -112,22 +117,25 @@ type SampleCanvasItem = (
 
 const BASE_URL = import.meta.env.BASE_URL;
 const LANDING_URL = import.meta.env.VITE_LANDING_URL ?? "/";
-const SAMPLE_MANIFEST_URL = `${BASE_URL}samples/default/manifest.json`;
 const SAMPLE_SEED_STORAGE_KEY = "pixelCollageSampleSeedVersion";
 const SAMPLE_SEED_VERSION = "1";
 const SHOULD_AUTO_SEED = import.meta.env.MODE !== "test";
-const IS_EMBEDDED =
+const DEFAULT_IS_EMBEDDED =
     typeof window !== "undefined" &&
     new URLSearchParams(window.location.search).get("embedded") === "1";
+const APP_SHELL_CLASS_NAME = "relative flex min-h-0 flex-col bg-pink-100";
+const LOADING_CONTAINER_CLASS_NAME = "relative flex items-center justify-center bg-pink-100";
+const WORKSPACE_CLASS_NAME = "flex h-full min-h-0 w-full flex-col overflow-hidden md:flex-row";
+const EMBEDDED_WORKSPACE_WRAPPER_CLASS_NAME = "flex flex-1 min-h-0 overflow-hidden";
+const STANDALONE_WORKSPACE_WRAPPER_CLASS_NAME = "flex flex-1 md:items-center md:justify-center";
+const STANDALONE_WORKSPACE_FRAME_CLASS_NAME =
+    "md:h-[80vh] md:w-[80vw] md:rounded-lg md:border-4 md:border-pink-300 md:shadow-lg";
+const PIXEL_COLLAGE_FONT_FAMILY = '"Press Start 2P", cursive';
 
 const BACKGROUNDS: BackgroundOption[] = [
     { id: BackgroundId.White, label: "White", style: "white" },
     { id: BackgroundId.Pink, label: "Light Pink", style: "#fce7f3" },
-    {
-        id: BackgroundId.Hearts,
-        label: "Pixel Hearts",
-        style: `url('${BASE_URL}bg-pixel-hearts.svg') repeat`,
-    },
+    { id: BackgroundId.Hearts, label: "Pixel Hearts", style: "" },
 ];
 
 function measureTextWidth(text: string): number {
@@ -289,25 +297,24 @@ function resolveSampleCanvasItems(
     });
 }
 
-function normalizeSampleAssetSrc(src: string): string {
+function normalizeSampleAssetSrc(src: string, assetBaseUrl: string): string {
     if (!src) return src;
-    if (/^(data:|blob:|https?:\/\/|\/\/)/i.test(src)) return src;
-    if (src.startsWith(BASE_URL)) return src;
-
-    if (src.startsWith("/samples/")) {
-        const baseNoTrailingSlash = BASE_URL.endsWith("/") ? BASE_URL.slice(0, -1) : BASE_URL;
-        return `${baseNoTrailingSlash}${src}`;
+    if (src.startsWith("/samples/") || src.startsWith("samples/")) {
+        return resolveCollageAssetSrc(src, assetBaseUrl);
     }
-    if (src.startsWith("samples/")) {
-        return `${BASE_URL}${src}`;
+    if (src.startsWith("/bg-pixel-hearts.svg") || src.startsWith("bg-pixel-hearts.svg")) {
+        return resolveCollageAssetSrc(src, assetBaseUrl);
     }
     return src;
 }
 
-function normalizeUploadedImages(images: UploadedImage[]): [UploadedImage[], boolean] {
+function normalizeUploadedImages(
+    images: UploadedImage[],
+    assetBaseUrl: string,
+): [UploadedImage[], boolean] {
     let changed = false;
     const normalized = images.map((image) => {
-        const src = normalizeSampleAssetSrc(image.src);
+        const src = normalizeSampleAssetSrc(image.src, assetBaseUrl);
         if (src !== image.src) {
             changed = true;
             return { ...image, src };
@@ -317,10 +324,13 @@ function normalizeUploadedImages(images: UploadedImage[]): [UploadedImage[], boo
     return [normalized, changed];
 }
 
-function normalizeCroppedCutouts(cutouts: CroppedCutout[]): [CroppedCutout[], boolean] {
+function normalizeCroppedCutouts(
+    cutouts: CroppedCutout[],
+    assetBaseUrl: string,
+): [CroppedCutout[], boolean] {
     let changed = false;
     const normalized = cutouts.map((cutout) => {
-        const src = normalizeSampleAssetSrc(cutout.src);
+        const src = normalizeSampleAssetSrc(cutout.src, assetBaseUrl);
         if (src !== cutout.src) {
             changed = true;
             return { ...cutout, src };
@@ -330,11 +340,11 @@ function normalizeCroppedCutouts(cutouts: CroppedCutout[]): [CroppedCutout[], bo
     return [normalized, changed];
 }
 
-function normalizeCanvasItems(items: CanvasItem[]): [CanvasItem[], boolean] {
+function normalizeCanvasItems(items: CanvasItem[], assetBaseUrl: string): [CanvasItem[], boolean] {
     let changed = false;
     const normalized = items.map((item) => {
         if (item.type !== "image") return item;
-        const src = normalizeSampleAssetSrc(item.src);
+        const src = normalizeSampleAssetSrc(item.src, assetBaseUrl);
         if (src !== item.src) {
             changed = true;
             return { ...item, src };
@@ -344,7 +354,11 @@ function normalizeCanvasItems(items: CanvasItem[]): [CanvasItem[], boolean] {
     return [normalized, changed];
 }
 
-function parseSampleManifest(value: unknown): SampleManifest | null {
+function joinClassNames(...classNames: Array<string | false>) {
+    return classNames.filter(Boolean).join(" ");
+}
+
+function parseSampleManifest(value: unknown, assetBaseUrl: string): SampleManifest | null {
     if (!value || typeof value !== "object") return null;
     const raw = value as Partial<SampleManifest>;
     if (
@@ -364,19 +378,29 @@ function parseSampleManifest(value: unknown): SampleManifest | null {
         canvasCoordinateMode: raw.canvasCoordinateMode === "relative" ? "relative" : "absolute",
         uploadedImages: (raw.uploadedImages as UploadedImage[]).map((image) => ({
             ...image,
-            src: normalizeSampleAssetSrc(image.src),
+            src: normalizeSampleAssetSrc(image.src, assetBaseUrl),
         })),
         croppedCutouts: (raw.croppedCutouts as CroppedCutout[]).map((cutout) => ({
             ...cutout,
-            src: normalizeSampleAssetSrc(cutout.src),
+            src: normalizeSampleAssetSrc(cutout.src, assetBaseUrl),
         })),
         canvasItems: (raw.canvasItems as SampleCanvasItem[]).map((item) =>
-            item.type === "image" ? { ...item, src: normalizeSampleAssetSrc(item.src) } : item,
+            item.type === "image"
+                ? { ...item, src: normalizeSampleAssetSrc(item.src, assetBaseUrl) }
+                : item,
         ),
     };
 }
 
-export default function App() {
+export interface PixelCollageAppProps {
+    assetBaseUrl?: string;
+    embedded?: boolean;
+}
+
+export function PixelCollageApp({
+    assetBaseUrl = BASE_URL,
+    embedded = DEFAULT_IS_EMBEDDED,
+}: PixelCollageAppProps = {}) {
     const [uploadedImages, setUploadedImages, imagesLoading] = useIndexedDB<UploadedImage[]>(
         "uploadedImages",
         [],
@@ -428,7 +452,17 @@ export default function App() {
         pendingRelativeSampleManifestRef.current = null;
     }, [canvasSize.width, canvasSize.height, setCanvasItems]);
 
-    const backgroundStyle = BACKGROUNDS.find((bg) => bg.id === selectedBgId)?.style ?? "white";
+    const isEmbedded = embedded;
+    const sampleManifestUrl = getSampleManifestUrl(assetBaseUrl);
+    const backgrounds = BACKGROUNDS.map((background) =>
+        background.id === BackgroundId.Hearts
+            ? {
+                  ...background,
+                  style: getPixelHeartsBackgroundStyle(assetBaseUrl),
+              }
+            : background,
+    );
+    const backgroundStyle = backgrounds.find((bg) => bg.id === selectedBgId)?.style ?? "white";
 
     const croppingImage =
         canvasCroppingImage ??
@@ -456,9 +490,9 @@ export default function App() {
         let cancelled = false;
         async function seedFromSampleManifest() {
             try {
-                const response = await fetch(SAMPLE_MANIFEST_URL, { cache: "no-store" });
+                const response = await fetch(sampleManifestUrl, { cache: "no-store" });
                 if (!response.ok) return;
-                const manifest = parseSampleManifest(await response.json());
+                const manifest = parseSampleManifest(await response.json(), assetBaseUrl);
                 if (!manifest) return;
 
                 setUploadedImages(manifest.uploadedImages);
@@ -512,16 +546,27 @@ export default function App() {
         setCroppedCutouts,
         setCanvasItems,
         setSelectedBgId,
+        assetBaseUrl,
         canvasSize.width,
         canvasSize.height,
+        sampleManifestUrl,
     ]);
 
     useEffect(() => {
         if (isLoading) return;
 
-        const [normalizedImages, imagesChanged] = normalizeUploadedImages(uploadedImages);
-        const [normalizedCutouts, cutoutsChanged] = normalizeCroppedCutouts(croppedCutouts);
-        const [normalizedCanvasItems, canvasItemsChanged] = normalizeCanvasItems(canvasItems);
+        const [normalizedImages, imagesChanged] = normalizeUploadedImages(
+            uploadedImages,
+            assetBaseUrl,
+        );
+        const [normalizedCutouts, cutoutsChanged] = normalizeCroppedCutouts(
+            croppedCutouts,
+            assetBaseUrl,
+        );
+        const [normalizedCanvasItems, canvasItemsChanged] = normalizeCanvasItems(
+            canvasItems,
+            assetBaseUrl,
+        );
 
         if (imagesChanged) setUploadedImages(normalizedImages);
         if (cutoutsChanged) setCroppedCutouts(normalizedCutouts);
@@ -534,6 +579,7 @@ export default function App() {
         setUploadedImages,
         setCroppedCutouts,
         setCanvasItems,
+        assetBaseUrl,
     ]);
 
     async function processUpload(file: File) {
@@ -817,13 +863,15 @@ export default function App() {
     if (isLoading || !hasCheckedSampleSeed) {
         return (
             <>
-                <AnimatedCursor />
+                {!isEmbedded ? <AnimatedCursor /> : null}
                 <div
-                    className={`relative flex items-center justify-center bg-pink-100 ${
-                        IS_EMBEDDED ? "h-full overflow-hidden" : "h-screen"
-                    }`}
+                    className={joinClassNames(
+                        LOADING_CONTAINER_CLASS_NAME,
+                        isEmbedded ? "h-full overflow-hidden" : "h-screen",
+                    )}
+                    style={{ fontFamily: PIXEL_COLLAGE_FONT_FAMILY }}
                 >
-                    {!IS_EMBEDDED ? (
+                    {!isEmbedded ? (
                         <a
                             href={LANDING_URL}
                             className="absolute left-4 top-4 z-50 rounded border-2 border-pink-300 bg-pink-50 px-2 py-1 text-[10px] text-pink-700 hover:bg-pink-200"
@@ -839,15 +887,17 @@ export default function App() {
 
     return (
         <>
-            <AnimatedCursor />
+            {!isEmbedded ? <AnimatedCursor /> : null}
             <div
-                className={`relative flex min-h-0 flex-col bg-pink-100 ${
-                    IS_EMBEDDED ? "h-full overflow-hidden" : "h-screen"
-                }`}
+                className={joinClassNames(
+                    APP_SHELL_CLASS_NAME,
+                    isEmbedded ? "h-full overflow-hidden" : "h-screen",
+                )}
+                style={{ fontFamily: PIXEL_COLLAGE_FONT_FAMILY }}
                 onDragOver={(e) => e.preventDefault()}
                 onDrop={handleDrop}
             >
-                {!IS_EMBEDDED ? (
+                {!isEmbedded ? (
                     <a
                         href={LANDING_URL}
                         className="absolute left-4 top-4 z-50 rounded border-2 border-pink-300 bg-pink-50 px-2 py-1 text-[10px] text-pink-700 hover:bg-pink-200"
@@ -856,18 +906,17 @@ export default function App() {
                     </a>
                 ) : null}
                 <div
-                    className={`flex flex-1 ${
-                        IS_EMBEDDED
-                            ? "min-h-0 overflow-hidden"
-                            : "md:items-center md:justify-center"
-                    }`}
+                    className={
+                        isEmbedded
+                            ? EMBEDDED_WORKSPACE_WRAPPER_CLASS_NAME
+                            : STANDALONE_WORKSPACE_WRAPPER_CLASS_NAME
+                    }
                 >
                     <div
-                        className={`flex h-full min-h-0 w-full flex-col overflow-hidden md:flex-row ${
-                            IS_EMBEDDED
-                                ? ""
-                                : "md:h-[80vh] md:w-[80vw] md:rounded-lg md:border-4 md:border-pink-300 md:shadow-lg"
-                        }`}
+                        className={joinClassNames(
+                            WORKSPACE_CLASS_NAME,
+                            !isEmbedded && STANDALONE_WORKSPACE_FRAME_CLASS_NAME,
+                        )}
                     >
                         <Sidebar
                             uploadedImages={uploadedImages}
@@ -880,7 +929,7 @@ export default function App() {
                             onDeleteImage={handleDeleteImage}
                             onDeleteCutout={handleDeleteCutout}
                             onAddText={handleAddText}
-                            backgrounds={BACKGROUNDS}
+                            backgrounds={backgrounds}
                             selectedBgId={selectedBgId}
                             onSelectBg={setSelectedBgId}
                             onSaveImage={handleSaveImage}
@@ -904,7 +953,7 @@ export default function App() {
                             onResize={setCanvasSize}
                             backgroundStyle={backgroundStyle}
                             stageRef={stageRef}
-                            isEmbedded={IS_EMBEDDED}
+                            isEmbedded={isEmbedded}
                         />
                     </div>
 
@@ -940,8 +989,12 @@ export default function App() {
                         onCancel={handleCancelEraseCanvas}
                     />
                 </div>
-                {!IS_EMBEDDED ? <Footer instagramUrl={import.meta.env.VITE_INSTAGRAM_URL} /> : null}
+                {!isEmbedded ? <Footer instagramUrl={import.meta.env.VITE_INSTAGRAM_URL} /> : null}
             </div>
         </>
     );
+}
+
+export default function App() {
+    return <PixelCollageApp />;
 }

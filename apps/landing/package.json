@@ -11,6 +11,7 @@
         "clean": "rm -rf dist node_modules .turbo"
     },
     "dependencies": {
+        "@pixattica/pixel-collage": "*",
         "@pixattica/ui": "*",
         "react": "^19",
         "react-dom": "^19",

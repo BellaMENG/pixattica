@@ -1,4 +1,5 @@
 import { Suspense, lazy } from "react";
+import type { PixelCollageApp as PixelCollageAppComponent } from "@pixattica/pixel-collage";
 import type { AppId, AppModule } from "./osData";
 
 type OsAppContentProps = {
@@ -6,10 +7,18 @@ type OsAppContentProps = {
     onLaunchApp: (appId: AppId) => void;
 };
 
+const PIXEL_COLLAGE_ASSET_BASE_URL = import.meta.env.VITE_PIXEL_COLLAGE_URL ?? "/pixel-collage/";
 const loadAboutApp = () => import("./osApps/AboutApp");
 const loadBooksApp = () => import("./osApps/BooksApp");
 const loadCatsApp = () => import("./osApps/CatsApp");
-const loadCollageApp = () => import("./osApps/CollageApp");
+const loadCollageApp = async () => {
+    const module = await import("@pixattica/pixel-collage");
+    return {
+        default: module.PixelCollageApp,
+    } satisfies {
+        default: typeof PixelCollageAppComponent;
+    };
+};
 
 const AboutApp = lazy(loadAboutApp);
 const BooksApp = lazy(loadBooksApp);
@@ -44,7 +53,7 @@ export function OsAppContent({ activeModule, onLaunchApp }: OsAppContentProps) {
     } else if (activeModule.id === "cats") {
         content = <CatsApp />;
     } else if (activeModule.id === "collage") {
-        content = <CollageApp />;
+        content = <CollageApp embedded assetBaseUrl={PIXEL_COLLAGE_ASSET_BASE_URL} />;
     } else {
         content = <AboutApp onLaunchApp={onLaunchApp} />;
     }
