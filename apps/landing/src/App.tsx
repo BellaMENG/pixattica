@@ -12,7 +12,7 @@ import { runBootSequence } from "./osBoot";
 import { OsAppContent } from "./osAppContent";
 import { getHistoryInlineCompletion } from "./osHistoryCompletion";
 import { INITIAL_OS_STATE, osStore, useOsStore } from "./osStore";
-import { getWindowIdToClose } from "./osShortcuts";
+import { getCommandCShortcutAction } from "./osShortcuts";
 import { getModuleById, runShellCommand } from "./osShell";
 import { renderLinkifiedText } from "./linkifyText";
 import { MOBILE_BREAKPOINT, type AppWindowFrame } from "./osWindowing";
@@ -185,13 +185,36 @@ function App() {
     useEffect(() => {
         const handleWindowKeyDown = (event: globalThis.KeyboardEvent) => {
             if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "c") {
-                const targetWindowId = getWindowIdToClose(focusedWindowId, windows);
-                if (!targetWindowId) {
+                const action = getCommandCShortcutAction({
+                    commandInput,
+                    focusedWindowId,
+                    isPromptFocused: document.activeElement === commandInputRef.current,
+                    windows,
+                });
+
+                if (action.type === "none") {
                     return;
                 }
 
                 event.preventDefault();
-                closeWindowAndEndInteraction(targetWindowId);
+
+                if (action.type === "interrupt-input") {
+                    const lineIndex = transcript.length + 1;
+                    appendTranscriptEntries([
+                        {
+                            id: `command-${lineIndex}`,
+                            kind: "command",
+                            text: commandInput,
+                        },
+                    ]);
+                    clearCommandInput();
+                    requestAnimationFrame(() => {
+                        commandInputRef.current?.focus();
+                    });
+                    return;
+                }
+
+                closeWindowAndEndInteraction(action.windowId);
                 requestAnimationFrame(() => {
                     commandInputRef.current?.focus();
                 });
@@ -200,7 +223,14 @@ function App() {
 
         window.addEventListener("keydown", handleWindowKeyDown);
         return () => window.removeEventListener("keydown", handleWindowKeyDown);
-    }, [focusedWindowId, windows]);
+    }, [
+        appendTranscriptEntries,
+        clearCommandInput,
+        commandInput,
+        focusedWindowId,
+        transcript.length,
+        windows,
+    ]);
 
     const handleCommandHistoryKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
         if (event.key === "Tab") {
