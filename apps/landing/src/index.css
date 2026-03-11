@@ -333,12 +333,20 @@ a {
     min-height: 1.6rem;
 }
 
+.os-prompt-shell {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+}
+
 .os-prompt-label {
     flex: none;
     color: #ff9ed0;
 }
 
 .os-command-input {
+    position: relative;
+    z-index: 1;
     flex: 1;
     min-width: 0;
     border: 0;
@@ -355,6 +363,34 @@ a {
 }
 
 .os-command-input::placeholder {
+    color: rgba(255, 214, 230, 0.35);
+}
+
+.os-command-input-shell {
+    position: relative;
+    display: flex;
+    flex: 1;
+    min-width: 0;
+}
+
+.os-command-ghost {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    min-width: 0;
+    font-family: var(--os-mono-font);
+    font-size: 1rem;
+    line-height: 1.75;
+    pointer-events: none;
+    white-space: pre;
+}
+
+.os-command-ghost-prefix {
+    visibility: hidden;
+}
+
+.os-command-ghost-suffix {
     color: rgba(255, 214, 230, 0.35);
 }
 

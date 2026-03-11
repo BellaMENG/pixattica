@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { runShellCommand, HELP_TEXT } from "./osShell";
+import { getShellAutocompleteSuggestions, runShellCommand, HELP_TEXT } from "./osShell";
 
 describe("runShellCommand", () => {
     it("supports a hidden whoami easter egg command", () => {
@@ -20,5 +20,36 @@ describe("runShellCommand", () => {
 
     it("does not expose whoami in help text", () => {
         expect(HELP_TEXT).not.toContain("whoami");
+    });
+
+    it("does not expose hidden commands in autocomplete suggestions", () => {
+        expect(
+            getShellAutocompleteSuggestions("wh").some(
+                (suggestion) => suggestion.completion === "whoami",
+            ),
+        ).toBe(false);
+    });
+
+    it("suggests commands and open targets for autocomplete", () => {
+        expect(getShellAutocompleteSuggestions("he")).toEqual([
+            {
+                completion: "help",
+                description: "show the current command index",
+                label: "help",
+            },
+        ]);
+
+        expect(getShellAutocompleteSuggestions("open c")).toEqual([
+            {
+                completion: "open cats",
+                description: "open cats.app",
+                label: "open cats",
+            },
+            {
+                completion: "open collage",
+                description: "open collage.app",
+                label: "open collage",
+            },
+        ]);
     });
 });

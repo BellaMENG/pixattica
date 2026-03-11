@@ -10,6 +10,7 @@ import { AnimatedCursor, Footer } from "@pixattica/ui";
 import { PROMPT, type TranscriptEntry } from "./osData";
 import { runBootSequence } from "./osBoot";
 import { OsAppContent } from "./osAppContent";
+import { getHistoryInlineCompletion } from "./osHistoryCompletion";
 import { INITIAL_OS_STATE, osStore, useOsStore } from "./osStore";
 import { getWindowIdToClose } from "./osShortcuts";
 import { getModuleById, runShellCommand } from "./osShell";
@@ -26,6 +27,7 @@ type WindowInteraction = {
 
 function App() {
     const activeModuleId = useOsStore((state) => state.activeModuleId);
+    const commandHistory = useOsStore((state) => state.commandHistory);
     const commandInput = useOsStore((state) => state.commandInput);
     const focusedWindowId = useOsStore((state) => state.focusedWindowId);
     const isBooting = useOsStore((state) => state.isBooting);
@@ -53,6 +55,14 @@ function App() {
     const rebootTimerRef = useRef<number | null>(null);
     const bootRunIdRef = useRef(0);
     const windowInteractionRef = useRef<WindowInteraction | null>(null);
+    const historyInlineCompletion = getHistoryInlineCompletion(commandInput, commandHistory);
+
+    const applySuggestion = (suggestion: string) => {
+        setCommandInput(suggestion);
+        requestAnimationFrame(() => {
+            commandInputRef.current?.focus();
+        });
+    };
 
     const getShellBounds = () => {
         const shellBounds = shellRef.current?.getBoundingClientRect();
@@ -193,6 +203,29 @@ function App() {
     }, [focusedWindowId, windows]);
 
     const handleCommandHistoryKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+        if (event.key === "Tab") {
+            if (!historyInlineCompletion) {
+                return;
+            }
+
+            event.preventDefault();
+            applySuggestion(historyInlineCompletion);
+            return;
+        }
+
+        if (event.key === "ArrowRight" && historyInlineCompletion) {
+            const selectionStart = event.currentTarget.selectionStart ?? commandInput.length;
+            const selectionEnd = event.currentTarget.selectionEnd ?? commandInput.length;
+            const isCaretAtEnd =
+                selectionStart === commandInput.length && selectionEnd === commandInput.length;
+
+            if (isCaretAtEnd) {
+                event.preventDefault();
+                applySuggestion(historyInlineCompletion);
+                return;
+            }
+        }
+
         if (event.key === "ArrowUp") {
             event.preventDefault();
             recallPreviousCommand();
@@ -343,27 +376,46 @@ function App() {
                                     </div>
                                 ) : null}
                                 {!isBooting ? (
-                                    <form className="os-prompt-form" onSubmit={handleSubmit}>
-                                        <label
-                                            className="os-prompt-label os-accent-font"
-                                            htmlFor="pixattica-command-input"
-                                        >
-                                            {PROMPT}
-                                        </label>
-                                        <input
-                                            ref={commandInputRef}
-                                            id="pixattica-command-input"
-                                            value={commandInput}
-                                            onChange={(event) =>
-                                                setCommandInput(event.target.value)
-                                            }
-                                            className="os-command-input"
-                                            spellCheck={false}
-                                            autoComplete="off"
-                                            placeholder="help"
-                                            onKeyDown={handleCommandHistoryKeyDown}
-                                        />
-                                    </form>
+                                    <div className="os-prompt-shell">
+                                        <form className="os-prompt-form" onSubmit={handleSubmit}>
+                                            <label
+                                                className="os-prompt-label os-accent-font"
+                                                htmlFor="pixattica-command-input"
+                                            >
+                                                {PROMPT}
+                                            </label>
+                                            <div className="os-command-input-shell">
+                                                {historyInlineCompletion ? (
+                                                    <div
+                                                        className="os-command-ghost"
+                                                        aria-hidden="true"
+                                                    >
+                                                        <span className="os-command-ghost-prefix">
+                                                            {commandInput}
+                                                        </span>
+                                                        <span className="os-command-ghost-suffix">
+                                                            {historyInlineCompletion.slice(
+                                                                commandInput.length,
+                                                            )}
+                                                        </span>
+                                                    </div>
+                                                ) : null}
+                                                <input
+                                                    ref={commandInputRef}
+                                                    id="pixattica-command-input"
+                                                    value={commandInput}
+                                                    onChange={(event) =>
+                                                        setCommandInput(event.target.value)
+                                                    }
+                                                    className="os-command-input"
+                                                    spellCheck={false}
+                                                    autoComplete="off"
+                                                    placeholder="help"
+                                                    onKeyDown={handleCommandHistoryKeyDown}
+                                                />
+                                            </div>
+                                        </form>
+                                    </div>
                                 ) : null}
                                 <div ref={transcriptEndRef} />
                             </div>

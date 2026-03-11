@@ -25,8 +25,15 @@ type ShellCommandDefinition = {
     aliases?: string[];
     command: string;
     description: string;
+    hidden?: boolean;
     usage?: string;
     run: (context: ShellCommandContext) => ShellCommandResult;
+};
+
+export type ShellAutocompleteSuggestion = {
+    completion: string;
+    description: string;
+    label: string;
 };
 
 function createOutputEntry(index: number, text: string): TranscriptEntry {
@@ -63,6 +70,7 @@ const CORE_COMMANDS: ShellCommandDefinition[] = [
     {
         command: "whoami",
         description: "hidden easter egg",
+        hidden: true,
         run: ({ activeModuleId, lineIndex }) => ({
             entries: [createOutputEntry(lineIndex, WHOAMI_TEXT)],
             nextModuleId: activeModuleId,
@@ -134,6 +142,7 @@ const MODULE_COMMANDS: ShellCommandDefinition[] = APP_MODULES.map((module) => ({
 }));
 
 const ALL_COMMANDS = [...CORE_COMMANDS, ...MODULE_COMMANDS];
+const VISIBLE_COMMANDS = ALL_COMMANDS.filter((command) => !command.hidden);
 
 const COMMAND_LOOKUP = new Map<string, ShellCommandDefinition>(
     ALL_COMMANDS.flatMap((definition) => [
@@ -155,6 +164,50 @@ export const HELP_TEXT = [
 ].join("\n");
 
 export const INITIAL_TRANSCRIPT: TranscriptEntry[] = [...BOOT_SEQUENCE];
+
+function getCommandSuggestions(): ShellAutocompleteSuggestion[] {
+    return VISIBLE_COMMANDS.flatMap((definition) => [
+        {
+            completion: definition.command === "open" ? "open " : definition.command,
+            description: definition.description,
+            label: definition.usage ?? definition.command,
+        },
+        ...(definition.aliases ?? []).map((alias) => ({
+            completion: alias === "launch" ? "launch " : alias,
+            description: definition.description,
+            label: alias,
+        })),
+    ]);
+}
+
+function getOpenTargetSuggestions(launcher: "launch" | "open", query: string) {
+    return APP_MODULES.filter((module) => !query || module.command.startsWith(query)).map(
+        (module) => ({
+            completion: `${launcher} ${module.command}`,
+            description: `open ${module.label}`,
+            label: `${launcher} ${module.command}`,
+        }),
+    );
+}
+
+export function getShellAutocompleteSuggestions(input: string): ShellAutocompleteSuggestion[] {
+    const normalizedInput = input.trimStart().toLowerCase();
+    if (!normalizedInput) {
+        return [];
+    }
+
+    const openMatch = normalizedInput.match(/^(open|launch)\s+(.*)$/);
+    if (openMatch) {
+        const launcher = openMatch[1] as "launch" | "open";
+        const query = openMatch[2]?.trim() ?? "";
+        return getOpenTargetSuggestions(launcher, query).slice(0, 6);
+    }
+
+    return getCommandSuggestions()
+        .filter((suggestion) => suggestion.completion.startsWith(normalizedInput))
+        .filter((suggestion) => suggestion.completion.trimEnd() !== normalizedInput)
+        .slice(0, 6);
+}
 
 export function runShellCommand(
     input: string,
