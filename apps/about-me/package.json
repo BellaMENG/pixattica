@@ -11,7 +11,7 @@
         "clean": "rm -rf dist node_modules .turbo"
     },
     "dependencies": {
-        "@pixattica/ui": "*",
+        "@pixattica/ui": "workspace:*",
         "prop-types": "^15.8.1",
         "react": "^19",
         "react-dom": "^19",
@@ -19,7 +19,7 @@
         "world-atlas": "^2.0.2"
     },
     "devDependencies": {
-        "@pixattica/tsconfig": "*",
+        "@pixattica/tsconfig": "workspace:*",
         "@tailwindcss/vite": "^4",
         "@types/prop-types": "^15",
         "@types/react": "^19",

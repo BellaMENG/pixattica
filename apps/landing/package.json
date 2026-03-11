@@ -11,8 +11,8 @@
         "clean": "rm -rf dist node_modules .turbo"
     },
     "dependencies": {
-        "@pixattica/pixel-collage": "*",
-        "@pixattica/ui": "*",
+        "@pixattica/pixel-collage": "workspace:*",
+        "@pixattica/ui": "workspace:*",
         "react": "^19",
         "react-dom": "^19",
         "react-simple-maps": "^3.0.0",
@@ -20,7 +20,7 @@
         "zustand": "^5.0.8"
     },
     "devDependencies": {
-        "@pixattica/tsconfig": "*",
+        "@pixattica/tsconfig": "workspace:*",
         "@tailwindcss/vite": "^4",
         "@types/react": "^19",
         "@types/react-dom": "^19",

@@ -3,4 +3,4 @@ dist
 .turbo
 *.local
 .DS_Store
-.yarn/install-state.gz
+pnpm-debug.log*

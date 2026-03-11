@@ -5,22 +5,22 @@ A Turborepo monorepo containing multiple React TypeScript apps. Each app is a st
 ## Getting Started
 
 ```bash
-yarn install
-yarn dev
+pnpm install
+pnpm dev
 ```
 
 ## Commands
 
 ```bash
-yarn build    # Build all apps
-yarn dev      # Dev server for all apps
-yarn lint     # Lint all apps
-yarn test     # Test all apps
-yarn clean    # Clean build artifacts
+pnpm build    # Build all apps
+pnpm dev      # Dev server for all apps
+pnpm lint     # Lint all apps
+pnpm test     # Test all apps
+pnpm clean    # Clean build artifacts
 
 # Filter to a single app
-yarn turbo build --filter=@pixattica/<app-name>
-yarn turbo dev --filter=@pixattica/<app-name>
+pnpm turbo build --filter=@pixattica/<app-name>
+pnpm turbo dev --filter=@pixattica/<app-name>
 ```
 
 ## Structure
@@ -37,4 +37,4 @@ packages/
 
 1. Copy `apps/_template` to `apps/<new-app-name>`
 2. Update `name` in `package.json` to `@pixattica/<new-app-name>`
-3. Run `yarn install` from the root
+3. Run `pnpm install` from the root

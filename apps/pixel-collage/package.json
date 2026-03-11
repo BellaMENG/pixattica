@@ -16,7 +16,7 @@
     },
     "dependencies": {
         "@imgly/background-removal": "^1.7.0",
-        "@pixattica/ui": "*",
+        "@pixattica/ui": "workspace:*",
         "heic2any": "^0.0.4",
         "konva": "^10.2.0",
         "onnxruntime-web": "1.21.0",
@@ -28,7 +28,7 @@
         "use-image": "^1.1.4"
     },
     "devDependencies": {
-        "@pixattica/tsconfig": "*",
+        "@pixattica/tsconfig": "workspace:*",
         "@tailwindcss/vite": "^4",
         "@testing-library/dom": "^10.4.1",
         "@testing-library/jest-dom": "^6",

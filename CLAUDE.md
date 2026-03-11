@@ -9,21 +9,21 @@ pixattica is a Turborepo monorepo containing multiple React TypeScript projects.
 ## Commands
 
 ```bash
-yarn install              # Install all dependencies
-yarn build                # Build all apps
-yarn dev                  # Dev server for all apps
-yarn lint                 # Lint all apps
-yarn format               # Auto-format all files
-yarn format:check         # Check formatting (CI)
-yarn test                 # Test all apps
+pnpm install              # Install all dependencies
+pnpm build                # Build all apps
+pnpm dev                  # Dev server for all apps
+pnpm lint                 # Lint all apps
+pnpm format               # Auto-format all files
+pnpm format:check         # Check formatting (CI)
+pnpm test                 # Test all apps
 
 # Filter to a single app
-yarn turbo build --filter=@pixattica/<app-name>
-yarn turbo dev --filter=@pixattica/<app-name>
-yarn turbo test --filter=@pixattica/<app-name>
+pnpm turbo build --filter=@pixattica/<app-name>
+pnpm turbo dev --filter=@pixattica/<app-name>
+pnpm turbo test --filter=@pixattica/<app-name>
 ```
 
-Within an individual app directory, standard scripts apply: `yarn dev`, `yarn build`, `yarn lint`, `yarn test`.
+Within an individual app directory, standard scripts apply: `pnpm dev`, `pnpm build`, `pnpm lint`, `pnpm test`.
 
 ## Architecture
 
@@ -38,7 +38,7 @@ packages/      — Shared workspace packages
 
 1. Copy an existing app (e.g. `apps/pixel-collage`) to `apps/<new-app-name>`
 2. Update `name` in `package.json` to `@pixattica/<new-app-name>`
-3. Run `yarn install` from the root
+3. Run `pnpm install` from the root
 
 ## Conventions
 
