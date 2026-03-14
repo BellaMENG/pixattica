@@ -3,11 +3,14 @@
     "private": true,
     "scripts": {
         "build": "turbo build",
-        "dev": "turbo dev --parallel --ui=tui",
+        "build:landing": "turbo build --filter=@pixattica/landing",
+        "dev": "turbo dev --parallel --ui=tui --filter=@pixattica/landing",
+        "dev:all": "turbo dev --parallel --ui=tui",
         "lint": "oxlint .",
         "format": "oxfmt --list-different .",
         "format:check": "oxfmt --check .",
         "test": "turbo test",
+        "test:landing": "turbo test --filter=@pixattica/landing",
         "clean": "turbo clean",
         "prepare": "husky"
     },

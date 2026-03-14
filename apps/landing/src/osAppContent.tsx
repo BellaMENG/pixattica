@@ -7,7 +7,7 @@ type OsAppContentProps = {
     onLaunchApp: (appId: AppId) => void;
 };
 
-const PIXEL_COLLAGE_ASSET_BASE_URL = import.meta.env.VITE_PIXEL_COLLAGE_URL ?? "/pixel-collage/";
+const PIXEL_COLLAGE_ASSET_BASE_URL = import.meta.env.VITE_PIXEL_COLLAGE_URL ?? "/";
 const loadAboutApp = () => import("./osApps/AboutApp");
 const loadBooksApp = () => import("./osApps/BooksApp");
 const loadCatsApp = () => import("./osApps/CatsApp");

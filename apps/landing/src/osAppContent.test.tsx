@@ -7,8 +7,18 @@ import { APP_MODULES } from "./osData";
 Reflect.set(globalThis, "IS_REACT_ACT_ENVIRONMENT", true);
 
 vi.mock("@pixattica/pixel-collage", () => ({
-    PixelCollageApp: ({ embedded }: { embedded?: boolean }) => (
-        <div data-testid="pixel-collage-app" data-embedded={embedded ? "true" : "false"}>
+    PixelCollageApp: ({
+        embedded,
+        assetBaseUrl,
+    }: {
+        embedded?: boolean;
+        assetBaseUrl?: string;
+    }) => (
+        <div
+            data-testid="pixel-collage-app"
+            data-embedded={embedded ? "true" : "false"}
+            data-asset-base-url={assetBaseUrl ?? ""}
+        >
             mock collage app
         </div>
     ),
@@ -56,6 +66,7 @@ describe("OsAppContent", () => {
         const embeddedApp = container.querySelector('[data-testid="pixel-collage-app"]');
         expect(embeddedApp).not.toBeNull();
         expect(embeddedApp?.getAttribute("data-embedded")).toBe("true");
+        expect(embeddedApp?.getAttribute("data-asset-base-url")).toBe("/");
         expect(container.querySelector("iframe")).toBeNull();
     });
 });

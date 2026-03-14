@@ -7,10 +7,8 @@
         ".": "./src/index.ts"
     },
     "scripts": {
-        "dev": "vite",
-        "build": "tsc -b && vite build",
+        "build": "tsc -b",
         "test": "vitest run",
-        "preview": "vite preview",
         "samples:materialize": "node ./scripts/materialize-sample-fixtures.mjs",
         "clean": "rm -rf dist node_modules .turbo"
     },

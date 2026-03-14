@@ -12,25 +12,30 @@ pnpm dev
 ## Commands
 
 ```bash
-pnpm build    # Build all apps
-pnpm dev      # Dev server for all apps
-pnpm lint     # Lint all apps
-pnpm test     # Test all apps
+pnpm build          # Build all apps and packages
+pnpm build:landing  # Build the deployed landing app
+pnpm dev            # Default local dev for the landing app
+pnpm dev:all        # Run every workspace dev task
+pnpm lint           # Lint all apps and packages
+pnpm test           # Test all apps and packages
+pnpm test:landing   # Test the landing app
 pnpm clean    # Clean build artifacts
 
-# Filter to a single app
-pnpm turbo build --filter=@pixattica/<app-name>
-pnpm turbo dev --filter=@pixattica/<app-name>
+# Filter to a single workspace
+pnpm turbo build --filter=@pixattica/<workspace-name>
+pnpm turbo dev --filter=@pixattica/<workspace-name>
 ```
 
 ## Structure
 
 ```
-apps/              Individual React apps (Vite + React 19)
-apps/_template     Copy this to create a new app
+apps/
+  landing/                 Deployed website
+  water-widget-extension/  Chrome extension
 packages/
-  tsconfig/        Shared TypeScript configs
-  eslint-config/   Shared ESLint flat config
+  pixel-collage/           Embedded collage feature
+  tsconfig/                Shared TypeScript configs
+  ui/                      Shared UI primitives
 ```
 
 ## Creating a New App

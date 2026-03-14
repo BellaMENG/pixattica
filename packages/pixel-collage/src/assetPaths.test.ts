@@ -6,6 +6,17 @@ import {
 } from "./assetPaths";
 
 describe("assetPaths", () => {
+    it("supports root-relative asset bases for embedded hosting", () => {
+        expect(resolveCollageAssetSrc("/samples/default/image.jpg", "/")).toBe(
+            "/samples/default/image.jpg",
+        );
+        expect(resolveCollageAssetSrc("samples/default/image.jpg", "/")).toBe(
+            "/samples/default/image.jpg",
+        );
+        expect(getSampleManifestUrl("/")).toBe("/samples/default/manifest.json");
+        expect(getPixelHeartsBackgroundStyle("/")).toBe("url('/bg-pixel-hearts.svg') repeat");
+    });
+
     it("prefixes sample assets with the configured asset base", () => {
         expect(resolveCollageAssetSrc("/samples/default/image.jpg", "/pixel-collage/")).toBe(
             "/pixel-collage/samples/default/image.jpg",

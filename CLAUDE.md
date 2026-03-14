@@ -10,17 +10,20 @@ pixattica is a Turborepo monorepo centered on the landing app, with shared packa
 
 ```bash
 pnpm install              # Install all dependencies
-pnpm build                # Build all apps
-pnpm dev                  # Dev server for all apps
+pnpm build                # Build all apps and packages
+pnpm build:landing        # Build the deployed landing app
+pnpm dev                  # Default local dev for the landing app
+pnpm dev:all              # Run every workspace dev task
 pnpm lint                 # Lint all apps
 pnpm format               # Auto-format all files
 pnpm format:check         # Check formatting (CI)
-pnpm test                 # Test all apps
+pnpm test                 # Test all apps and packages
+pnpm test:landing         # Test the landing app
 
-# Filter to a single app
-pnpm turbo build --filter=@pixattica/<app-name>
-pnpm turbo dev --filter=@pixattica/<app-name>
-pnpm turbo test --filter=@pixattica/<app-name>
+# Filter to a single workspace
+pnpm turbo build --filter=@pixattica/<workspace-name>
+pnpm turbo dev --filter=@pixattica/<workspace-name>
+pnpm turbo test --filter=@pixattica/<workspace-name>
 ```
 
 Within an individual app directory, standard scripts apply: `pnpm dev`, `pnpm build`, `pnpm lint`, `pnpm test`.
@@ -28,10 +31,13 @@ Within an individual app directory, standard scripts apply: `pnpm dev`, `pnpm bu
 ## Architecture
 
 ```
-apps/          — Individual React apps (each is a Vite + React 19 SPA)
-packages/      — Shared workspace packages
-  tsconfig/    — Shared TypeScript configs (base.json, react-app.json)
-  eslint-config/ — Shared ESLint flat config for React
+apps/                    — Deployable apps
+  landing/               — Main site
+  water-widget-extension/ — Browser extension
+packages/                — Shared workspace packages
+  pixel-collage/         — Embedded collage feature
+  tsconfig/              — Shared TypeScript configs (base.json, react-app.json)
+  ui/                    — Shared UI utilities/components
 ```
 
 ## Creating a New App
