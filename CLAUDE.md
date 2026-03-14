@@ -36,7 +36,7 @@ packages/      — Shared workspace packages
 
 ## Creating a New App
 
-1. Copy an existing app (e.g. `apps/pixel-collage`) to `apps/<new-app-name>`
+1. Copy an existing app (e.g. `apps/landing`) to `apps/<new-app-name>`
 2. Update `name` in `package.json` to `@pixattica/<new-app-name>`
 3. Run `pnpm install` from the root
 

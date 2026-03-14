@@ -1,6 +1,6 @@
 @import "tailwindcss";
 @source "../../../packages/ui/src";
-@source "../../../apps/pixel-collage/src";
+@source "../../../packages/pixel-collage/src";
 
 :root {
     --os-bg: #fdf6fb;

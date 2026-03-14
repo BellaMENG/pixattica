@@ -83,7 +83,7 @@ importers:
     dependencies:
       '@pixattica/pixel-collage':
         specifier: workspace:*
-        version: link:../pixel-collage
+        version: link:../../packages/pixel-collage
       '@pixattica/ui':
         specifier: workspace:*
         version: link:../../packages/ui
@@ -134,14 +134,16 @@ importers:
         specifier: ^3
         version: 3.2.4(@types/node@25.2.3)(jiti@2.6.1)(jsdom@25.0.1)(lightningcss@1.30.2)(yaml@2.8.2)
 
-  apps/pixel-collage:
+  apps/water-widget-extension: {}
+
+  packages/pixel-collage:
     dependencies:
       '@imgly/background-removal':
         specifier: ^1.7.0
         version: 1.7.0(onnxruntime-web@1.21.0)
       '@pixattica/ui':
         specifier: workspace:*
-        version: link:../../packages/ui
+        version: link:../ui
       heic2any:
         specifier: ^0.0.4
         version: 0.0.4
@@ -172,7 +174,7 @@ importers:
     devDependencies:
       '@pixattica/tsconfig':
         specifier: workspace:*
-        version: link:../../packages/tsconfig
+        version: link:../tsconfig
       '@tailwindcss/vite':
         specifier: ^4
         version: 4.1.18(vite@6.4.1(@types/node@25.2.3)(jiti@2.6.1)(lightningcss@1.30.2)(yaml@2.8.2))
@@ -212,8 +214,6 @@ importers:
       vitest:
         specifier: ^3
         version: 3.2.4(@types/node@25.2.3)(jiti@2.6.1)(jsdom@25.0.1)(lightningcss@1.30.2)(yaml@2.8.2)
-
-  apps/water-widget-extension: {}
 
   packages/tsconfig: {}
 
@@ -3813,7 +3813,7 @@ snapshots:
       debug: 4.4.3
       es-module-lexer: 1.7.0
       pathe: 2.0.3
-      vite: 7.3.1(@types/node@25.2.3)(jiti@2.6.1)(lightningcss@1.30.2)(yaml@2.8.2)
+      vite: 6.4.1(@types/node@25.2.3)(jiti@2.6.1)(lightningcss@1.30.2)(yaml@2.8.2)
     transitivePeerDependencies:
       - '@types/node'
       - jiti
