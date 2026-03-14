@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
-import aThousandSplendidSunsCover from "../../../about-me/src/assets/book-covers/a-thousand-splendid-suns.jpg";
-import cryingInHMartCover from "../../../about-me/src/assets/book-covers/crying-in-h-mart.jpg";
-import gloriousExploitsCover from "../../../about-me/src/assets/book-covers/glorious-exploits.jpg";
-import martyrCover from "../../../about-me/src/assets/book-covers/martyr.jpg";
-import neverLetMeGoCover from "../../../about-me/src/assets/book-covers/never-let-me-go.jpg";
-import tomorrowAndTomorrowCover from "../../../about-me/src/assets/book-covers/tomorrow-and-tomorrow-and-tomorrow.jpg";
+import aThousandSplendidSunsCover from "../assets/book-covers/a-thousand-splendid-suns.jpg";
+import cryingInHMartCover from "../assets/book-covers/crying-in-h-mart.jpg";
+import gloriousExploitsCover from "../assets/book-covers/glorious-exploits.jpg";
+import martyrCover from "../assets/book-covers/martyr.jpg";
+import neverLetMeGoCover from "../assets/book-covers/never-let-me-go.jpg";
+import tomorrowAndTomorrowCover from "../assets/book-covers/tomorrow-and-tomorrow-and-tomorrow.jpg";
 
 type BookEntry = {
     title: string;

@@ -1,6 +1,6 @@
 # pixattica
 
-A Turborepo monorepo containing multiple React TypeScript apps. Each app is a standalone Vite + React 19 SPA.
+A Turborepo monorepo centered on the landing app, with shared packages for reusable UI and embedded features.
 
 ## Getting Started
 

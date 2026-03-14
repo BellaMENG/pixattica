@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Overview
 
-pixattica is a Turborepo monorepo containing multiple React TypeScript projects. Each app is a standalone Vite + React 19 SPA.
+pixattica is a Turborepo monorepo centered on the landing app, with shared packages for reusable UI and embedded features.
 
 ## Commands
 

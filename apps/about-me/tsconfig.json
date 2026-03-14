@@ -1,7 +1,0 @@
-{
-    "extends": "@pixattica/tsconfig/react-app.json",
-    "compilerOptions": {
-        "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsBuildInfoFile"
-    },
-    "include": ["src"]
-}

@@ -71,10 +71,10 @@ const visitedCountries: CountryEntry[] = [
 ];
 
 const catPhotoModules = {
-    ...(import.meta.glob("../../../about-me/src/assets/cats/*.{jpg,jpeg,png,webp,avif}", {
+    ...(import.meta.glob("../assets/cats/*.{jpg,jpeg,png,webp,avif}", {
         import: "default",
     }) as Record<string, () => Promise<string>>),
-    ...(import.meta.glob("../../../about-me/src/assets/cats/*/*.{jpg,jpeg,png,webp,avif}", {
+    ...(import.meta.glob("../assets/cats/*/*.{jpg,jpeg,png,webp,avif}", {
         import: "default",
     }) as Record<string, () => Promise<string>>),
 } as Record<string, () => Promise<string>>;
@@ -86,10 +86,8 @@ type CatPhotoSource = {
 
 const catPhotoSourcesBySlug = Object.entries(catPhotoModules).reduce(
     (photosBySlug, [path, loadSrc]) => {
-        const nestedMatch = path.match(
-            /\.\.\/\.\.\/\.\.\/about-me\/src\/assets\/cats\/([^/]+)\/([^/]+)$/,
-        );
-        const flatMatch = path.match(/\.\.\/\.\.\/\.\.\/about-me\/src\/assets\/cats\/([^/]+)$/);
+        const nestedMatch = path.match(/\.\.\/assets\/cats\/([^/]+)\/([^/]+)$/);
+        const flatMatch = path.match(/\.\.\/assets\/cats\/([^/]+)$/);
 
         let slug: string | undefined;
         let fileName: string | undefined;
