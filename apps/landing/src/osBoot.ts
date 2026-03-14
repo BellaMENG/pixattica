@@ -9,7 +9,7 @@ type RunBootSequenceOptions = {
 };
 
 const BOOT_STEP_DELAY_MS = 220;
-const BOOT_TYPING_DELAY_MS = 16;
+const BOOT_TYPING_DELAY_MS = 8;
 
 function wait(ms: number) {
     return new Promise((resolve) => window.setTimeout(resolve, ms));
@@ -34,6 +34,22 @@ async function typeBootText(
     }
 }
 
+async function renderBootStep(
+    step: (typeof BOOT_STEPS)[number],
+    entryId: string,
+    onEntryUpdate: (entryId: string, text: string) => void,
+    shouldCancel: () => boolean,
+) {
+    if (step.renderMode === "instant") {
+        if (!shouldCancel()) {
+            onEntryUpdate(entryId, step.text);
+        }
+        return;
+    }
+
+    await typeBootText(entryId, step.text, onEntryUpdate, shouldCancel);
+}
+
 export async function runBootSequence({
     lineIndexStart,
     onEntryAdd,
@@ -53,7 +69,7 @@ export async function runBootSequence({
         });
 
         await Promise.all([
-            typeBootText(entryId, step.text, onEntryUpdate, shouldCancel),
+            renderBootStep(step, entryId, onEntryUpdate, shouldCancel),
             step.preloadAppId ? preloadOsAppWindow(step.preloadAppId) : Promise.resolve(),
         ]);
 
