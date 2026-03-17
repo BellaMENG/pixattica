@@ -18,8 +18,9 @@ describe("runShellCommand", () => {
         ]);
     });
 
-    it("does not expose whoami in help text", () => {
+    it("does not expose whoami in help text and does list bbs", () => {
         expect(HELP_TEXT).not.toContain("whoami");
+        expect(HELP_TEXT).toContain("bbs                  open dialtone.app");
     });
 
     it("does not expose hidden commands in autocomplete suggestions", () => {
@@ -49,6 +50,19 @@ describe("runShellCommand", () => {
                 completion: "open collage",
                 description: "open collage.app",
                 label: "open collage",
+            },
+        ]);
+
+        expect(getShellAutocompleteSuggestions("open b")).toEqual([
+            {
+                completion: "open books",
+                description: "open books.app",
+                label: "open books",
+            },
+            {
+                completion: "open bbs",
+                description: "open dialtone.app",
+                label: "open bbs",
             },
         ]);
     });

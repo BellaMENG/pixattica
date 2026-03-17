@@ -42,6 +42,27 @@ describe("osStore window manager", () => {
         expect(store.getState().windows).toHaveLength(2);
     });
 
+    it("opens bbs as a standard desktop window instead of the collage fullscreen frame", () => {
+        const store = createOsStore();
+
+        store.getState().focusOrOpenWindow("bbs", SHELL_BOUNDS);
+        store.getState().focusOrOpenWindow("collage", SHELL_BOUNDS);
+
+        const bbsWindow = store
+            .getState()
+            .windows.find((windowItem) => windowItem.moduleId === "bbs");
+        const collageWindow = store
+            .getState()
+            .windows.find((windowItem) => windowItem.moduleId === "collage");
+
+        expect(bbsWindow).toBeDefined();
+        expect(collageWindow).toBeDefined();
+        expect(bbsWindow?.frame.width).toBeLessThan(collageWindow?.frame.width ?? 0);
+        expect(bbsWindow?.frame.height).toBeLessThan(collageWindow?.frame.height ?? 0);
+        expect(bbsWindow?.frame.x).toBeGreaterThan(0);
+        expect(bbsWindow?.frame.y).toBeGreaterThan(0);
+    });
+
     it("keeps actions wired to the same store after resetting initial state", () => {
         const store = createOsStore();
 

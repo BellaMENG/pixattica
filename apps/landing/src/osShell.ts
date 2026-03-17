@@ -90,7 +90,7 @@ const CORE_COMMANDS: ShellCommandDefinition[] = [
                     entries: [
                         createOutputEntry(
                             lineIndex,
-                            "unknown app target. try `open books`, `open cats`, or `open collage`.",
+                            "unknown app target. try `open books`, `open cats`, `open collage`, or `open bbs`.",
                         ),
                     ],
                     nextModuleId: activeModuleId,
@@ -159,6 +159,7 @@ export const HELP_TEXT = [
     "books                open books.app",
     "cats                 open cats.app",
     "collage              open collage.app",
+    "bbs                  open dialtone.app",
     "clear, cls           clear the current transcript",
     "reboot, restart      rerun the shell boot sequence",
 ].join("\n");

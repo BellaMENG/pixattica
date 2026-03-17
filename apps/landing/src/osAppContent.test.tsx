@@ -24,6 +24,10 @@ vi.mock("@pixattica/pixel-collage", () => ({
     ),
 }));
 
+vi.mock("./osApps/BbsApp", () => ({
+    default: () => <div data-testid="dialtone-bbs-app">mock dialtone bbs</div>,
+}));
+
 describe("OsAppContent", () => {
     let container: HTMLDivElement | null = null;
     let root: ReturnType<typeof createRoot> | null = null;
@@ -68,5 +72,32 @@ describe("OsAppContent", () => {
         expect(embeddedApp?.getAttribute("data-embedded")).toBe("true");
         expect(embeddedApp?.getAttribute("data-asset-base-url")).toBe("/");
         expect(container.querySelector("iframe")).toBeNull();
+    });
+
+    it("renders the dialtone bbs window shell through the shared app loader", async () => {
+        const bbsModule = APP_MODULES.find((module) => module.id === "bbs");
+        expect(bbsModule).toBeDefined();
+
+        container = document.createElement("div");
+        document.body.appendChild(container);
+        root = createRoot(container);
+        const rootInstance = root;
+
+        await act(async () => {
+            rootInstance.render(
+                <OsAppContent
+                    activeModule={bbsModule!}
+                    onLaunchApp={() => {
+                        // No-op for this unit test.
+                    }}
+                />,
+            );
+        });
+
+        await act(async () => {
+            await Promise.resolve();
+        });
+
+        expect(container.querySelector('[data-testid="dialtone-bbs-app"]')).not.toBeNull();
     });
 });

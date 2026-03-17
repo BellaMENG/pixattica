@@ -21,6 +21,11 @@ export default function AboutApp({ onLaunchApp }: AboutAppProps) {
             label: "collage.app",
             summary: "the collage maker, opened as its own desktop window",
         },
+        {
+            id: "bbs",
+            label: "dialtone.app",
+            summary: "a cute little dial-up guestbook shell with handles and public notes",
+        },
     ];
 
     return (
@@ -33,11 +38,11 @@ export default function AboutApp({ onLaunchApp }: AboutAppProps) {
                     separate page.
                 </p>
                 <p className="mt-3 text-[11px] leading-relaxed sm:text-xs">
-                    Use the shell to open apps, or jump from here into books, cats, or the collage
-                    maker.
+                    Use the shell to open apps, or jump from here into books, cats, the collage
+                    maker, or the new Dialtone BBS shell.
                 </p>
             </div>
-            <div className="grid gap-3 lg:grid-cols-3">
+            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
                 {shortcutCards.map((card) => (
                     <button
                         key={card.id}

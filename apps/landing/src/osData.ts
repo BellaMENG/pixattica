@@ -1,4 +1,4 @@
-export type AppId = "about" | "books" | "cats" | "collage";
+export type AppId = "about" | "books" | "cats" | "collage" | "bbs";
 export type TranscriptEntry =
     | { id: string; kind: "system"; text: string }
     | { id: string; kind: "command"; text: string }
@@ -90,5 +90,11 @@ export const APP_MODULES: AppModule[] = [
         command: "collage",
         label: "collage.app",
         title: "Collage Maker",
+    },
+    {
+        id: "bbs",
+        command: "bbs",
+        label: "dialtone.app",
+        title: "Dialtone BBS",
     },
 ];
