@@ -16,6 +16,11 @@ describe("landing SEO metadata", () => {
         expect(INDEX_HTML).toContain('"jobTitle": "Software Engineer"');
         expect(INDEX_HTML).toContain("https://www.linkedin.com/in/bella-meng/");
         expect(INDEX_HTML).toContain("bellamengzihan@gmail.com");
-        expect(INDEX_HTML).toContain("Bella Meng // software engineer");
+    });
+
+    it("does not ship a prerendered fallback in the root element", () => {
+        expect(INDEX_HTML).toContain('<div id="root"></div>');
+        expect(INDEX_HTML).not.toContain("Personal portfolio and project archive");
+        expect(INDEX_HTML).not.toContain("Bella Meng // software engineer");
     });
 });
