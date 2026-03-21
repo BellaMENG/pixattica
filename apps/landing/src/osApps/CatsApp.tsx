@@ -13,8 +13,7 @@ type CountryEntry = {
     slug: string;
 };
 
-const sectionClassName =
-    "flex h-full min-h-0 flex-col rounded-xl border-2 border-pink-300 bg-pink-100/80 p-4 sm:p-6";
+const sectionClassName = "flex h-full min-h-0 flex-col p-5";
 const sectionTitleClassName = "os-accent-font text-sm sm:text-base";
 const bodyTextClassName = "mt-3 text-[10px] leading-relaxed sm:text-[11px]";
 const mapPanelClassName =

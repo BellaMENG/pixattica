@@ -13,7 +13,7 @@ type BookEntry = {
     review: string;
 };
 
-const sectionClassName = "rounded-xl border-2 border-pink-300 bg-pink-100/80 p-4 sm:p-6";
+const sectionClassName = "flex h-full flex-col p-5";
 const sectionTitleClassName = "os-accent-font text-sm sm:text-base";
 const goodreadsLinkClassName =
     "underline decoration-pink-400 underline-offset-2 hover:text-pink-500";
