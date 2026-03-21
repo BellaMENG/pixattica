@@ -25,7 +25,6 @@ type ShellCommandDefinition = {
     aliases?: string[];
     command: string;
     description: string;
-    hidden?: boolean;
     usage?: string;
     run: (context: ShellCommandContext) => ShellCommandResult;
 };
@@ -69,8 +68,7 @@ const CORE_COMMANDS: ShellCommandDefinition[] = [
     },
     {
         command: "whoami",
-        description: "hidden easter egg",
-        hidden: true,
+        description: "show Bella's intro card",
         run: ({ activeModuleId, lineIndex }) => ({
             entries: [createOutputEntry(lineIndex, WHOAMI_TEXT)],
             nextModuleId: activeModuleId,
@@ -142,7 +140,6 @@ const MODULE_COMMANDS: ShellCommandDefinition[] = APP_MODULES.map((module) => ({
 }));
 
 const ALL_COMMANDS = [...CORE_COMMANDS, ...MODULE_COMMANDS];
-const VISIBLE_COMMANDS = ALL_COMMANDS.filter((command) => !command.hidden);
 
 const COMMAND_LOOKUP = new Map<string, ShellCommandDefinition>(
     ALL_COMMANDS.flatMap((definition) => [
@@ -154,6 +151,7 @@ const COMMAND_LOOKUP = new Map<string, ShellCommandDefinition>(
 export const HELP_TEXT = [
     "available commands",
     "help, ?              show the current command index",
+    "whoami               show Bella's intro card",
     "open <app>, launch   open one of the available app modules",
     "about                open about.app",
     "books                open books.app",
@@ -167,7 +165,7 @@ export const HELP_TEXT = [
 export const INITIAL_TRANSCRIPT: TranscriptEntry[] = [...BOOT_SEQUENCE];
 
 function getCommandSuggestions(): ShellAutocompleteSuggestion[] {
-    return VISIBLE_COMMANDS.flatMap((definition) => [
+    return ALL_COMMANDS.flatMap((definition) => [
         {
             completion: definition.command === "open" ? "open " : definition.command,
             description: definition.description,

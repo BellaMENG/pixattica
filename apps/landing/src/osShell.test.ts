@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { getShellAutocompleteSuggestions, runShellCommand, HELP_TEXT } from "./osShell";
 
 describe("runShellCommand", () => {
-    it("supports a hidden whoami easter egg command", () => {
+    it("supports the whoami intro command", () => {
         const result = runShellCommand("whoami", "about", 7);
 
         expect(result.nextModuleId).toBe("about");
@@ -18,17 +18,21 @@ describe("runShellCommand", () => {
         ]);
     });
 
-    it("does not expose whoami in help text and does list bbs", () => {
-        expect(HELP_TEXT).not.toContain("whoami");
+    it("lists whoami and bbs in help text", () => {
+        expect(HELP_TEXT).toContain("whoami               show Bella's intro card");
         expect(HELP_TEXT).toContain("bbs                  open dialtone.app");
     });
 
-    it("does not expose hidden commands in autocomplete suggestions", () => {
+    it("exposes whoami in autocomplete suggestions", () => {
         expect(
-            getShellAutocompleteSuggestions("wh").some(
+            getShellAutocompleteSuggestions("wh").find(
                 (suggestion) => suggestion.completion === "whoami",
             ),
-        ).toBe(false);
+        ).toEqual({
+            completion: "whoami",
+            description: "show Bella's intro card",
+            label: "whoami",
+        });
     });
 
     it("suggests commands and open targets for autocomplete", () => {
