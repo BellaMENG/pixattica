@@ -4,7 +4,6 @@ import type { AppId, AppModule } from "./osData";
 
 type OsAppContentProps = {
     activeModule: AppModule;
-    onLaunchApp: (appId: AppId) => void;
 };
 
 const PIXEL_COLLAGE_ASSET_BASE_URL = import.meta.env.VITE_PIXEL_COLLAGE_URL ?? "/";
@@ -48,7 +47,7 @@ function OsAppLoadingState({ activeModule }: { activeModule: AppModule }) {
     );
 }
 
-export function OsAppContent({ activeModule, onLaunchApp }: OsAppContentProps) {
+export function OsAppContent({ activeModule }: OsAppContentProps) {
     let content;
 
     if (activeModule.id === "bbs") {
@@ -60,7 +59,7 @@ export function OsAppContent({ activeModule, onLaunchApp }: OsAppContentProps) {
     } else if (activeModule.id === "collage") {
         content = <CollageApp embedded assetBaseUrl={PIXEL_COLLAGE_ASSET_BASE_URL} />;
     } else {
-        content = <AboutApp onLaunchApp={onLaunchApp} />;
+        content = <AboutApp />;
     }
 
     return (

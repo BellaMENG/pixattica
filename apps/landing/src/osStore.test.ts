@@ -63,6 +63,25 @@ describe("osStore window manager", () => {
         expect(bbsWindow?.frame.y).toBeGreaterThan(0);
     });
 
+    it("opens about in a compact window that still differs from the larger app defaults", () => {
+        const store = createOsStore();
+
+        store.getState().focusOrOpenWindow("about", SHELL_BOUNDS);
+        store.getState().focusOrOpenWindow("books", SHELL_BOUNDS);
+
+        const aboutWindow = store
+            .getState()
+            .windows.find((windowItem) => windowItem.moduleId === "about");
+        const booksWindow = store
+            .getState()
+            .windows.find((windowItem) => windowItem.moduleId === "books");
+
+        expect(aboutWindow).toBeDefined();
+        expect(booksWindow).toBeDefined();
+        expect(aboutWindow?.frame.width).toBeLessThan(booksWindow?.frame.width ?? 0);
+        expect(aboutWindow?.frame.height).toBeLessThan(booksWindow?.frame.height ?? 0);
+    });
+
     it("keeps actions wired to the same store after resetting initial state", () => {
         const store = createOsStore();
 

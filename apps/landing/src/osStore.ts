@@ -197,7 +197,10 @@ function createOsStoreState() {
             set((state) => ({
                 windows: state.windows.map((windowItem) =>
                     windowItem.id === windowId
-                        ? { ...windowItem, frame: clampWindowFrame(frame, bounds) }
+                        ? {
+                              ...windowItem,
+                              frame: clampWindowFrame(frame, bounds, windowItem.moduleId),
+                          }
                         : windowItem,
                 ),
             })),
@@ -205,7 +208,7 @@ function createOsStoreState() {
             set((state) => ({
                 windows: state.windows.map((windowItem) => ({
                     ...windowItem,
-                    frame: clampWindowFrame(windowItem.frame, bounds),
+                    frame: clampWindowFrame(windowItem.frame, bounds, windowItem.moduleId),
                 })),
             })),
 

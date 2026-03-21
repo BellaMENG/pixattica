@@ -1,6 +1,6 @@
 import { act } from "react";
 import { createRoot } from "react-dom/client";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 import AboutApp from "./osApps/AboutApp";
 
 Reflect.set(globalThis, "IS_REACT_ACT_ENVIRONMENT", true);
@@ -26,7 +26,7 @@ describe("AboutApp", () => {
         root = createRoot(container);
 
         await act(async () => {
-            root?.render(<AboutApp onLaunchApp={vi.fn()} />);
+            root?.render(<AboutApp />);
         });
 
         const heading = container.querySelector("h1");
@@ -34,12 +34,17 @@ describe("AboutApp", () => {
             'a[href="https://www.linkedin.com/in/bella-meng/"]',
         );
         const emailLink = container.querySelector('a[href="mailto:bellamengzihan@gmail.com"]');
+        const shortcutButtons = container.querySelectorAll("button");
+        const textContent = container.textContent?.replace(/\s+/g, " ").trim() ?? "";
 
         expect(heading?.textContent).toBe("Bella Meng");
-        expect(container.textContent).toContain(
-            "software engineer, (product engineer?), based in London",
+        expect(textContent.startsWith("Bella Meng")).toBe(true);
+        expect(textContent).toContain(
+            "Bella Meng, software engineer, (product engineer?), based in London.",
         );
+        expect(textContent.endsWith("bellamengzihan@gmail.com")).toBe(true);
         expect(linkedInLink?.textContent).toBe("LinkedIn");
         expect(emailLink?.textContent).toBe("bellamengzihan@gmail.com");
+        expect(shortcutButtons).toHaveLength(0);
     });
 });

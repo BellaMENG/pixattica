@@ -53,14 +53,7 @@ describe("OsAppContent", () => {
         const rootInstance = root;
 
         await act(async () => {
-            rootInstance.render(
-                <OsAppContent
-                    activeModule={collageModule!}
-                    onLaunchApp={() => {
-                        // No-op for this unit test.
-                    }}
-                />,
-            );
+            rootInstance.render(<OsAppContent activeModule={collageModule!} />);
         });
 
         await act(async () => {
@@ -84,14 +77,7 @@ describe("OsAppContent", () => {
         const rootInstance = root;
 
         await act(async () => {
-            rootInstance.render(
-                <OsAppContent
-                    activeModule={bbsModule!}
-                    onLaunchApp={() => {
-                        // No-op for this unit test.
-                    }}
-                />,
-            );
+            rootInstance.render(<OsAppContent activeModule={bbsModule!} />);
         });
 
         await act(async () => {

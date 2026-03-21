@@ -20,20 +20,46 @@ export type OsWindow = {
 
 export const MOBILE_BREAKPOINT = 640;
 const WINDOW_EDGE_GAP = 12;
-const MIN_APP_WINDOW_WIDTH = 520;
-const MIN_APP_WINDOW_HEIGHT = 360;
+const DEFAULT_MIN_APP_WINDOW_WIDTH = 520;
+const DEFAULT_MIN_APP_WINDOW_HEIGHT = 360;
+const ABOUT_MIN_APP_WINDOW_WIDTH = 520;
+const ABOUT_MIN_APP_WINDOW_HEIGHT = 210;
 const DEFAULT_APP_WINDOW_FRAME: AppWindowFrame = {
     x: 72,
     y: 42,
     width: 860,
     height: 620,
 };
+const ABOUT_APP_WINDOW_FRAME: AppWindowFrame = {
+    x: 72,
+    y: 42,
+    width: 520,
+    height: 210,
+};
+
+function getWindowMinimums(appId: AppId) {
+    if (appId === "about") {
+        return {
+            minHeight: ABOUT_MIN_APP_WINDOW_HEIGHT,
+            minWidth: ABOUT_MIN_APP_WINDOW_WIDTH,
+        };
+    }
+
+    return {
+        minHeight: DEFAULT_MIN_APP_WINDOW_HEIGHT,
+        minWidth: DEFAULT_MIN_APP_WINDOW_WIDTH,
+    };
+}
 
 function clampValue(value: number, min: number, max: number) {
     return Math.min(max, Math.max(min, value));
 }
 
-export function clampWindowFrame(frame: AppWindowFrame, bounds: WindowBounds): AppWindowFrame {
+export function clampWindowFrame(
+    frame: AppWindowFrame,
+    bounds: WindowBounds,
+    appId: AppId,
+): AppWindowFrame {
     if (bounds.width <= MOBILE_BREAKPOINT) {
         return {
             x: 0,
@@ -43,10 +69,11 @@ export function clampWindowFrame(frame: AppWindowFrame, bounds: WindowBounds): A
         };
     }
 
-    const maxWidth = Math.max(MIN_APP_WINDOW_WIDTH, bounds.width - WINDOW_EDGE_GAP * 2);
-    const maxHeight = Math.max(MIN_APP_WINDOW_HEIGHT, bounds.height - WINDOW_EDGE_GAP * 2);
-    const width = clampValue(frame.width, MIN_APP_WINDOW_WIDTH, maxWidth);
-    const height = clampValue(frame.height, MIN_APP_WINDOW_HEIGHT, maxHeight);
+    const { minHeight, minWidth } = getWindowMinimums(appId);
+    const maxWidth = Math.max(minWidth, bounds.width - WINDOW_EDGE_GAP * 2);
+    const maxHeight = Math.max(minHeight, bounds.height - WINDOW_EDGE_GAP * 2);
+    const width = clampValue(frame.width, minWidth, maxWidth);
+    const height = clampValue(frame.height, minHeight, maxHeight);
     const x = clampValue(frame.x, WINDOW_EDGE_GAP, bounds.width - width - WINDOW_EDGE_GAP);
     const y = clampValue(frame.y, WINDOW_EDGE_GAP, bounds.height - height - WINDOW_EDGE_GAP);
 
@@ -67,15 +94,17 @@ export function getPreferredWindowFrame(
                 height: bounds.height - WINDOW_EDGE_GAP * 2,
             },
             bounds,
+            appId,
         );
     }
 
     const offsetIndex = options?.index ?? 0;
+    const baseFrame = appId === "about" ? ABOUT_APP_WINDOW_FRAME : DEFAULT_APP_WINDOW_FRAME;
     const offsetFrame = {
-        ...DEFAULT_APP_WINDOW_FRAME,
-        x: DEFAULT_APP_WINDOW_FRAME.x + offsetIndex * 28,
-        y: DEFAULT_APP_WINDOW_FRAME.y + offsetIndex * 20,
+        ...baseFrame,
+        x: baseFrame.x + offsetIndex * 28,
+        y: baseFrame.y + offsetIndex * 20,
     };
 
-    return clampWindowFrame(offsetFrame, bounds);
+    return clampWindowFrame(offsetFrame, bounds, appId);
 }

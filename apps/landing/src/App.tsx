@@ -514,12 +514,7 @@ function App() {
                                                     : ""
                                             }`}
                                         >
-                                            <OsAppContent
-                                                activeModule={module}
-                                                onLaunchApp={(appId) => {
-                                                    focusOrOpenWindow(appId, getShellBounds());
-                                                }}
-                                            />
+                                            <OsAppContent activeModule={module} />
                                         </div>
                                         <button
                                             type="button"
