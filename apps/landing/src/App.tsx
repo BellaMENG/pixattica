@@ -140,6 +140,7 @@ function App() {
 
             setIsBooting(false);
             requestAnimationFrame(() => {
+                focusOrOpenWindow("about", getShellBounds());
                 commandInputRef.current?.focus();
             });
         });

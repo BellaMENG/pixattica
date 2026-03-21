@@ -11,8 +11,8 @@ describe("runShellCommand", () => {
                 id: "line-7",
                 kind: "output",
                 text: [
-                    "bellameng, I like making random things (not just softwares), I’m always active (either running or BJJing or boxing or gyming or hiking or cycling or …)",
-                    "Just in case though, here is my LinkedIn if you are interested in my experiences: https://www.linkedin.com/in/bella-meng/, or you can email me at bellamengzihan@gmail.com. I’m based in London. Let’s be friends!",
+                    "Bella Meng, software engineer, (product engineer?), based in London. I build web products, creative tools, and playful internet projects, and I like making random things outside software too.",
+                    "More about my work lives on LinkedIn: https://www.linkedin.com/in/bella-meng/. You can also reach me at bellamengzihan@gmail.com.",
                 ].join("\n\n"),
             },
         ]);
