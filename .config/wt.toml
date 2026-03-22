@@ -1,0 +1,2 @@
+[post-create]
+copy-env = "sh .config/wt-copy-env.sh {{ base_worktree_path or primary_worktree_path }} {{ worktree_path }}"
