@@ -28,6 +28,10 @@ vi.mock("./osApps/BbsApp", () => ({
     default: () => <div data-testid="dialtone-bbs-app">mock dialtone bbs</div>,
 }));
 
+vi.mock("./osApps/BlogsApp", () => ({
+    default: () => <div data-testid="blogs-app">mock blogs app</div>,
+}));
+
 describe("OsAppContent", () => {
     let container: HTMLDivElement | null = null;
     let root: ReturnType<typeof createRoot> | null = null;
@@ -85,5 +89,25 @@ describe("OsAppContent", () => {
         });
 
         expect(container.querySelector('[data-testid="dialtone-bbs-app"]')).not.toBeNull();
+    });
+
+    it("renders the blogs window shell through the shared app loader", async () => {
+        const blogsModule = APP_MODULES.find((module) => module.id === "blogs");
+        expect(blogsModule).toBeDefined();
+
+        container = document.createElement("div");
+        document.body.appendChild(container);
+        root = createRoot(container);
+        const rootInstance = root;
+
+        await act(async () => {
+            rootInstance.render(<OsAppContent activeModule={blogsModule!} />);
+        });
+
+        await act(async () => {
+            await Promise.resolve();
+        });
+
+        expect(container.querySelector('[data-testid="blogs-app"]')).not.toBeNull();
     });
 });

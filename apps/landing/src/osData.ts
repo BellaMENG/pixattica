@@ -1,4 +1,4 @@
-export type AppId = "about" | "books" | "cats" | "collage" | "bbs";
+export type AppId = "about" | "blogs" | "books" | "cats" | "collage" | "bbs";
 export type TranscriptEntry =
     | { id: string; kind: "system"; text: string }
     | { id: string; kind: "command"; text: string }
@@ -26,6 +26,7 @@ const PIXATTICA_OS_BANNER = [
     " |  o  o  o                         PIXATTICA OS    |",
     " |--------------------------------------------------|",
     " |  loading Bella Meng portfolio...                 |",
+    " |  syncing blog notebook...                        |",
     " |  mounting project archive...                     |",
     " |  indexing cats of the world...                   |",
     " |  linking pixel collage project...                |",
@@ -41,7 +42,7 @@ export const BOOT_STEPS: BootStep[] = [
     { id: "boot-1", text: "booting PIXATTICA OS v0.1..." },
     {
         id: "boot-2",
-        preloadAppIds: ["about", "books", "cats", "collage"],
+        preloadAppIds: ["about", "blogs", "books", "cats", "collage"],
         renderMode: "instant",
         text: PIXATTICA_OS_BANNER,
     },
@@ -60,6 +61,12 @@ export const APP_MODULES: AppModule[] = [
         command: "about",
         label: "about.app",
         title: "Bella Meng",
+    },
+    {
+        id: "blogs",
+        command: "blogs",
+        label: "blogs.app",
+        title: "Random Thoughts",
     },
     {
         id: "books",

@@ -48,7 +48,7 @@ describe("runShellCommand", () => {
 
     it("keeps help text concise while listing the app catalog", () => {
         expect(HELP_TEXT).toContain("open [-a] <app>  launch an app");
-        expect(HELP_TEXT).toContain("apps             about, books, cats, collage, bbs");
+        expect(HELP_TEXT).toContain("apps             about, blogs, books, cats, collage, bbs");
     });
 
     it("exposes whoami in autocomplete suggestions", () => {
@@ -87,6 +87,11 @@ describe("runShellCommand", () => {
 
         expect(getShellAutocompleteSuggestions("open -a b")).toEqual([
             {
+                completion: "open -a blogs",
+                description: "open blogs.app",
+                label: "open -a blogs",
+            },
+            {
                 completion: "open -a books",
                 description: "open books.app",
                 label: "open -a books",
@@ -112,6 +117,11 @@ describe("runShellCommand", () => {
         ]);
 
         expect(getShellAutocompleteSuggestions("open b")).toEqual([
+            {
+                completion: "open blogs",
+                description: "open blogs.app",
+                label: "open blogs",
+            },
             {
                 completion: "open books",
                 description: "open books.app",

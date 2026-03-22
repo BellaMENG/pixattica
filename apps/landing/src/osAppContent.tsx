@@ -9,6 +9,7 @@ type OsAppContentProps = {
 const PIXEL_COLLAGE_ASSET_BASE_URL = import.meta.env.VITE_PIXEL_COLLAGE_URL ?? "/";
 const loadAboutApp = () => import("./osApps/AboutApp");
 const loadBbsApp = () => import("./osApps/BbsApp");
+const loadBlogsApp = () => import("./osApps/BlogsApp");
 const loadBooksApp = () => import("./osApps/BooksApp");
 const loadCatsApp = () => import("./osApps/CatsApp");
 const loadCollageApp = async () => {
@@ -22,6 +23,7 @@ const loadCollageApp = async () => {
 
 const AboutApp = lazy(loadAboutApp);
 const BbsApp = lazy(loadBbsApp);
+const BlogsApp = lazy(loadBlogsApp);
 const BooksApp = lazy(loadBooksApp);
 const CatsApp = lazy(loadCatsApp);
 const CollageApp = lazy(loadCollageApp);
@@ -29,6 +31,7 @@ const CollageApp = lazy(loadCollageApp);
 const APP_PRELOADERS: Record<AppId, () => Promise<unknown>> = {
     about: loadAboutApp,
     bbs: loadBbsApp,
+    blogs: loadBlogsApp,
     books: loadBooksApp,
     cats: loadCatsApp,
     collage: loadCollageApp,
@@ -52,6 +55,8 @@ export function OsAppContent({ activeModule }: OsAppContentProps) {
 
     if (activeModule.id === "bbs") {
         content = <BbsApp />;
+    } else if (activeModule.id === "blogs") {
+        content = <BlogsApp />;
     } else if (activeModule.id === "books") {
         content = <BooksApp />;
     } else if (activeModule.id === "cats") {
