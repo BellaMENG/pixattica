@@ -25,7 +25,6 @@ const PIXATTICA_OS_BANNER = [
     " .--------------------------------------------------.",
     " |  o  o  o                         PIXATTICA OS    |",
     " |--------------------------------------------------|",
-    " |  booting...                                      |",
     " |  loading Bella Meng portfolio...                 |",
     " |  mounting project archive...                     |",
     " |  indexing cats of the world...                   |",
