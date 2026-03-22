@@ -1,6 +1,23 @@
 # pixattica
 
-A Turborepo monorepo centered on the landing app, with shared packages for reusable UI and embedded features.
+A Turborepo monorepo centered on Bella Meng's landing site, with shared packages for reusable UI, embedded features, and a small blog backend/admin stack.
+
+## Apps
+
+- `apps/landing`: the public portfolio site and desktop-style shell, including `about.app`, `blogs.app`, `books.app`, `cats.app`, and `collage.app`
+- `apps/blog-api`: the Fastify + SQLite blog backend with public post endpoints and password-protected admin CRUD
+- `apps/blog-admin`: the separate admin app for writing markdown posts, saving drafts, and publishing
+- `apps/water-widget-extension`: Chrome extension
+
+## Blog Stack
+
+The blog feature is split into three parts:
+
+1. `blogs.app` in the landing site fetches published posts from the backend and renders them as markdown notes.
+2. `blog-api` stores posts in SQLite and exposes public and admin endpoints.
+3. `blog-admin` is the writing surface for creating drafts, editing, publishing, unpublishing, and deleting posts.
+
+Posts are stored in SQLite with draft/published state. Only published posts are visible in the public site.
 
 ## Getting Started
 
@@ -9,17 +26,38 @@ pnpm install
 pnpm dev
 ```
 
+To run the full blog stack locally:
+
+```bash
+cp apps/blog-api/.env.example apps/blog-api/.env
+cp apps/blog-admin/.env.example apps/blog-admin/.env
+pnpm dev:blog
+```
+
+Default local ports:
+
+- landing: `5173`
+- blog api: `4176`
+- blog admin: `4177`
+
+The landing app proxies `/api` to the blog backend in local dev, and the admin app does the same.
+
 ## Commands
 
 ```bash
 pnpm build          # Build all apps and packages
+pnpm build:blog-api # Build the blog backend
+pnpm build:blog-admin # Build the blog admin app
 pnpm build:landing  # Build the deployed landing app
 pnpm dev            # Default local dev for the landing app
+pnpm dev:blog       # Run landing + blog-api + blog-admin together
 pnpm dev:all        # Run every workspace dev task
 pnpm lint           # Lint all apps and packages
 pnpm test           # Test all apps and packages
+pnpm test:blog-api  # Test the blog backend
+pnpm test:blog-admin # Test the blog admin app
 pnpm test:landing   # Test the landing app
-pnpm clean    # Clean build artifacts
+pnpm clean          # Clean build artifacts
 
 # Filter to a single workspace
 pnpm turbo build --filter=@pixattica/<workspace-name>
@@ -30,13 +68,32 @@ pnpm turbo dev --filter=@pixattica/<workspace-name>
 
 ```
 apps/
-  landing/                 Deployed website
+  blog-admin/              Blog writing and publishing UI
+  blog-api/                Fastify + SQLite blog backend
+  landing/                 Public portfolio site
   water-widget-extension/  Chrome extension
 packages/
   pixel-collage/           Embedded collage feature
   tsconfig/                Shared TypeScript configs
   ui/                      Shared UI primitives
 ```
+
+## Blog Environment
+
+`apps/blog-api/.env.example` includes:
+
+- `PORT`
+- `HOST`
+- `DATABASE_URL`
+- `ADMIN_PASSWORD`
+- `SESSION_SECRET`
+- `CORS_ORIGINS`
+
+`apps/blog-admin/.env.example` includes:
+
+- `VITE_BLOG_API_BASE_URL`
+
+On a fresh database, `blog-api` seeds one placeholder published post so `blogs.app` is not empty on first run.
 
 ## Creating a New App
 
