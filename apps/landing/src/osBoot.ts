@@ -50,6 +50,14 @@ async function renderBootStep(
     await typeBootText(entryId, step.text, onEntryUpdate, shouldCancel);
 }
 
+function getStepPreloadAppIds(step: (typeof BOOT_STEPS)[number]) {
+    if (step.preloadAppIds?.length) {
+        return step.preloadAppIds;
+    }
+
+    return step.preloadAppId ? [step.preloadAppId] : [];
+}
+
 export async function runBootSequence({
     lineIndexStart,
     onEntryAdd,
@@ -70,7 +78,7 @@ export async function runBootSequence({
 
         await Promise.all([
             renderBootStep(step, entryId, onEntryUpdate, shouldCancel),
-            step.preloadAppId ? preloadOsAppWindow(step.preloadAppId) : Promise.resolve(),
+            Promise.all(getStepPreloadAppIds(step).map((appId) => preloadOsAppWindow(appId))),
         ]);
 
         await wait(BOOT_STEP_DELAY_MS);

@@ -14,6 +14,7 @@ export type AppModule = {
 export type BootStep = {
     id: string;
     preloadAppId?: AppId;
+    preloadAppIds?: AppId[];
     renderMode?: "instant" | "typed";
     text: string;
 };
@@ -41,30 +42,11 @@ export const BOOT_STEPS: BootStep[] = [
     { id: "boot-1", text: "booting PIXATTICA OS v0.1..." },
     {
         id: "boot-2",
-        preloadAppId: "about",
+        preloadAppIds: ["about", "books", "cats", "collage"],
         renderMode: "instant",
-        text: "loading Bella Meng portfolio...",
+        text: PIXATTICA_OS_BANNER,
     },
-    {
-        id: "boot-3",
-        preloadAppId: "books",
-        renderMode: "instant",
-        text: "mounting project archive...",
-    },
-    {
-        id: "boot-4",
-        preloadAppId: "cats",
-        renderMode: "instant",
-        text: "indexing cats of the world...",
-    },
-    {
-        id: "boot-5",
-        preloadAppId: "collage",
-        renderMode: "instant",
-        text: "linking pixel collage project...",
-    },
-    { id: "boot-6", renderMode: "instant", text: PIXATTICA_OS_BANNER },
-    { id: "boot-7", renderMode: "instant", text: "shell ready. type `help`." },
+    { id: "boot-3", renderMode: "instant", text: "shell ready. type `help`." },
 ];
 
 export const BOOT_SEQUENCE: TranscriptEntry[] = BOOT_STEPS.map((step) => ({
