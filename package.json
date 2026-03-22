@@ -3,13 +3,18 @@
     "private": true,
     "scripts": {
         "build": "turbo build",
+        "build:blog-admin": "turbo build --filter=@pixattica/blog-admin",
+        "build:blog-api": "turbo build --filter=@pixattica/blog-api",
         "build:landing": "turbo build --filter=@pixattica/landing",
         "dev": "turbo dev --parallel --ui=tui --filter=@pixattica/landing",
+        "dev:blog": "turbo dev --parallel --ui=tui --filter=@pixattica/landing --filter=@pixattica/blog-api --filter=@pixattica/blog-admin",
         "dev:all": "turbo dev --parallel --ui=tui",
         "lint": "oxlint .",
         "format": "oxfmt --list-different .",
         "format:check": "oxfmt --check .",
         "test": "turbo test",
+        "test:blog-admin": "turbo test --filter=@pixattica/blog-admin",
+        "test:blog-api": "turbo test --filter=@pixattica/blog-api",
         "test:landing": "turbo test --filter=@pixattica/landing",
         "clean": "turbo clean",
         "prepare": "husky"
