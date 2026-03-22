@@ -1,0 +1,198 @@
+@import "tailwindcss";
+
+:root {
+    color: #4c1230;
+    font-family:
+        "IBM Plex Sans",
+        "Inter",
+        "Segoe UI",
+        -apple-system,
+        BlinkMacSystemFont,
+        sans-serif;
+    background:
+        radial-gradient(circle at top, rgba(253, 242, 248, 0.96), rgba(255, 255, 255, 0.92)),
+        linear-gradient(135deg, #fff8fb, #ffe4ef);
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+}
+
+#root {
+    min-height: 100vh;
+}
+
+.admin-shell {
+    min-height: 100vh;
+    padding: 2rem;
+}
+
+.admin-layout {
+    display: grid;
+    gap: 1.5rem;
+    grid-template-columns: minmax(18rem, 24rem) minmax(0, 1fr);
+}
+
+.admin-panel,
+.admin-sidebar {
+    border: 2px solid #f9a8d4;
+    border-radius: 1.5rem;
+    background: rgba(255, 248, 252, 0.92);
+    box-shadow: 8px 8px 0 rgba(249, 168, 212, 0.75);
+    padding: 1.5rem;
+}
+
+.admin-sidebar {
+    display: flex;
+    min-height: 40rem;
+    flex-direction: column;
+}
+
+.admin-kicker {
+    margin: 0;
+    color: #be185d;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.admin-title,
+.admin-section-title {
+    margin: 0.75rem 0 0;
+    color: #881337;
+    font-size: 1.75rem;
+    line-height: 1.1;
+}
+
+.admin-copy {
+    margin: 0.75rem 0 0;
+    color: #9f1239;
+    font-size: 0.95rem;
+    line-height: 1.6;
+}
+
+.admin-input,
+.admin-textarea {
+    width: 100%;
+    border: 2px solid #f9a8d4;
+    border-radius: 1rem;
+    background: #fff;
+    box-sizing: border-box;
+    color: #4c1230;
+    font: inherit;
+    padding: 0.8rem 0.95rem;
+}
+
+.admin-textarea {
+    min-height: 18rem;
+    resize: vertical;
+}
+
+.admin-input:focus,
+.admin-textarea:focus {
+    outline: 2px solid #ec4899;
+    outline-offset: 2px;
+}
+
+.admin-button {
+    border: 2px solid #f472b6;
+    border-radius: 999px;
+    background: #ec4899;
+    color: #fff;
+    cursor: pointer;
+    font: inherit;
+    font-size: 0.92rem;
+    font-weight: 600;
+    padding: 0.7rem 1rem;
+}
+
+.admin-button:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+}
+
+.admin-button-secondary {
+    background: #fff;
+    color: #9f1239;
+}
+
+.admin-button-danger {
+    border-color: #fb7185;
+    background: #fff1f2;
+    color: #be123c;
+}
+
+.admin-post-card {
+    width: 100%;
+    border: 2px solid #fbcfe8;
+    border-radius: 1rem;
+    background: #fff;
+    cursor: pointer;
+    padding: 1rem;
+}
+
+.admin-post-card-selected {
+    border-color: #f472b6;
+    background: #fff1f7;
+}
+
+.admin-post-title {
+    margin: 0;
+    color: #881337;
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+.admin-post-meta {
+    margin: 0.4rem 0 0;
+    color: #9f1239;
+    font-size: 0.85rem;
+}
+
+.admin-status-pill {
+    border: 1px solid #f9a8d4;
+    border-radius: 999px;
+    background: #fdf2f8;
+    color: #be185d;
+    font-size: 0.75rem;
+    padding: 0.3rem 0.65rem;
+    text-transform: capitalize;
+}
+
+.admin-empty-state,
+.admin-error,
+.admin-notice {
+    border-radius: 1rem;
+    font-size: 0.92rem;
+    line-height: 1.5;
+    padding: 0.9rem 1rem;
+}
+
+.admin-empty-state {
+    border: 2px dashed #f9a8d4;
+    color: #9f1239;
+}
+
+.admin-notice {
+    border: 2px solid #bbf7d0;
+    background: #f0fdf4;
+    color: #166534;
+}
+
+.admin-error {
+    border: 2px solid #fecdd3;
+    background: #fff1f2;
+    color: #be123c;
+}
+
+@media (max-width: 960px) {
+    .admin-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .admin-shell {
+        padding: 1rem;
+    }
+}
