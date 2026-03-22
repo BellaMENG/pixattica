@@ -27,7 +27,15 @@ pnpm setup:env
 pnpm dev
 ```
 
-To run the full blog stack locally:
+`pnpm dev` now starts the public site, blog API, and blog admin together.
+
+To run only the landing app:
+
+```bash
+pnpm dev:landing
+```
+
+To run the full blog stack explicitly:
 
 ```bash
 pnpm setup:env
@@ -49,8 +57,9 @@ pnpm build          # Build all apps and packages
 pnpm build:blog-api # Build the blog backend
 pnpm build:blog-admin # Build the blog admin app
 pnpm build:landing  # Build the deployed landing app
-pnpm dev            # Default local dev for the landing app
-pnpm dev:blog       # Run landing + blog-api + blog-admin together
+pnpm dev            # Run landing + blog-api + blog-admin together
+pnpm dev:blog       # Alias for the full blog stack
+pnpm dev:landing    # Run only the landing app
 pnpm dev:all        # Run every workspace dev task
 pnpm setup:env      # Copy missing .env files from .env.example
 pnpm lint           # Lint all apps and packages
