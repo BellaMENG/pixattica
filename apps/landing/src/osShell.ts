@@ -14,6 +14,7 @@ type ShellCommandContext = {
 
 type ShellCommandResult = {
     clearTranscript?: boolean;
+    closePage?: boolean;
     entries: TranscriptEntry[];
     nextModuleId: AppId;
     openedModuleId?: AppId;
@@ -51,6 +52,37 @@ function createLaunchEntries(module: AppModule, lineIndex: number, verb: string)
     return [createOutputEntry(lineIndex, `${verb}: ${module.label}`)];
 }
 
+const OPEN_APP_FLAGS = new Set(["-a", "--app"]);
+const APP_COMMAND_LIST = APP_MODULES.map((module) => module.command).join(", ");
+
+function getOpenUsageText() {
+    return `use \`open <app>\` or \`open -a <app>\`. apps: ${APP_COMMAND_LIST}.`;
+}
+
+function resolveOpenTarget(args: string[]) {
+    if (args.length === 0) {
+        return { error: `missing app name. ${getOpenUsageText()}` };
+    }
+
+    const [firstArg, secondArg] = args;
+
+    if (OPEN_APP_FLAGS.has(firstArg)) {
+        if (!secondArg) {
+            return { error: `missing app name. ${getOpenUsageText()}` };
+        }
+
+        return { module: getModuleByCommand(secondArg) };
+    }
+
+    if (firstArg.startsWith("-")) {
+        return {
+            error: `unknown open flag: ${firstArg}. use \`open <app>\` or \`open -a <app>\`.`,
+        };
+    }
+
+    return { module: getModuleByCommand(firstArg) };
+}
+
 const WHOAMI_TEXT = [
     "Bella Meng, software engineer, (product engineer?), based in London. I like making random things outside software too.",
     "More about my work lives on LinkedIn: https://www.linkedin.com/in/bella-meng/. You can also reach me at bellamengzihan@gmail.com.",
@@ -75,20 +107,32 @@ const CORE_COMMANDS: ShellCommandDefinition[] = [
         }),
     },
     {
+        command: "exit",
+        description: "close the current page",
+        run: ({ activeModuleId, lineIndex }) => ({
+            closePage: true,
+            entries: [
+                createOutputEntry(
+                    lineIndex,
+                    "attempting to close the page. if this tab stays open, your browser blocked it.",
+                ),
+            ],
+            nextModuleId: activeModuleId,
+        }),
+    },
+    {
         command: "open",
-        aliases: ["launch"],
-        usage: "open <app>",
-        description: "open one of the available app modules",
+        usage: "open [-a] <app>",
+        description: "launch an app",
         run: ({ activeModuleId, args, lineIndex }) => {
-            const target = args[0]?.toLowerCase();
-            const module = target ? getModuleByCommand(target) : undefined;
+            const { error, module } = resolveOpenTarget(args);
 
             if (!module) {
                 return {
                     entries: [
                         createOutputEntry(
                             lineIndex,
-                            "unknown app target. try `open books`, `open cats`, `open collage`, or `open bbs`.",
+                            error ?? `unknown app target. ${getOpenUsageText()}`,
                         ),
                     ],
                     nextModuleId: activeModuleId,
@@ -128,18 +172,7 @@ const CORE_COMMANDS: ShellCommandDefinition[] = [
     },
 ];
 
-const MODULE_COMMANDS: ShellCommandDefinition[] = APP_MODULES.map((module) => ({
-    command: module.command,
-    description: `open ${module.label}`,
-    run: ({ lineIndex }) => ({
-        entries: createLaunchEntries(module, lineIndex, "launched"),
-        nextModuleId: module.id,
-        openedModuleId: module.id,
-        windowState: "open",
-    }),
-}));
-
-const ALL_COMMANDS = [...CORE_COMMANDS, ...MODULE_COMMANDS];
+const ALL_COMMANDS = [...CORE_COMMANDS];
 
 const COMMAND_LOOKUP = new Map<string, ShellCommandDefinition>(
     ALL_COMMANDS.flatMap((definition) => [
@@ -149,17 +182,14 @@ const COMMAND_LOOKUP = new Map<string, ShellCommandDefinition>(
 );
 
 export const HELP_TEXT = [
-    "available commands",
-    "help, ?              show the current command index",
-    "whoami               show Bella's intro card",
-    "open <app>, launch   open one of the available app modules",
-    "about                open about.app",
-    "books                open books.app",
-    "cats                 open cats.app",
-    "collage              open collage.app",
-    "bbs                  open dialtone.app",
-    "clear, cls           clear the current transcript",
-    "reboot, restart      rerun the shell boot sequence",
+    "commands",
+    "help, ?          command index",
+    "whoami           intro card",
+    "open [-a] <app>  launch an app",
+    "exit             close the page",
+    "clear, cls       clear the shell",
+    "reboot, restart  reboot the shell",
+    `apps             ${APP_COMMAND_LIST}`,
 ].join("\n");
 
 export const INITIAL_TRANSCRIPT: TranscriptEntry[] = [...BOOT_SEQUENCE];
@@ -172,21 +202,50 @@ function getCommandSuggestions(): ShellAutocompleteSuggestion[] {
             label: definition.usage ?? definition.command,
         },
         ...(definition.aliases ?? []).map((alias) => ({
-            completion: alias === "launch" ? "launch " : alias,
+            completion: alias,
             description: definition.description,
             label: alias,
         })),
     ]);
 }
 
-function getOpenTargetSuggestions(launcher: "launch" | "open", query: string) {
+function getOpenTargetSuggestions(prefix: string, query: string) {
     return APP_MODULES.filter((module) => !query || module.command.startsWith(query)).map(
         (module) => ({
-            completion: `${launcher} ${module.command}`,
+            completion: `${prefix} ${module.command}`,
             description: `open ${module.label}`,
-            label: `${launcher} ${module.command}`,
+            label: `${prefix} ${module.command}`,
         }),
     );
+}
+
+function getOpenFlagSuggestions(query: string) {
+    return ["-a", "--app"]
+        .filter((flag) => flag.startsWith(query))
+        .map((flag) => ({
+            completion: `open ${flag} `,
+            description: "launch an app with an explicit app flag",
+            label: `open ${flag}`,
+        }));
+}
+
+function getOpenSuggestions(rawQuery: string) {
+    const query = rawQuery.trim();
+    if (!query) {
+        return getOpenTargetSuggestions("open", "");
+    }
+
+    const [firstToken, ...rest] = query.split(/\s+/);
+
+    if (firstToken.startsWith("-")) {
+        if (OPEN_APP_FLAGS.has(firstToken)) {
+            return getOpenTargetSuggestions(`open ${firstToken}`, rest.join(" "));
+        }
+
+        return getOpenFlagSuggestions(firstToken);
+    }
+
+    return getOpenTargetSuggestions("open", query);
 }
 
 export function getShellAutocompleteSuggestions(input: string): ShellAutocompleteSuggestion[] {
@@ -195,11 +254,9 @@ export function getShellAutocompleteSuggestions(input: string): ShellAutocomplet
         return [];
     }
 
-    const openMatch = normalizedInput.match(/^(open|launch)\s+(.*)$/);
+    const openMatch = normalizedInput.match(/^open\s+(.*)$/);
     if (openMatch) {
-        const launcher = openMatch[1] as "launch" | "open";
-        const query = openMatch[2]?.trim() ?? "";
-        return getOpenTargetSuggestions(launcher, query).slice(0, 6);
+        return getOpenSuggestions(openMatch[1] ?? "").slice(0, 6);
     }
 
     return getCommandSuggestions()

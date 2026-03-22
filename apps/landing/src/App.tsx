@@ -327,6 +327,12 @@ function App() {
         };
         appendTranscriptEntries([commandEntry, ...nextEntries]);
         clearCommandInput();
+
+        if (response.closePage) {
+            window.setTimeout(() => {
+                window.close();
+            }, 0);
+        }
     };
 
     const startWindowInteraction = (
