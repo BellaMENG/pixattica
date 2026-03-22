@@ -1,5 +1,8 @@
+import { loadBlogApiEnv } from "./env.js";
 import { buildApp } from "./app.js";
 import { loadConfig } from "./config.js";
+
+loadBlogApiEnv();
 
 const config = loadConfig(process.env);
 const app = buildApp({ config });
