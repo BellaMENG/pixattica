@@ -63,8 +63,6 @@ export function createBlogRepository({
     seedPlaceholder = true,
 }: CreateBlogRepositoryOptions) {
     const resolvedDatabaseUrl = normalizeDatabaseUrl(databaseUrl);
-    const databaseExisted =
-        resolvedDatabaseUrl === ":memory:" ? true : fs.existsSync(resolvedDatabaseUrl);
 
     if (resolvedDatabaseUrl !== ":memory:") {
         fs.mkdirSync(path.dirname(resolvedDatabaseUrl), { recursive: true });
@@ -120,7 +118,7 @@ export function createBlogRepository({
     }
 
     function seedInitialPlaceholder() {
-        if (!seedPlaceholder || databaseExisted) {
+        if (!seedPlaceholder) {
             return;
         }
 

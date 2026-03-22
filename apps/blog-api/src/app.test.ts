@@ -1,4 +1,4 @@
-import { mkdtempSync, rmSync } from "node:fs";
+import { closeSync, mkdtempSync, openSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
@@ -265,5 +265,35 @@ describe("blog api", () => {
 
         expect(adminPostsResponse.statusCode).toBe(200);
         expect(adminPostsResponse.json().posts[0]?.title).toBe("A first backend note");
+    });
+
+    it("seeds the placeholder post when the database file already exists but is empty", async () => {
+        const tempDirectory = mkdtempSync(path.join(tmpdir(), "pixattica-blog-api-"));
+        const databasePath = path.join(tempDirectory, "blog.sqlite");
+        closeSync(openSync(databasePath, "w"));
+
+        const app = buildApp({
+            config: {
+                adminPassword: "test-password",
+                corsOrigins: [],
+                databaseUrl: databasePath,
+                sessionSecret: "test-session-secret",
+            },
+            logger: false,
+        });
+
+        cleanups.push(async () => {
+            await app.close();
+            rmSync(tempDirectory, { force: true, recursive: true });
+        });
+
+        const publicPostsResponse = await app.inject({
+            method: "GET",
+            url: "/api/posts",
+        });
+
+        expect(publicPostsResponse.statusCode).toBe(200);
+        expect(publicPostsResponse.json().posts).toHaveLength(1);
+        expect(publicPostsResponse.json().posts[0]?.title).toBe("First note in the notebook");
     });
 });
