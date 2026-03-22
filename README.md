@@ -23,14 +23,14 @@ Posts are stored in SQLite with draft/published state. Only published posts are 
 
 ```bash
 pnpm install
+pnpm setup:env
 pnpm dev
 ```
 
 To run the full blog stack locally:
 
 ```bash
-cp apps/blog-api/.env.example apps/blog-api/.env
-cp apps/blog-admin/.env.example apps/blog-admin/.env
+pnpm setup:env
 pnpm dev:blog
 ```
 
@@ -52,6 +52,7 @@ pnpm build:landing  # Build the deployed landing app
 pnpm dev            # Default local dev for the landing app
 pnpm dev:blog       # Run landing + blog-api + blog-admin together
 pnpm dev:all        # Run every workspace dev task
+pnpm setup:env      # Copy missing .env files from .env.example
 pnpm lint           # Lint all apps and packages
 pnpm test           # Test all apps and packages
 pnpm test:blog-api  # Test the blog backend
