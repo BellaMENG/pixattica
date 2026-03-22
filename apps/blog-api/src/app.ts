@@ -28,8 +28,12 @@ function getErrorMessage(error: unknown) {
 }
 
 function parseId(value: string) {
+    if (!/^[1-9]\d*$/.test(value)) {
+        throw new Error("Invalid post id.");
+    }
+
     const parsedId = Number.parseInt(value, 10);
-    if (!Number.isFinite(parsedId) || parsedId <= 0) {
+    if (!Number.isSafeInteger(parsedId)) {
         throw new Error("Invalid post id.");
     }
 

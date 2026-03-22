@@ -1,5 +1,4 @@
-import { rmSync } from "node:fs";
-import { mkdtempSync } from "node:fs";
+import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
@@ -220,5 +219,51 @@ describe("blog api", () => {
             url: "/api/admin/posts",
         });
         expect(adminPostsResponse.json()).toEqual({ posts: [] });
+    });
+
+    it("rejects malformed post ids instead of matching their numeric prefix", async () => {
+        const context = await createTestApp();
+        cleanups.push(context.cleanup);
+
+        const createdResponse = await context.inject({
+            headers: {
+                cookie: context.cookieHeader,
+            },
+            method: "POST",
+            payload: {
+                bodyMarkdown: "Hello **world**",
+                title: "A first backend note",
+            },
+            url: "/api/admin/posts",
+        });
+
+        expect(createdResponse.statusCode).toBe(201);
+
+        const malformedUpdateResponse = await context.inject({
+            headers: {
+                cookie: context.cookieHeader,
+            },
+            method: "PATCH",
+            payload: {
+                title: "This update should fail",
+            },
+            url: "/api/admin/posts/1abc",
+        });
+
+        expect(malformedUpdateResponse.statusCode).toBe(400);
+        expect(malformedUpdateResponse.json()).toEqual({
+            error: "Invalid post id.",
+        });
+
+        const adminPostsResponse = await context.inject({
+            headers: {
+                cookie: context.cookieHeader,
+            },
+            method: "GET",
+            url: "/api/admin/posts",
+        });
+
+        expect(adminPostsResponse.statusCode).toBe(200);
+        expect(adminPostsResponse.json().posts[0]?.title).toBe("A first backend note");
     });
 });
