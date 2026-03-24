@@ -1,8 +1,5 @@
-import fs from "node:fs";
-import path from "node:path";
-import Database from "better-sqlite3";
 import { desc, eq } from "drizzle-orm";
-import { drizzle } from "drizzle-orm/better-sqlite3";
+import { drizzle } from "drizzle-orm/d1";
 import { blogPosts, type AdminBlogPost, type PublicBlogPost } from "./schema.js";
 import { createSlug } from "./slug.js";
 
@@ -17,17 +14,9 @@ type UpdatePostInput = {
 };
 
 type CreateBlogRepositoryOptions = {
-    databaseUrl: string;
+    database: D1Database;
     seedPlaceholder?: boolean;
 };
-
-function normalizeDatabaseUrl(databaseUrl: string) {
-    if (databaseUrl === ":memory:") {
-        return databaseUrl;
-    }
-
-    return path.isAbsolute(databaseUrl) ? databaseUrl : path.resolve(process.cwd(), databaseUrl);
-}
 
 function normalizeMarkdownBody(bodyMarkdown: string | undefined) {
     return (bodyMarkdown ?? "").replace(/\r\n/g, "\n");
@@ -59,42 +48,43 @@ function toPublicPost(post: AdminBlogPost): PublicBlogPost {
 }
 
 export function createBlogRepository({
-    databaseUrl,
+    database: client,
     seedPlaceholder = true,
 }: CreateBlogRepositoryOptions) {
-    const resolvedDatabaseUrl = normalizeDatabaseUrl(databaseUrl);
-
-    if (resolvedDatabaseUrl !== ":memory:") {
-        fs.mkdirSync(path.dirname(resolvedDatabaseUrl), { recursive: true });
-    }
-
-    const client = new Database(resolvedDatabaseUrl);
-    if (resolvedDatabaseUrl !== ":memory:") {
-        client.pragma("journal_mode = WAL");
-    }
-    client.pragma("foreign_keys = ON");
-    client.exec(`
-        CREATE TABLE IF NOT EXISTS blog_posts (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            slug TEXT NOT NULL UNIQUE,
-            title TEXT NOT NULL,
-            body_markdown TEXT NOT NULL,
-            status TEXT NOT NULL CHECK (status IN ('draft', 'published')),
-            created_at TEXT NOT NULL,
-            updated_at TEXT NOT NULL,
-            published_at TEXT
-        )
-    `);
-
     const database = drizzle(client);
 
-    function getPostById(id: number) {
-        const [post] = database.select().from(blogPosts).where(eq(blogPosts.id, id)).limit(1).all();
+    async function ensureSchema() {
+        await client
+            .prepare(
+                [
+                    "CREATE TABLE IF NOT EXISTS blog_posts (",
+                    "id INTEGER PRIMARY KEY AUTOINCREMENT,",
+                    "slug TEXT NOT NULL UNIQUE,",
+                    "title TEXT NOT NULL,",
+                    "body_markdown TEXT NOT NULL,",
+                    "status TEXT NOT NULL CHECK (status IN ('draft', 'published')),",
+                    "created_at TEXT NOT NULL,",
+                    "updated_at TEXT NOT NULL,",
+                    "published_at TEXT",
+                    ")",
+                ].join(" "),
+            )
+            .run();
+    }
+
+    async function getPostById(id: number) {
+        const [post] = await database
+            .select()
+            .from(blogPosts)
+            .where(eq(blogPosts.id, id))
+            .limit(1)
+            .all();
+
         return post ?? null;
     }
 
-    function slugExists(slug: string) {
-        const existingPosts = database
+    async function slugExists(slug: string) {
+        const existingPosts = await database
             .select({ id: blogPosts.id })
             .from(blogPosts)
             .where(eq(blogPosts.slug, slug))
@@ -104,12 +94,12 @@ export function createBlogRepository({
         return existingPosts.length > 0;
     }
 
-    function createUniqueSlug(title: string) {
+    async function createUniqueSlug(title: string) {
         const baseSlug = createSlug(title);
         let nextSlug = baseSlug;
         let suffix = 2;
 
-        while (slugExists(nextSlug)) {
+        while (await slugExists(nextSlug)) {
             nextSlug = `${baseSlug}-${suffix}`;
             suffix += 1;
         }
@@ -117,18 +107,23 @@ export function createBlogRepository({
         return nextSlug;
     }
 
-    function seedInitialPlaceholder() {
+    async function seedInitialPlaceholder() {
         if (!seedPlaceholder) {
             return;
         }
 
-        const existingPosts = database.select({ id: blogPosts.id }).from(blogPosts).limit(1).all();
+        const existingPosts = await database
+            .select({ id: blogPosts.id })
+            .from(blogPosts)
+            .limit(1)
+            .all();
+
         if (existingPosts.length > 0) {
             return;
         }
 
         const now = new Date().toISOString();
-        database
+        await database
             .insert(blogPosts)
             .values({
                 bodyMarkdown:
@@ -140,25 +135,26 @@ export function createBlogRepository({
                 title: "First note in the notebook",
                 updatedAt: now,
             })
+            .onConflictDoNothing({ target: blogPosts.slug })
             .run();
     }
 
-    seedInitialPlaceholder();
-
     return {
-        close() {
-            client.close();
+        async close() {},
+        async initialize() {
+            await ensureSchema();
+            await seedInitialPlaceholder();
         },
-        createPost(input: CreatePostInput) {
+        async createPost(input: CreatePostInput) {
             const title = normalizeTitle(input.title);
             const now = new Date().toISOString();
 
-            const createdPost = database
+            const createdPost = await database
                 .insert(blogPosts)
                 .values({
                     bodyMarkdown: normalizeMarkdownBody(input.bodyMarkdown),
                     createdAt: now,
-                    slug: createUniqueSlug(title),
+                    slug: await createUniqueSlug(title),
                     status: "draft",
                     title,
                     updatedAt: now,
@@ -168,12 +164,17 @@ export function createBlogRepository({
 
             return createdPost;
         },
-        deletePost(id: number) {
-            const deleteResult = database.delete(blogPosts).where(eq(blogPosts.id, id)).run();
-            return deleteResult.changes > 0;
+        async deletePost(id: number) {
+            const existingPost = await getPostById(id);
+            if (!existingPost) {
+                return false;
+            }
+
+            await database.delete(blogPosts).where(eq(blogPosts.id, id)).run();
+            return true;
         },
-        getPublishedPostBySlug(slug: string) {
-            const [post] = database
+        async getPublishedPostBySlug(slug: string) {
+            const [post] = await database
                 .select()
                 .from(blogPosts)
                 .where(eq(blogPosts.slug, slug))
@@ -186,26 +187,27 @@ export function createBlogRepository({
 
             return toPublicPost(post);
         },
-        listAllPosts() {
+        async listAllPosts() {
             return database.select().from(blogPosts).orderBy(desc(blogPosts.updatedAt)).all();
         },
-        listPublishedPosts() {
-            return database
-                .select()
-                .from(blogPosts)
-                .where(eq(blogPosts.status, "published"))
-                .orderBy(desc(blogPosts.publishedAt), desc(blogPosts.createdAt))
-                .all()
-                .map(toPublicPost);
+        async listPublishedPosts() {
+            return (
+                await database
+                    .select()
+                    .from(blogPosts)
+                    .where(eq(blogPosts.status, "published"))
+                    .orderBy(desc(blogPosts.publishedAt), desc(blogPosts.createdAt))
+                    .all()
+            ).map(toPublicPost);
         },
-        publishPost(id: number) {
-            const existingPost = getPostById(id);
+        async publishPost(id: number) {
+            const existingPost = await getPostById(id);
             if (!existingPost) {
                 return null;
             }
 
             const now = new Date().toISOString();
-            database
+            await database
                 .update(blogPosts)
                 .set({
                     publishedAt: now,
@@ -217,14 +219,14 @@ export function createBlogRepository({
 
             return getPostById(id);
         },
-        unpublishPost(id: number) {
-            const existingPost = getPostById(id);
+        async unpublishPost(id: number) {
+            const existingPost = await getPostById(id);
             if (!existingPost) {
                 return null;
             }
 
             const now = new Date().toISOString();
-            database
+            await database
                 .update(blogPosts)
                 .set({
                     publishedAt: null,
@@ -236,8 +238,8 @@ export function createBlogRepository({
 
             return getPostById(id);
         },
-        updatePost(id: number, input: UpdatePostInput) {
-            const existingPost = getPostById(id);
+        async updatePost(id: number, input: UpdatePostInput) {
+            const existingPost = await getPostById(id);
             if (!existingPost) {
                 return null;
             }
@@ -258,10 +260,9 @@ export function createBlogRepository({
                 nextValues.bodyMarkdown = normalizeMarkdownBody(input.bodyMarkdown);
             }
 
-            database.update(blogPosts).set(nextValues).where(eq(blogPosts.id, id)).run();
+            await database.update(blogPosts).set(nextValues).where(eq(blogPosts.id, id)).run();
+
             return getPostById(id);
         },
     };
 }
-
-export type BlogRepository = ReturnType<typeof createBlogRepository>;
