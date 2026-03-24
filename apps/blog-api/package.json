@@ -4,24 +4,24 @@
     "private": true,
     "type": "module",
     "scripts": {
-        "dev": "tsx watch --clear-screen=false src/index.ts",
-        "build": "tsc -p tsconfig.json",
-        "test": "vitest run",
-        "start": "node dist/index.js",
+        "dev": "wrangler dev --config wrangler.jsonc --port 4176 --persist-to .wrangler/state",
+        "build": "wrangler deploy --config wrangler.jsonc --dry-run --outdir dist && tsc -p tsconfig.json --noEmit",
+        "test": "vitest run --config vitest.config.mts",
+        "deploy": "wrangler deploy --config wrangler.jsonc",
+        "db:migrate:local": "wrangler d1 migrations apply DB --config wrangler.jsonc --local --persist-to .wrangler/state",
+        "db:migrate:remote": "wrangler d1 migrations apply DB --config wrangler.jsonc --remote",
+        "types": "wrangler types src/worker-configuration.d.ts --config wrangler.jsonc --env-interface CloudflareBindings",
         "clean": "rm -rf dist node_modules .turbo"
     },
     "dependencies": {
-        "@fastify/cookie": "^11.0.2",
-        "@fastify/cors": "^11.2.0",
-        "better-sqlite3": "^12.8.0",
         "drizzle-orm": "^0.45.1",
-        "fastify": "^5.8.2"
+        "hono": "^4.12.9"
     },
     "devDependencies": {
-        "@types/better-sqlite3": "^7.6.13",
+        "@cloudflare/workers-types": "^4.20260317.1",
         "@types/node": "^25.5.0",
-        "tsx": "^4.21.0",
         "typescript": "^5.9.3",
-        "vitest": "^3.2.4"
+        "vitest": "^4.1.0",
+        "wrangler": "^4.76.0"
     }
 }

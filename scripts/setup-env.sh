@@ -18,6 +18,11 @@ while IFS= read -r example_file; do
     cp "$example_file" "$target_file"
     echo "copy  ${target_file#"$repo_root"/}"
     copied_count=$((copied_count + 1))
-done < <(find "$repo_root/apps" "$repo_root/packages" -type f -name ".env.example" | sort)
+done < <(
+    find "$repo_root/apps" "$repo_root/packages" \
+        \( -name ".env.example" -o -name ".dev.vars.example" \) \
+        -type f \
+        | sort
+)
 
 echo "done  copied=$copied_count skipped=$skipped_count"
