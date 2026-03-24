@@ -5,7 +5,7 @@ A Turborepo monorepo centered on Bella Meng's landing site, with shared packages
 ## Apps
 
 - `apps/landing`: the public portfolio site and desktop-style shell, including `about.app`, `blogs.app`, `books.app`, `cats.app`, and `collage.app`
-- `apps/blog-api`: the Fastify + SQLite blog backend with public post endpoints and password-protected admin CRUD
+- `apps/blog-api`: the Cloudflare Worker + D1 blog backend with public post endpoints and password-protected admin CRUD
 - `apps/blog-admin`: the separate admin app for writing markdown posts, saving drafts, and publishing
 - `apps/water-widget-extension`: Chrome extension
 
@@ -14,10 +14,10 @@ A Turborepo monorepo centered on Bella Meng's landing site, with shared packages
 The blog feature is split into three parts:
 
 1. `blogs.app` in the landing site fetches published posts from the backend and renders them as markdown notes.
-2. `blog-api` stores posts in SQLite and exposes public and admin endpoints.
+2. `blog-api` stores posts in D1 and exposes public and admin endpoints.
 3. `blog-admin` is the writing surface for creating drafts, editing, publishing, unpublishing, and deleting posts.
 
-Posts are stored in SQLite with draft/published state. Only published posts are visible in the public site.
+Posts are stored in D1 with draft/published state. Only published posts are visible in the public site.
 
 ## Getting Started
 
@@ -27,7 +27,7 @@ pnpm setup:env
 pnpm dev
 ```
 
-`pnpm dev` now starts the public site, blog API, and blog admin together.
+`pnpm dev` now starts the public site, blog API Worker, and blog admin together.
 
 To run only the landing app:
 
@@ -45,7 +45,7 @@ pnpm dev:blog
 Default local ports:
 
 - landing: `5173`
-- blog api: `4176`
+- blog api worker: `4176`
 - blog admin: `4177`
 
 The landing app proxies `/api` to the blog backend in local dev, and the admin app does the same.
@@ -54,14 +54,14 @@ The landing app proxies `/api` to the blog backend in local dev, and the admin a
 
 ```bash
 pnpm build          # Build all apps and packages
-pnpm build:blog-api # Build the blog backend
+pnpm build:blog-api # Build the blog backend Worker
 pnpm build:blog-admin # Build the blog admin app
 pnpm build:landing  # Build the deployed landing app
 pnpm dev            # Run landing + blog-api + blog-admin together
 pnpm dev:blog       # Alias for the full blog stack
 pnpm dev:landing    # Run only the landing app
 pnpm dev:all        # Run every workspace dev task
-pnpm setup:env      # Copy missing .env files from .env.example
+pnpm setup:env      # Copy missing .env/.dev.vars files from their example files
 pnpm lint           # Lint all apps and packages
 pnpm test           # Test all apps and packages
 pnpm test:blog-api  # Test the blog backend
@@ -79,7 +79,7 @@ pnpm turbo dev --filter=@pixattica/<workspace-name>
 ```
 apps/
   blog-admin/              Blog writing and publishing UI
-  blog-api/                Fastify + SQLite blog backend
+  blog-api/                Cloudflare Worker + D1 blog backend
   landing/                 Public portfolio site
   water-widget-extension/  Chrome extension
 packages/
@@ -90,14 +90,28 @@ packages/
 
 ## Blog Environment
 
-`apps/blog-api/.env.example` includes:
+`apps/blog-api/.dev.vars.example` includes:
 
-- `PORT`
-- `HOST`
-- `DATABASE_URL`
 - `ADMIN_PASSWORD`
 - `SESSION_SECRET`
+
+`apps/blog-api/wrangler.jsonc` includes default local values for:
+
 - `CORS_ORIGINS`
+- `SEED_PLACEHOLDER`
+
+To create a local D1 database and apply migrations manually:
+
+```bash
+pnpm --filter=@pixattica/blog-api run db:migrate:local
+```
+
+To deploy the Worker after creating a Cloudflare D1 database and filling in the database IDs in `apps/blog-api/wrangler.jsonc`:
+
+```bash
+pnpm --filter=@pixattica/blog-api run db:migrate:remote
+pnpm --filter=@pixattica/blog-api run deploy
+```
 
 `apps/blog-admin/.env.example` includes:
 

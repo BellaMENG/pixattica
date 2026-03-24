@@ -12,7 +12,7 @@ pixattica is a Turborepo monorepo centered on the landing app, with shared packa
 pnpm install              # Install all dependencies
 pnpm build                # Build all apps and packages
 pnpm build:landing        # Build the deployed landing app
-pnpm dev                  # Default local dev for the landing app
+pnpm dev                  # Default local dev for landing + blog-api + blog-admin
 pnpm dev:all              # Run every workspace dev task
 pnpm lint                 # Lint all apps
 pnpm format               # Auto-format all files
@@ -32,6 +32,8 @@ Within an individual app directory, standard scripts apply: `pnpm dev`, `pnpm bu
 
 ```
 apps/                    — Deployable apps
+  blog-admin/            — Blog writing and publishing UI
+  blog-api/              — Cloudflare Worker + D1 blog backend
   landing/               — Main site
   water-widget-extension/ — Browser extension
 packages/                — Shared workspace packages
