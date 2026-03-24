@@ -4,7 +4,7 @@
     "main": "src/index.ts",
     "compatibility_date": "2026-03-17",
     "vars": {
-        "CORS_ORIGINS": "http://localhost:4177,http://127.0.0.1:4177,http://localhost:5173,http://127.0.0.1:5173",
+        "CORS_ORIGINS": "http://localhost:4177,http://127.0.0.1:4177,http://localhost:5173,http://127.0.0.1:5173,https://pixattica-blog-admin.pages.dev",
         "SEED_PLACEHOLDER": "true",
         "SESSION_COOKIE_NAME": "pixattica_blog_admin",
     },
@@ -12,7 +12,7 @@
         {
             "binding": "DB",
             "database_name": "pixattica-blog-api",
-            "database_id": "731a98aa-c62e-4eec-b4e9-7499084f9fab"
+            "database_id": "731a98aa-c62e-4eec-b4e9-7499084f9fab",
         },
     ],
 }

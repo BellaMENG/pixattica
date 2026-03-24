@@ -69,6 +69,22 @@ function setCorsHeaders(context: Context<AppEnvironment>, origin: string) {
     context.header("Vary", "Origin");
 }
 
+function getSessionCookieOptions(context: Context<AppEnvironment>) {
+    const requestUrl = new URL(context.req.url);
+    const origin = context.req.header("Origin");
+    const isCrossOrigin = Boolean(origin && origin !== requestUrl.origin);
+    const isSecureContext =
+        requestUrl.protocol === "https:" ||
+        requestUrl.hostname === "localhost" ||
+        requestUrl.hostname === "127.0.0.1";
+
+    return {
+        path: "/",
+        sameSite: isCrossOrigin ? ("None" as const) : ("Lax" as const),
+        secure: isCrossOrigin || isSecureContext,
+    };
+}
+
 async function getRepository(context: Context<AppEnvironment>) {
     const config = loadConfig(context.env);
     const repository = createBlogRepository({
@@ -158,9 +174,7 @@ export function buildApp() {
         await setSignedCookie(context, config.cookieName, "admin", config.sessionSecret, {
             httpOnly: true,
             maxAge: 60 * 60 * 24 * 7,
-            path: "/",
-            sameSite: "Lax",
-            secure: new URL(context.req.url).protocol === "https:",
+            ...getSessionCookieOptions(context),
         });
 
         return context.json({ authenticated: true });
@@ -168,9 +182,7 @@ export function buildApp() {
 
     app.delete("/api/admin/session", (context) => {
         const config = loadConfig(context.env);
-        deleteCookie(context, config.cookieName, {
-            path: "/",
-        });
+        deleteCookie(context, config.cookieName, getSessionCookieOptions(context));
 
         return context.json({ authenticated: false });
     });

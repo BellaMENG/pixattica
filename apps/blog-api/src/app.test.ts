@@ -196,6 +196,8 @@ describe("blog api worker", () => {
         expect(await loginResponse.json()).toEqual({
             authenticated: true,
         });
+        expect(loginResponse.headers.get("set-cookie")).toContain("SameSite=None");
+        expect(loginResponse.headers.get("set-cookie")).toContain("Secure");
 
         const authenticatedSessionResponse = await context.request("/api/admin/session", {
             headers: {
