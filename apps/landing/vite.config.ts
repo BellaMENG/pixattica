@@ -25,6 +25,11 @@ export default defineConfig({
                 changeOrigin: true,
                 ws: true,
             },
+            "/reading": {
+                target: "http://localhost:4178",
+                changeOrigin: true,
+                ws: true,
+            },
         },
     },
     test: {
