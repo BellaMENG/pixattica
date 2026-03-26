@@ -7,6 +7,7 @@
         "build:blog-api": "turbo build --filter=@pixattica/blog-api",
         "build:landing": "turbo build --filter=@pixattica/landing",
         "build:reading": "turbo build --filter=@pixattica/reading",
+        "build:site": "pnpm build:landing && pnpm build:reading && node ./scripts/build-site.mjs",
         "dev": "turbo dev --parallel --ui=tui --filter=@pixattica/landing --filter=@pixattica/blog-api --filter=@pixattica/blog-admin",
         "dev:blog": "turbo dev --parallel --ui=tui --filter=@pixattica/landing --filter=@pixattica/blog-api --filter=@pixattica/blog-admin",
         "dev:landing": "turbo dev --parallel --ui=tui --filter=@pixattica/landing --filter=@pixattica/reading",

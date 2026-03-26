@@ -57,6 +57,8 @@ pnpm build          # Build all apps and packages
 pnpm build:blog-api # Build the blog backend Worker
 pnpm build:blog-admin # Build the blog admin app
 pnpm build:landing  # Build the deployed landing app
+pnpm build:reading  # Build the reading slideshow app
+pnpm build:site     # Build a single deployable site bundle for Cloudflare Pages
 pnpm dev            # Run landing + blog-api + blog-admin together
 pnpm dev:blog       # Alias for the full blog stack
 pnpm dev:landing    # Run only the landing app
@@ -124,3 +126,12 @@ On a fresh database, `blog-api` seeds one placeholder published post so `blogs.a
 1. Copy `apps/_template` to `apps/<new-app-name>`
 2. Update `name` in `package.json` to `@pixattica/<new-app-name>`
 3. Run `pnpm install` from the root
+
+## Cloudflare Pages
+
+To deploy the public site and the reading slideshow together at `pixattica.com/` and `pixattica.com/reading`, use:
+
+- Build command: `pnpm build:site`
+- Output directory: `dist`
+
+`build:site` assembles `apps/landing/dist` at the site root and mounts `apps/reading/dist` under `dist/reading/`.
