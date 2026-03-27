@@ -5,6 +5,7 @@ export type SlideBlock = {
 };
 
 export type Slide = {
+    align?: "center" | "start";
     blocks?: SlideBlock[];
     eyebrow: string;
     id: string;
@@ -60,6 +61,7 @@ export const SLIDES: Slide[] = [
     {
         eyebrow: "what-worked",
         id: "how",
+        align: "center",
         template: "standard",
         title: "What Worked for Me!",
         blocks: [

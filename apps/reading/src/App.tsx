@@ -46,6 +46,7 @@ function SlideFrame({ slide }: { slide: Slide }) {
     const shouldShowTitlePlaceholder = slide.blocks !== undefined && !hasBodyContent;
     const shouldShowClosingPlaceholder = slide.blocks !== undefined && !hasBodyContent;
     const shouldCenterBody =
+        slide.align === "center" ||
         (slide.template === "closing" && slide.blocks === undefined) ||
         (hasBodyContent && getBulletItemCount(blocks) <= 4);
     const slideBodyClassName = shouldCenterBody

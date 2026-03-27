@@ -64,4 +64,17 @@ describe("reading app", () => {
         expect(screen.getByText("Read")).toBeInTheDocument();
         expect(screen.getByText("Rest")).toBeInTheDocument();
     });
+
+    it("supports explicitly centered slides with longer content", async () => {
+        const { container } = render(<App />);
+        const user = userEvent.setup();
+
+        await user.click(screen.getByRole("button", { name: "Next" }));
+        await user.click(screen.getByRole("button", { name: "Next" }));
+        await user.click(screen.getByRole("button", { name: "Next" }));
+        await user.click(screen.getByRole("button", { name: "Next" }));
+
+        expect(screen.getByRole("heading", { name: "What Worked for Me!" })).toBeInTheDocument();
+        expect(container.querySelector(".reading-slide-body-centered")).toBeInTheDocument();
+    });
 });
