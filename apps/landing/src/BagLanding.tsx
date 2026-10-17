@@ -16,7 +16,7 @@ const items = [
 export default function BagLanding() {
     return (
         <main className="bag-landing">
-            <h1 className="bag-landing__sr-only">What&apos;s in Bella&apos;s bag?</h1>
+            <h1 className="bag-landing__title">What&apos;s in my bag</h1>
             <div className="bag-scene" role="group" aria-label="What is in Bella's bag">
                 <img
                     className="bag-scene__back"
