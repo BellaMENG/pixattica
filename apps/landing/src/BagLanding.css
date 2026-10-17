@@ -116,8 +116,8 @@ a.bag-item {
     user-select: none;
 }
 
-.bag-item:is(:hover, :focus-visible, :active) > img,
-.bag-item:is(:hover, :focus-visible, :active) > span {
+.bag-item:is(:hover, :focus-visible, :active, .is-tapped) > img,
+.bag-item:is(:hover, :focus-visible, :active, .is-tapped) > span {
     transform: translateY(calc(-1 * var(--lift))) rotate(var(--angle));
     filter: drop-shadow(0 8px 7px rgb(0 0 0 / 0.16));
 }
