@@ -41,9 +41,12 @@ export default function BagLanding() {
         pointerId: number;
         startX: number;
         startY: number;
+        startItem: ItemId | null;
+        wasTapped: boolean;
         moved: boolean;
     } | null>(null);
     const suppressClickRef = useRef(false);
+    const touchClickRef = useRef<{ id: ItemId; wasTapped: boolean } | null>(null);
 
     useEffect(() => {
         if (!tappedItem) return;
@@ -61,6 +64,13 @@ export default function BagLanding() {
     const handleItemClick = (id: string, event?: MouseEvent<HTMLAnchorElement>) => {
         const canHover = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
         if (canHover) return;
+        const touchClick = touchClickRef.current;
+        touchClickRef.current = null;
+        if (touchClick?.id === id) {
+            if (!touchClick.wasTapped) event?.preventDefault();
+            return;
+        }
+        if (event?.detail === 0) return;
         if (tappedItem !== id) {
             event?.preventDefault();
             setTappedItem(id);
@@ -82,20 +92,26 @@ export default function BagLanding() {
     const handleSwipeStart = (event: ReactPointerEvent<HTMLDivElement>) => {
         suppressClickRef.current = false;
         if (event.pointerType !== "touch" || !event.isPrimary) return;
+        const startItem = itemAtPoint(event.currentTarget, event.clientX, event.clientY);
+        touchClickRef.current = null;
         swipeRef.current = {
             pointerId: event.pointerId,
             startX: event.clientX,
             startY: event.clientY,
+            startItem,
+            wasTapped: tappedItem === startItem,
             moved: false,
         };
-        setTappedItem(null);
-        updateSwipedItem(event.currentTarget, event.clientX, event.clientY);
+        if (tappedItem !== startItem) setTappedItem(null);
+        setSwipedItem(startItem);
+        setActiveCaption(startItem ? itemCaptions[startItem] : "");
     };
 
     const handleSwipeMove = (event: ReactPointerEvent<HTMLDivElement>) => {
         const swipe = swipeRef.current;
         if (!swipe || swipe.pointerId !== event.pointerId) return;
         if (Math.hypot(event.clientX - swipe.startX, event.clientY - swipe.startY) > 8) {
+            if (!swipe.moved) setTappedItem(null);
             swipe.moved = true;
         }
         updateSwipedItem(event.currentTarget, event.clientX, event.clientY);
@@ -105,7 +121,22 @@ export default function BagLanding() {
         const swipe = swipeRef.current;
         if (!swipe || swipe.pointerId !== event.pointerId) return;
         suppressClickRef.current = swipe.moved;
+        if (!swipe.moved && swipe.startItem) {
+            touchClickRef.current = { id: swipe.startItem, wasTapped: swipe.wasTapped };
+            setTappedItem(swipe.startItem);
+            setActiveCaption(itemCaptions[swipe.startItem]);
+        } else {
+            setTappedItem(null);
+            setActiveCaption("");
+        }
         swipeRef.current = null;
+        setSwipedItem(null);
+    };
+
+    const handleSwipeCancel = (event: ReactPointerEvent<HTMLDivElement>) => {
+        if (swipeRef.current?.pointerId !== event.pointerId) return;
+        swipeRef.current = null;
+        touchClickRef.current = null;
         setSwipedItem(null);
         setActiveCaption("");
     };
@@ -139,7 +170,7 @@ export default function BagLanding() {
                 onPointerDown={handleSwipeStart}
                 onPointerMove={handleSwipeMove}
                 onPointerUp={handleSwipeEnd}
-                onPointerCancel={handleSwipeEnd}
+                onPointerCancel={handleSwipeCancel}
                 onClickCapture={suppressSwipeClick}
             >
                 <img
