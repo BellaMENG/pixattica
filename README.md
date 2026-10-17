@@ -119,6 +119,15 @@ pnpm --filter=@pixattica/blog-api run deploy
 
 - `VITE_BLOG_API_BASE_URL`
 
+### Move the blog to bellameng.com
+
+The existing `pixattica-blog-api` Worker and D1 database hold the posts. Keep their names and the D1 database ID when changing domains; no data migration or database migration is needed.
+
+1. Deploy `apps/blog-api/wrangler.jsonc` with `pnpm --filter=@pixattica/blog-api run deploy`. Its routes include `bellameng.com/api/*` and `www.bellameng.com/api/*`, alongside the old routes. The `bellameng.com` zone must be in the same Cloudflare account and its hostnames must have proxied DNS records.
+2. Check `https://bellameng.com/api/health` returns `{"ok":true}` and `https://bellameng.com/api/posts` returns JSON with a `posts` array. The public `/blog` page uses `/api` on its own domain, so redeploy the public Pages project to pick up this repo's sitemap and error handling.
+3. In the existing blog admin Pages project, add `admin.bellameng.com` under **Custom domains**. Ensure a proxied CNAME for `admin.bellameng.com` points to `pixattica-blog-admin.pages.dev`; the custom domain stays pending without it. Set the production build variable `VITE_BLOG_API_BASE_URL=https://bellameng.com/api`, then redeploy that Pages project. The admin app reads this value at build time. Keep its build output and existing Pages project so drafts and published posts continue using the same Worker and D1 database.
+4. Check `https://admin.bellameng.com` can log in and list posts. After the new domain works, add a redirect from `admin.pixattica.com` if desired. Keep the old API routes until all old clients stop using them.
+
 On a fresh database, `blog-api` seeds one placeholder published post so `blogs.app` is not empty on first run.
 
 ## Creating a New App
@@ -134,7 +143,7 @@ building the landing app to show the OS interface instead. The flag is resolved 
 The laptop opens the web CV at `/cv`, and the book opens the ratings page at `/books`.
 Replace `apps/landing/src/assets/bag/book-cover.jpeg` to update the book cover.
 
-To deploy the public site and the reading slideshow together at `pixattica.com/` and `pixattica.com/reading`, use:
+To deploy the public site and the reading slideshow together at `bellameng.com/` and `bellameng.com/reading`, use:
 
 - Build command: `pnpm build:site`
 - Output directory: `dist`

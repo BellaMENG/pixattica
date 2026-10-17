@@ -44,5 +44,10 @@ async function readResponseBody<T>(response: Response) {
 export async function listPublishedBlogPosts() {
     const response = await fetch(getApiUrl("/posts"));
     const body = await readResponseBody<ListPublishedBlogPostsResponse>(response);
+
+    if (!body || typeof body !== "object" || !Array.isArray(body.posts)) {
+        throw new Error("Blog posts response was invalid. Please try again later.");
+    }
+
     return body.posts;
 }
