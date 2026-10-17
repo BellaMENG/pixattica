@@ -83,11 +83,7 @@ export default function BagLanding() {
                                 }
                                 onMouseEnter={() => setActiveCaption(itemCaptions[id])}
                                 onMouseLeave={() => setActiveCaption("")}
-                                onClick={
-                                    id === "laptop"
-                                        ? (event) => handleItemClick(id, event)
-                                        : undefined
-                                }
+                                onClick={(event) => handleItemClick(id, event)}
                                 onFocus={() => setActiveCaption(itemCaptions[id])}
                                 onBlur={() => setActiveCaption("")}
                             >
