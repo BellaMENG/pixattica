@@ -19,7 +19,7 @@ const items = [
 const itemCaptions = {
     laptop: "my CV",
     book: "what's I'm reading",
-    notebook: "blog",
+    notebook: "morning pages",
     churu: "my cats!",
     switch: "some games",
 } as const;
