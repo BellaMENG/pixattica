@@ -23,6 +23,7 @@ const itemCaptions = {
 
 export default function BagLanding() {
     const [activeCaption, setActiveCaption] = useState("");
+    const [bagLoaded, setBagLoaded] = useState(false);
 
     return (
         <main className="bag-landing">
@@ -42,46 +43,48 @@ export default function BagLanding() {
                     alt=""
                     draggable={false}
                     fetchPriority="high"
+                    onLoad={() => setBagLoaded(true)}
                 />
-                {items.map(({ id, label, image }) =>
-                    id === "laptop" ? (
-                        <a
-                            key={id}
-                            className={`bag-item bag-item--${id}`}
-                            href="/cv"
-                            aria-label="Open Bella Meng's CV"
-                            onMouseEnter={() => setActiveCaption(itemCaptions[id])}
-                            onMouseLeave={() => setActiveCaption("")}
-                            onFocus={() => setActiveCaption(itemCaptions[id])}
-                            onBlur={() => setActiveCaption("")}
-                        >
-                            <img src={image} alt="" draggable={false} />
-                        </a>
-                    ) : (
-                        <button
-                            key={id}
-                            type="button"
-                            className={`bag-item bag-item--${id}`}
-                            aria-label={label}
-                            onMouseEnter={() => setActiveCaption(itemCaptions[id])}
-                            onMouseLeave={() => setActiveCaption("")}
-                            onFocus={() => setActiveCaption(itemCaptions[id])}
-                            onBlur={() => setActiveCaption("")}
-                        >
-                            {id === "book" ? (
-                                <span className="bag-book">
-                                    <img src={image} alt="" draggable={false} />
-                                </span>
-                            ) : id === "switch" ? (
-                                <span className="bag-switch">
-                                    <img src={image} alt="" draggable={false} />
-                                </span>
-                            ) : (
+                {bagLoaded &&
+                    items.map(({ id, label, image }) =>
+                        id === "laptop" ? (
+                            <a
+                                key={id}
+                                className={`bag-item bag-item--${id}`}
+                                href="/cv"
+                                aria-label="Open Bella Meng's CV"
+                                onMouseEnter={() => setActiveCaption(itemCaptions[id])}
+                                onMouseLeave={() => setActiveCaption("")}
+                                onFocus={() => setActiveCaption(itemCaptions[id])}
+                                onBlur={() => setActiveCaption("")}
+                            >
                                 <img src={image} alt="" draggable={false} />
-                            )}
-                        </button>
-                    ),
-                )}
+                            </a>
+                        ) : (
+                            <button
+                                key={id}
+                                type="button"
+                                className={`bag-item bag-item--${id}`}
+                                aria-label={label}
+                                onMouseEnter={() => setActiveCaption(itemCaptions[id])}
+                                onMouseLeave={() => setActiveCaption("")}
+                                onFocus={() => setActiveCaption(itemCaptions[id])}
+                                onBlur={() => setActiveCaption("")}
+                            >
+                                {id === "book" ? (
+                                    <span className="bag-book">
+                                        <img src={image} alt="" draggable={false} />
+                                    </span>
+                                ) : id === "switch" ? (
+                                    <span className="bag-switch">
+                                        <img src={image} alt="" draggable={false} />
+                                    </span>
+                                ) : (
+                                    <img src={image} alt="" draggable={false} />
+                                )}
+                            </button>
+                        ),
+                    )}
                 {/* The front handles and panel cross the items; the rear wall stays behind them. */}
                 <img
                     className="bag-scene__front-strap"
