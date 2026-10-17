@@ -1,22 +1,36 @@
 .bag-landing {
     box-sizing: border-box;
     display: grid;
+    grid-template-rows: auto 1fr;
     min-height: 100dvh;
-    place-items: center;
+    justify-items: center;
     padding: 2rem 1rem 0;
     background: #fff;
 }
 
-.bag-landing__sr-only {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    padding: 0;
-    margin: -1px;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-    white-space: nowrap;
-    border: 0;
+.bag-landing__title {
+    margin: 0;
+    color: #ff4da6;
+    font-family: "Press Start 2P";
+    font-size: clamp(1.5rem, 3vw, 3rem);
+    font-weight: 200;
+    line-height: 1.15;
+    text-align: center;
+}
+
+.bag-landing__subtitle {
+    min-height: 1.6em;
+    margin: 0.85rem 0 0;
+    color: #ff4da6;
+    font-family: "Press Start 2P", monospace;
+    font-size: clamp(0.6rem, 1.5vw, 0.85rem);
+    line-height: 1.6;
+    opacity: 0;
+    transition: opacity 240ms ease;
+}
+
+.bag-landing__subtitle.is-visible {
+    opacity: 1;
 }
 
 .bag-scene {
@@ -116,7 +130,7 @@
 .bag-item--laptop {
     --layer: 1;
     --angle: -7deg;
-    --lift: 36%;
+    --lift: 20vh;
     top: 3%;
     left: 0;
     width: var(--laptop-width);
@@ -125,7 +139,7 @@
 .bag-item--book {
     --layer: 4;
     --angle: 8deg;
-    --lift: 42%;
+    --lift: 20vh;
     top: 8%;
     left: 34%;
     /* 15.2 cm wide cover; the laptop cutout has transparent side padding. */
@@ -156,7 +170,7 @@
 .bag-item--churu {
     --layer: 3;
     --angle: -72deg;
-    --lift: 145%;
+    --lift: 10vh;
     top: 25%;
     left: 63%;
     /* Approx. 15 cm tube, adjusted for transparent padding in the cutout. */
@@ -166,7 +180,7 @@
 .bag-item--switch {
     --layer: 2;
     --angle: 88deg;
-    --lift: 135%;
+    --lift: 10vh;
     top: 25%;
     left: 36%;
     /* Switch 2 is 27.2 cm wide, adjusted for cutout padding. */
@@ -192,7 +206,7 @@
 
 @media (max-width: 600px) {
     .bag-landing {
-        padding: 1.25rem 0.5rem;
+        padding: 1.25rem 0.5rem 0;
     }
 
     .bag-scene {
@@ -217,7 +231,8 @@
 
 @media (prefers-reduced-motion: reduce) {
     .bag-item > img,
-    .bag-item > span {
+    .bag-item > span,
+    .bag-landing__subtitle {
         transition: none;
     }
 }
