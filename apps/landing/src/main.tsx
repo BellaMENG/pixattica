@@ -1,4 +1,4 @@
-import { StrictMode } from "react";
+import { StrictMode, type ComponentType } from "react";
 import { createRoot } from "react-dom/client";
 import "./index.css";
 
@@ -10,16 +10,18 @@ if (isResumePage) {
     document.title = "Bella Meng | CV";
 }
 
-const appModule = isResumePage
-    ? import("./ResumeApp.tsx")
-    : isOsLandingEnabled
-      ? import("./App.tsx")
-      : import("./BagLanding.tsx");
-
-void appModule.then(({ default: App }) => {
+function mountApp(App: ComponentType) {
     createRoot(document.getElementById("root")!).render(
         <StrictMode>
             <App />
         </StrictMode>,
     );
-});
+}
+
+if (isResumePage) {
+    void import("./ResumeApp.tsx").then(({ default: App }) => mountApp(App));
+} else if (isOsLandingEnabled) {
+    void import("./App.tsx").then(({ default: App }) => mountApp(App));
+} else {
+    void import("./BagLanding.tsx").then(({ default: App }) => mountApp(App));
+}
