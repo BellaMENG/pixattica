@@ -5,6 +5,7 @@ import churuCutout from "./assets/bag/churu-cutout.webp";
 import laptopCutout from "./assets/bag/laptop-cutout.webp";
 import switchCutout from "./assets/bag/switch-2-cutout.webp";
 import "./BagLanding.css";
+import { useState } from "react";
 
 const items = [
     { id: "laptop", label: "MacBook Pro", image: laptopCutout },
@@ -13,10 +14,27 @@ const items = [
     { id: "switch", label: "Nintendo Switch 2", image: switchCutout },
 ] as const;
 
+const itemCaptions = {
+    laptop: "my CV",
+    book: "what's I'm reading",
+    churu: "my cats!",
+    switch: "some games",
+} as const;
+
 export default function BagLanding() {
+    const [activeCaption, setActiveCaption] = useState("");
+
     return (
         <main className="bag-landing">
-            <h1 className="bag-landing__title">What&apos;s in my bag</h1>
+            <header className="bag-landing__header">
+                <h1 className="bag-landing__title">What&apos;s in my bag</h1>
+                <p
+                    className={`bag-landing__subtitle${activeCaption ? " is-visible" : ""}`}
+                    aria-live="polite"
+                >
+                    {activeCaption || " "}
+                </p>
+            </header>
             <div className="bag-scene" role="group" aria-label="What is in Bella's bag">
                 <img
                     className="bag-scene__back"
@@ -31,6 +49,10 @@ export default function BagLanding() {
                         type="button"
                         className={`bag-item bag-item--${id}`}
                         aria-label={label}
+                        onMouseEnter={() => setActiveCaption(itemCaptions[id])}
+                        onMouseLeave={() => setActiveCaption("")}
+                        onFocus={() => setActiveCaption(itemCaptions[id])}
+                        onBlur={() => setActiveCaption("")}
                     >
                         {id === "book" ? (
                             <span className="bag-book">

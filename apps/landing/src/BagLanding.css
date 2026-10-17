@@ -18,6 +18,21 @@
     text-align: center;
 }
 
+.bag-landing__subtitle {
+    min-height: 1.6em;
+    margin: 0.85rem 0 0;
+    color: #ff4da6;
+    font-family: "Press Start 2P", monospace;
+    font-size: clamp(0.6rem, 1.5vw, 0.85rem);
+    line-height: 1.6;
+    opacity: 0;
+    transition: opacity 240ms ease;
+}
+
+.bag-landing__subtitle.is-visible {
+    opacity: 1;
+}
+
 .bag-scene {
     /* Visible widths use a 31.26 cm, 14-inch MacBook Pro as the reference. */
     --laptop-width: 84%;
@@ -216,7 +231,8 @@
 
 @media (prefers-reduced-motion: reduce) {
     .bag-item > img,
-    .bag-item > span {
+    .bag-item > span,
+    .bag-landing__subtitle {
         transition: none;
     }
 }
