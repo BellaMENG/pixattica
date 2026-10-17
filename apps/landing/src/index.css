@@ -56,6 +56,20 @@ a {
     height: 100dvh;
 }
 
+html.bag-landing-enabled,
+html.bag-landing-enabled body,
+html.bag-landing-enabled #root {
+    min-height: 100%;
+    height: auto;
+    background: #fff;
+    color: #171717;
+}
+
+html.bag-landing-enabled body {
+    min-height: 100dvh;
+    overflow: auto;
+}
+
 .os-app {
     display: flex;
     height: 100dvh;
