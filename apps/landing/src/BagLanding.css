@@ -10,10 +10,10 @@
 
 .bag-landing__title {
     margin: 0;
-    color: #25221e;
-    font-family: "Architects Daughter", cursive;
-    font-size: clamp(2rem, 5vw, 3.5rem);
-    font-weight: 400;
+    color: #ff4da6;
+    font-family: "Press Start 2P";
+    font-size: clamp(1.5rem, 3vw, 3rem);
+    font-weight: 200;
     line-height: 1.15;
     text-align: center;
 }
@@ -115,7 +115,7 @@
 .bag-item--laptop {
     --layer: 1;
     --angle: -7deg;
-    --lift: 28vh;
+    --lift: 20vh;
     top: 3%;
     left: 0;
     width: var(--laptop-width);
@@ -124,7 +124,7 @@
 .bag-item--book {
     --layer: 4;
     --angle: 8deg;
-    --lift: 28vh;
+    --lift: 20vh;
     top: 8%;
     left: 34%;
     /* 15.2 cm wide cover; the laptop cutout has transparent side padding. */
@@ -155,7 +155,7 @@
 .bag-item--churu {
     --layer: 3;
     --angle: -72deg;
-    --lift: 28vh;
+    --lift: 10vh;
     top: 25%;
     left: 63%;
     /* Approx. 15 cm tube, adjusted for transparent padding in the cutout. */
@@ -165,7 +165,7 @@
 .bag-item--switch {
     --layer: 2;
     --angle: 88deg;
-    --lift: 28vh;
+    --lift: 10vh;
     top: 25%;
     left: 36%;
     /* Switch 2 is 27.2 cm wide, adjusted for cutout padding. */
