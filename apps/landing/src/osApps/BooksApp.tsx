@@ -6,7 +6,7 @@ import martyrCover from "../assets/book-covers/martyr.jpg";
 import neverLetMeGoCover from "../assets/book-covers/never-let-me-go.jpg";
 import tomorrowAndTomorrowCover from "../assets/book-covers/tomorrow-and-tomorrow-and-tomorrow.jpg";
 
-type BookEntry = {
+export type BookEntry = {
     title: string;
     author: string;
     coverSrc: string;
@@ -36,7 +36,7 @@ const paginationDotBaseClassName = "h-2 w-2 rounded-sm border border-pink-300";
 const paginationDotActiveClassName = "bg-pink-500";
 const paginationDotInactiveClassName = "bg-pink-100";
 
-const books2025: BookEntry[] = [
+export const books2025: BookEntry[] = [
     {
         title: "Glorious Exploits",
         author: "Ferdia Lennon",
@@ -102,7 +102,7 @@ export default function BooksApp() {
         <section className={sectionClassName}>
             <h2 className={sectionTitleClassName}>
                 <a
-                    href="https://www.goodreads.com/user/show/183742584"
+                    href="https://www.goodreads.com/bellameng"
                     target="_blank"
                     rel="noreferrer"
                     className={goodreadsLinkClassName}

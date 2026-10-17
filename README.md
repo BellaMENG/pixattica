@@ -131,8 +131,8 @@ On a fresh database, `blog-api` seeds one placeholder published post so `blogs.a
 
 The landing site shows the “What’s in My Bag” page by default. Set `VITE_OS_LANDING=true` when
 building the landing app to show the OS interface instead. The flag is resolved at build time.
-The laptop opens the web CV at `/cv`. Replace `apps/landing/src/assets/bag/book-cover.jpeg` to
-update the book cover.
+The laptop opens the web CV at `/cv`, and the book opens the ratings page at `/books`.
+Replace `apps/landing/src/assets/bag/book-cover.jpeg` to update the book cover.
 
 To deploy the public site and the reading slideshow together at `pixattica.com/` and `pixattica.com/reading`, use:
 
