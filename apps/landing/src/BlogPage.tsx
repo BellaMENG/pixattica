@@ -10,7 +10,7 @@ export default function BlogPage() {
                 </a>
                 <header className="books-page__header">
                     <p className="books-page__eyebrow">BELLA'S NOTEBOOK</p>
-                    <h1>Blog</h1>
+                    <h1>Moring pages</h1>
                 </header>
                 <BlogsApp />
             </div>
