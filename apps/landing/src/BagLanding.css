@@ -51,6 +51,7 @@
     bottom: 0;
     left: 0;
     content: "";
+    pointer-events: none;
 }
 
 .bag-scene__back,

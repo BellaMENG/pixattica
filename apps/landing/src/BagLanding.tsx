@@ -71,19 +71,33 @@ export default function BagLanding() {
                 />
                 {bagLoaded &&
                     items.map(({ id, label, image }) =>
-                        id === "laptop" ? (
+                        id === "laptop" || id === "book" ? (
                             <a
                                 key={id}
                                 className={`bag-item bag-item--${id}${tappedItem === id ? " is-tapped" : ""}`}
-                                href="/cv"
-                                aria-label="Open Bella Meng's CV"
+                                href={id === "book" ? "/books" : "/cv"}
+                                aria-label={
+                                    id === "book"
+                                        ? "Open Bella Meng's book ratings"
+                                        : "Open Bella Meng's CV"
+                                }
                                 onMouseEnter={() => setActiveCaption(itemCaptions[id])}
                                 onMouseLeave={() => setActiveCaption("")}
-                                onClick={(event) => handleItemClick(id, event)}
+                                onClick={
+                                    id === "laptop"
+                                        ? (event) => handleItemClick(id, event)
+                                        : undefined
+                                }
                                 onFocus={() => setActiveCaption(itemCaptions[id])}
                                 onBlur={() => setActiveCaption("")}
                             >
-                                <img src={image} alt="" draggable={false} />
+                                {id === "book" ? (
+                                    <span className="bag-book">
+                                        <img src={image} alt="" draggable={false} />
+                                    </span>
+                                ) : (
+                                    <img src={image} alt="" draggable={false} />
+                                )}
                             </a>
                         ) : (
                             <button
@@ -97,11 +111,7 @@ export default function BagLanding() {
                                 onFocus={() => setActiveCaption(itemCaptions[id])}
                                 onBlur={() => setActiveCaption("")}
                             >
-                                {id === "book" ? (
-                                    <span className="bag-book">
-                                        <img src={image} alt="" draggable={false} />
-                                    </span>
-                                ) : id === "switch" ? (
+                                {id === "switch" ? (
                                     <span className="bag-switch">
                                         <img src={image} alt="" draggable={false} />
                                     </span>
