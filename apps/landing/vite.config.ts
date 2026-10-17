@@ -8,6 +8,7 @@ export default defineConfig({
     base: "/",
     plugins: [tailwindcss(), react()],
     server: {
+        host: "::",
         port: 5173,
         proxy: {
             "/api": {

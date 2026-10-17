@@ -2,6 +2,14 @@
 @source "../../../packages/ui/src";
 @source "../../../packages/pixel-collage/src";
 
+@font-face {
+    font-family: "Press Start 2P";
+    src: url("./assets/fonts/press-start-2p-latin.woff2") format("woff2");
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+}
+
 :root {
     --os-bg: #fdf6fb;
     --os-bg-strong: #f7d8ea;

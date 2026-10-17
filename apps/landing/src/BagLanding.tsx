@@ -1,6 +1,7 @@
 import bagCutout from "./assets/bag/bag-2186-clean.webp";
 import frontHandles from "./assets/bag/bag-2186-front-handles.webp";
 import bookCover from "./assets/bag/book-cover.jpeg";
+import notebookCutout from "./assets/bag/notebook-cutout.png";
 import churuCutout from "./assets/bag/churu-cutout.webp";
 import laptopCutout from "./assets/bag/laptop-cutout.webp";
 import switchCutout from "./assets/bag/switch-2-cutout.webp";
@@ -10,6 +11,7 @@ import { useEffect, useState, type MouseEvent } from "react";
 const items = [
     { id: "laptop", label: "MacBook Pro", image: laptopCutout },
     { id: "book", label: "Book", image: bookCover },
+    { id: "notebook", label: "Notebook", image: notebookCutout },
     { id: "churu", label: "Churu cat treat", image: churuCutout },
     { id: "switch", label: "Nintendo Switch 2", image: switchCutout },
 ] as const;
@@ -17,6 +19,7 @@ const items = [
 const itemCaptions = {
     laptop: "my CV",
     book: "what's I'm reading",
+    notebook: "blog",
     churu: "my cats!",
     switch: "some games",
 } as const;
@@ -71,15 +74,19 @@ export default function BagLanding() {
                 />
                 {bagLoaded &&
                     items.map(({ id, label, image }) =>
-                        id === "laptop" || id === "book" ? (
+                        id === "laptop" || id === "book" || id === "notebook" ? (
                             <a
                                 key={id}
                                 className={`bag-item bag-item--${id}${tappedItem === id ? " is-tapped" : ""}`}
-                                href={id === "book" ? "/books" : "/cv"}
+                                href={
+                                    id === "book" ? "/books" : id === "notebook" ? "/blog" : "/cv"
+                                }
                                 aria-label={
                                     id === "book"
                                         ? "Open Bella Meng's book ratings"
-                                        : "Open Bella Meng's CV"
+                                        : id === "notebook"
+                                          ? "Open Bella Meng's blog"
+                                          : "Open Bella Meng's CV"
                                 }
                                 onMouseEnter={() => setActiveCaption(itemCaptions[id])}
                                 onMouseLeave={() => setActiveCaption("")}
@@ -89,6 +96,10 @@ export default function BagLanding() {
                             >
                                 {id === "book" ? (
                                     <span className="bag-book">
+                                        <img src={image} alt="" draggable={false} />
+                                    </span>
+                                ) : id === "notebook" ? (
+                                    <span className="bag-notebook">
                                         <img src={image} alt="" draggable={false} />
                                     </span>
                                 ) : (

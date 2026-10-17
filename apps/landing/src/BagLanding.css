@@ -11,7 +11,7 @@
 .bag-landing__title {
     margin: 0;
     color: #ff4da6;
-    font-family: "Press Start 2P";
+    font-family: "Press Start 2P", monospace;
     font-size: clamp(1.5rem, 3vw, 3rem);
     font-weight: 200;
     line-height: 1.15;
@@ -137,7 +137,7 @@ a.bag-item {
     --layer: 1;
     --angle: -7deg;
     --lift: 20vh;
-    top: 3%;
+    top: -10%;
     left: 0;
     width: var(--laptop-width);
 }
@@ -147,7 +147,7 @@ a.bag-item {
     --angle: 8deg;
     --lift: 20vh;
     top: 8%;
-    left: 34%;
+    left: 25%;
     /* 15.2 cm wide cover; the laptop cutout has transparent side padding. */
     width: calc(var(--laptop-width) * 0.401);
 }
@@ -173,12 +173,80 @@ a.bag-item {
     pointer-events: none;
 }
 
+.bag-item--notebook {
+    --layer: 3;
+    --angle: -5deg;
+    --lift: 20vh;
+    top: 5%;
+    left: 40%;
+    width: calc(var(--laptop-width) * 0.401);
+}
+
+.bag-item--laptop,
+.bag-item--notebook,
+.bag-item--churu,
+.bag-item--switch {
+    pointer-events: none;
+}
+
+.bag-item--laptop::before,
+.bag-item--notebook::before,
+.bag-item--churu::before,
+.bag-item--switch::before {
+    position: absolute;
+    inset: 0;
+    content: "";
+    pointer-events: auto;
+    transform: rotate(var(--angle));
+}
+
+.bag-item--laptop::before {
+    clip-path: inset(8% 4% 8% 5% round 1.5%);
+}
+
+.bag-item--churu::before {
+    clip-path: inset(31% 0 29%);
+}
+
+.bag-item--switch::before {
+    clip-path: inset(4% 4% 4% 4% round 2%);
+}
+
+.bag-item--laptop img,
+.bag-item--notebook img,
+.bag-item--churu > img,
+.bag-item--switch img {
+    pointer-events: none;
+}
+
+.bag-item--notebook::before {
+    clip-path: inset(0 round 3%);
+}
+
+.bag-item--notebook .bag-notebook {
+    pointer-events: auto;
+}
+
+.bag-notebook {
+    position: relative;
+    display: block;
+    aspect-ratio: 364 / 549;
+}
+
+.bag-notebook img {
+    position: absolute;
+    top: -3%;
+    left: -35%;
+    max-width: none;
+    width: 170%;
+}
+
 .bag-item--churu {
     --layer: 3;
     --angle: -72deg;
     --lift: 10vh;
     top: 25%;
-    left: 63%;
+    left: 65%;
     /* Approx. 15 cm tube, adjusted for transparent padding in the cutout. */
     width: calc(var(--laptop-width) * 0.524);
 }
@@ -188,7 +256,7 @@ a.bag-item {
     --angle: 88deg;
     --lift: 10vh;
     top: 25%;
-    left: 36%;
+    left: 40%;
     /* Switch 2 is 27.2 cm wide, adjusted for cutout padding. */
     width: calc(var(--laptop-width) * 0.844);
 }
@@ -228,6 +296,10 @@ a.bag-item {
 
     .bag-item--book {
         left: 33%;
+    }
+
+    .bag-item--notebook {
+        left: 53%;
     }
 
     .bag-item--churu {

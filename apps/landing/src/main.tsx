@@ -5,12 +5,15 @@ import "./index.css";
 const isOsLandingEnabled = import.meta.env.VITE_OS_LANDING === "true";
 const isResumePage = window.location.pathname === "/cv";
 const isBooksPage = window.location.pathname === "/books";
-const showBagLanding = !isOsLandingEnabled || isResumePage || isBooksPage;
+const isBlogPage = window.location.pathname === "/blog";
+const showBagLanding = !isOsLandingEnabled || isResumePage || isBooksPage || isBlogPage;
 document.documentElement.classList.toggle("bag-landing-enabled", showBagLanding);
 if (isResumePage) {
     document.title = "Bella Meng | CV";
 } else if (isBooksPage) {
     document.title = "Bella Meng | Books";
+} else if (isBlogPage) {
+    document.title = "Bella Meng | Blog";
 }
 
 function mountApp(App: ComponentType) {
@@ -25,6 +28,8 @@ if (isResumePage) {
     void import("./ResumeApp.tsx").then(({ default: App }) => mountApp(App));
 } else if (isBooksPage) {
     void import("./BooksPage.tsx").then(({ default: App }) => mountApp(App));
+} else if (isBlogPage) {
+    void import("./BlogPage.tsx").then(({ default: App }) => mountApp(App));
 } else if (isOsLandingEnabled) {
     void import("./App.tsx").then(({ default: App }) => mountApp(App));
 } else {
