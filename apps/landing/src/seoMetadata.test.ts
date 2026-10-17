@@ -8,7 +8,7 @@ const INDEX_HTML = readFileSync(resolve(CURRENT_DIR, "../index.html"), "utf8");
 
 describe("landing SEO metadata", () => {
     it("brands the homepage around Bella Meng's software engineering portfolio", () => {
-        expect(INDEX_HTML).toContain("<title>Bella Meng | Software Engineer | Pixattica</title>");
+        expect(INDEX_HTML).toContain("<title>Bella Meng | Software Engineer</title>");
         expect(INDEX_HTML).toContain(
             'content="Bella Meng, software engineer, (product engineer?), based in London."',
         );
