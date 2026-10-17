@@ -6,7 +6,13 @@ import churuCutout from "./assets/bag/churu-cutout.webp";
 import laptopCutout from "./assets/bag/laptop-cutout.webp";
 import switchCutout from "./assets/bag/switch-2-cutout.webp";
 import "./BagLanding.css";
-import { useEffect, useState, type MouseEvent } from "react";
+import {
+    useEffect,
+    useRef,
+    useState,
+    type MouseEvent,
+    type PointerEvent as ReactPointerEvent,
+} from "react";
 
 const items = [
     { id: "laptop", label: "MacBook Pro", image: laptopCutout },
@@ -24,10 +30,20 @@ const itemCaptions = {
     switch: "some games",
 } as const;
 
+type ItemId = (typeof items)[number]["id"];
+
 export default function BagLanding() {
     const [activeCaption, setActiveCaption] = useState("");
     const [bagLoaded, setBagLoaded] = useState(false);
     const [tappedItem, setTappedItem] = useState<string | null>(null);
+    const [swipedItem, setSwipedItem] = useState<ItemId | null>(null);
+    const swipeRef = useRef<{
+        pointerId: number;
+        startX: number;
+        startY: number;
+        moved: boolean;
+    } | null>(null);
+    const suppressClickRef = useRef(false);
 
     useEffect(() => {
         if (!tappedItem) return;
@@ -52,6 +68,59 @@ export default function BagLanding() {
         }
     };
 
+    const itemAtPoint = (scene: HTMLDivElement, x: number, y: number): ItemId | null => {
+        const item = document.elementFromPoint(x, y)?.closest<HTMLElement>("[data-bag-item]");
+        return item && scene.contains(item) ? (item.dataset.bagItem as ItemId) : null;
+    };
+
+    const updateSwipedItem = (scene: HTMLDivElement, x: number, y: number) => {
+        const id = itemAtPoint(scene, x, y);
+        setSwipedItem(id);
+        setActiveCaption(id ? itemCaptions[id] : "");
+    };
+
+    const handleSwipeStart = (event: ReactPointerEvent<HTMLDivElement>) => {
+        suppressClickRef.current = false;
+        if (event.pointerType !== "touch" || !event.isPrimary) return;
+        swipeRef.current = {
+            pointerId: event.pointerId,
+            startX: event.clientX,
+            startY: event.clientY,
+            moved: false,
+        };
+        setTappedItem(null);
+        updateSwipedItem(event.currentTarget, event.clientX, event.clientY);
+    };
+
+    const handleSwipeMove = (event: ReactPointerEvent<HTMLDivElement>) => {
+        const swipe = swipeRef.current;
+        if (!swipe || swipe.pointerId !== event.pointerId) return;
+        if (Math.hypot(event.clientX - swipe.startX, event.clientY - swipe.startY) > 8) {
+            swipe.moved = true;
+        }
+        updateSwipedItem(event.currentTarget, event.clientX, event.clientY);
+    };
+
+    const handleSwipeEnd = (event: ReactPointerEvent<HTMLDivElement>) => {
+        const swipe = swipeRef.current;
+        if (!swipe || swipe.pointerId !== event.pointerId) return;
+        suppressClickRef.current = swipe.moved;
+        swipeRef.current = null;
+        setSwipedItem(null);
+        setActiveCaption("");
+    };
+
+    const suppressSwipeClick = (event: MouseEvent<HTMLDivElement>) => {
+        if (!suppressClickRef.current) return;
+        if (event.detail === 0) {
+            suppressClickRef.current = false;
+            return;
+        }
+        event.preventDefault();
+        event.stopPropagation();
+        suppressClickRef.current = false;
+    };
+
     return (
         <main className="bag-landing">
             <header className="bag-landing__header">
@@ -63,7 +132,16 @@ export default function BagLanding() {
                     {activeCaption || " "}
                 </p>
             </header>
-            <div className="bag-scene" role="group" aria-label="What is in Bella's bag">
+            <div
+                className="bag-scene"
+                role="group"
+                aria-label="What is in Bella's bag"
+                onPointerDown={handleSwipeStart}
+                onPointerMove={handleSwipeMove}
+                onPointerUp={handleSwipeEnd}
+                onPointerCancel={handleSwipeEnd}
+                onClickCapture={suppressSwipeClick}
+            >
                 <img
                     className="bag-scene__back"
                     src={bagCutout}
@@ -77,7 +155,8 @@ export default function BagLanding() {
                         id === "laptop" || id === "book" || id === "notebook" ? (
                             <a
                                 key={id}
-                                className={`bag-item bag-item--${id}${tappedItem === id ? " is-tapped" : ""}`}
+                                className={`bag-item bag-item--${id}${tappedItem === id ? " is-tapped" : ""}${swipedItem === id ? " is-swiped" : ""}`}
+                                data-bag-item={id}
                                 href={
                                     id === "book" ? "/books" : id === "notebook" ? "/blog" : "/cv"
                                 }
@@ -110,7 +189,8 @@ export default function BagLanding() {
                             <button
                                 key={id}
                                 type="button"
-                                className={`bag-item bag-item--${id}${tappedItem === id ? " is-tapped" : ""}`}
+                                className={`bag-item bag-item--${id}${tappedItem === id ? " is-tapped" : ""}${swipedItem === id ? " is-swiped" : ""}`}
+                                data-bag-item={id}
                                 aria-label={label}
                                 onMouseEnter={() => setActiveCaption(itemCaptions[id])}
                                 onMouseLeave={() => setActiveCaption("")}

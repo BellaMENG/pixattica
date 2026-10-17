@@ -42,6 +42,7 @@
     aspect-ratio: 1.15;
     container-type: inline-size;
     isolation: isolate;
+    touch-action: none;
 }
 
 .bag-scene::after {
@@ -118,10 +119,18 @@ a.bag-item {
     user-select: none;
 }
 
-.bag-item:is(:hover, :focus-visible, :active, .is-tapped) > img,
-.bag-item:is(:hover, :focus-visible, :active, .is-tapped) > span {
+.bag-item:is(:focus-visible, .is-tapped, .is-swiped) > img,
+.bag-item:is(:focus-visible, .is-tapped, .is-swiped) > span {
     transform: translateY(calc(-1 * var(--lift))) rotate(var(--angle));
     filter: drop-shadow(0 8px 7px rgb(0 0 0 / 0.16));
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .bag-item:hover > img,
+    .bag-item:hover > span {
+        transform: translateY(calc(-1 * var(--lift))) rotate(var(--angle));
+        filter: drop-shadow(0 8px 7px rgb(0 0 0 / 0.16));
+    }
 }
 
 .bag-item:focus-visible {
