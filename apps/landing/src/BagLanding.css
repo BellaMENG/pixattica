@@ -40,7 +40,9 @@
     align-self: end;
     width: min(86vw, 720px, calc(100dvh * 0.74));
     aspect-ratio: 1.15;
+    container-type: inline-size;
     isolation: isolate;
+    touch-action: none;
 }
 
 .bag-scene::after {
@@ -117,10 +119,18 @@ a.bag-item {
     user-select: none;
 }
 
-.bag-item:is(:hover, :focus-visible, :active, .is-tapped) > img,
-.bag-item:is(:hover, :focus-visible, :active, .is-tapped) > span {
+.bag-item:is(:focus-visible, .is-tapped, .is-swiped) > img,
+.bag-item:is(:focus-visible, .is-tapped, .is-swiped) > span {
     transform: translateY(calc(-1 * var(--lift))) rotate(var(--angle));
     filter: drop-shadow(0 8px 7px rgb(0 0 0 / 0.16));
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .bag-item:hover > img,
+    .bag-item:hover > span {
+        transform: translateY(calc(-1 * var(--lift))) rotate(var(--angle));
+        filter: drop-shadow(0 8px 7px rgb(0 0 0 / 0.16));
+    }
 }
 
 .bag-item:focus-visible {
@@ -136,7 +146,7 @@ a.bag-item {
 .bag-item--laptop {
     --layer: 1;
     --angle: -7deg;
-    --lift: 20vh;
+    --lift: 30cqw;
     top: -10%;
     left: 0;
     width: var(--laptop-width);
@@ -145,7 +155,7 @@ a.bag-item {
 .bag-item--book {
     --layer: 4;
     --angle: 8deg;
-    --lift: 20vh;
+    --lift: 30cqw;
     top: 8%;
     left: 25%;
     /* 15.2 cm wide cover; the laptop cutout has transparent side padding. */
@@ -176,7 +186,7 @@ a.bag-item {
 .bag-item--notebook {
     --layer: 3;
     --angle: -5deg;
-    --lift: 20vh;
+    --lift: 30cqw;
     top: 5%;
     left: 40%;
     width: calc(var(--laptop-width) * 0.401);
@@ -244,7 +254,7 @@ a.bag-item {
 .bag-item--churu {
     --layer: 3;
     --angle: -72deg;
-    --lift: 10vh;
+    --lift: 15cqw;
     top: 25%;
     left: 65%;
     /* Approx. 15 cm tube, adjusted for transparent padding in the cutout. */
@@ -254,7 +264,7 @@ a.bag-item {
 .bag-item--switch {
     --layer: 2;
     --angle: 88deg;
-    --lift: 10vh;
+    --lift: 15cqw;
     top: 25%;
     left: 40%;
     /* Switch 2 is 27.2 cm wide, adjusted for cutout padding. */
@@ -284,26 +294,8 @@ a.bag-item {
     }
 
     .bag-scene {
-        --laptop-width: 89%;
         align-self: center;
         width: min(82vw, calc((100dvh - 2.5rem) * 1.15));
-    }
-
-    .bag-item--laptop {
-        top: 2.5%;
-        left: 0;
-    }
-
-    .bag-item--book {
-        left: 33%;
-    }
-
-    .bag-item--notebook {
-        left: 53%;
-    }
-
-    .bag-item--churu {
-        left: 62%;
     }
 }
 
