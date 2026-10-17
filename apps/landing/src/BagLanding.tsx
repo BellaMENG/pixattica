@@ -5,7 +5,7 @@ import churuCutout from "./assets/bag/churu-cutout.webp";
 import laptopCutout from "./assets/bag/laptop-cutout.webp";
 import switchCutout from "./assets/bag/switch-2-cutout.webp";
 import "./BagLanding.css";
-import { useState } from "react";
+import { useEffect, useState, type MouseEvent } from "react";
 
 const items = [
     { id: "laptop", label: "MacBook Pro", image: laptopCutout },
@@ -24,6 +24,30 @@ const itemCaptions = {
 export default function BagLanding() {
     const [activeCaption, setActiveCaption] = useState("");
     const [bagLoaded, setBagLoaded] = useState(false);
+    const [tappedItem, setTappedItem] = useState<string | null>(null);
+
+    useEffect(() => {
+        if (!tappedItem) return;
+
+        const dismissOnOutsideClick = (event: PointerEvent) => {
+            if (event.target instanceof Element && event.target.closest(".bag-item")) return;
+            setTappedItem(null);
+            setActiveCaption("");
+        };
+
+        document.addEventListener("pointerdown", dismissOnOutsideClick);
+        return () => document.removeEventListener("pointerdown", dismissOnOutsideClick);
+    }, [tappedItem]);
+
+    const handleItemClick = (id: string, event?: MouseEvent<HTMLAnchorElement>) => {
+        const canHover = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+        if (canHover) return;
+        if (tappedItem !== id) {
+            event?.preventDefault();
+            setTappedItem(id);
+            setActiveCaption(itemCaptions[id as keyof typeof itemCaptions]);
+        }
+    };
 
     return (
         <main className="bag-landing">
@@ -50,11 +74,12 @@ export default function BagLanding() {
                         id === "laptop" ? (
                             <a
                                 key={id}
-                                className={`bag-item bag-item--${id}`}
+                                className={`bag-item bag-item--${id}${tappedItem === id ? " is-tapped" : ""}`}
                                 href="/cv"
                                 aria-label="Open Bella Meng's CV"
                                 onMouseEnter={() => setActiveCaption(itemCaptions[id])}
                                 onMouseLeave={() => setActiveCaption("")}
+                                onClick={(event) => handleItemClick(id, event)}
                                 onFocus={() => setActiveCaption(itemCaptions[id])}
                                 onBlur={() => setActiveCaption("")}
                             >
@@ -64,10 +89,11 @@ export default function BagLanding() {
                             <button
                                 key={id}
                                 type="button"
-                                className={`bag-item bag-item--${id}`}
+                                className={`bag-item bag-item--${id}${tappedItem === id ? " is-tapped" : ""}`}
                                 aria-label={label}
                                 onMouseEnter={() => setActiveCaption(itemCaptions[id])}
                                 onMouseLeave={() => setActiveCaption("")}
+                                onClick={() => handleItemClick(id)}
                                 onFocus={() => setActiveCaption(itemCaptions[id])}
                                 onBlur={() => setActiveCaption("")}
                             >
