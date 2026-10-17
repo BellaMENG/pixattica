@@ -1,4 +1,3 @@
-import "@testing-library/jest-dom/vitest";
 import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -20,8 +19,8 @@ describe("reading app", () => {
     it("renders the first slide on load", () => {
         const { container } = render(<App />);
 
-        expect(screen.getByRole("heading", { name: SLIDES[0].title })).toBeInTheDocument();
-        expect(container.querySelector(".reading-placeholder-title")).not.toBeInTheDocument();
+        expect(screen.getByRole("heading", { name: SLIDES[0].title })).toBeTruthy();
+        expect(container.querySelector(".reading-placeholder-title")).toBeNull();
     });
 
     it("moves to the next slide when next is clicked", async () => {
@@ -30,7 +29,7 @@ describe("reading app", () => {
 
         await user.click(screen.getByRole("button", { name: "Next" }));
 
-        expect(screen.getByRole("heading", { name: SLIDES[1].title })).toBeInTheDocument();
+        expect(screen.getByRole("heading", { name: SLIDES[1].title })).toBeTruthy();
     });
 
     it("jumps to the last slide with the end key", async () => {
@@ -39,11 +38,9 @@ describe("reading app", () => {
 
         await user.keyboard("{End}");
 
-        expect(
-            screen.getByRole("heading", { name: SLIDES[SLIDES.length - 1].title }),
-        ).toBeInTheDocument();
-        expect(container.querySelector(".reading-placeholder-body")).not.toBeInTheDocument();
-        expect(container.querySelector(".reading-placeholder-footer")).not.toBeInTheDocument();
+        expect(screen.getByRole("heading", { name: SLIDES[SLIDES.length - 1].title })).toBeTruthy();
+        expect(container.querySelector(".reading-placeholder-body")).toBeNull();
+        expect(container.querySelector(".reading-placeholder-footer")).toBeNull();
     });
 
     it("renders subtitle and bullet blocks when a slide has content", () => {
@@ -59,10 +56,10 @@ describe("reading app", () => {
 
         render(<App />);
 
-        expect(screen.getByText("A real subtitle")).toBeInTheDocument();
-        expect(screen.getByText("Phone in another room.")).toBeInTheDocument();
-        expect(screen.getByText("Read")).toBeInTheDocument();
-        expect(screen.getByText("Rest")).toBeInTheDocument();
+        expect(screen.getByText("A real subtitle")).toBeTruthy();
+        expect(screen.getByText("Phone in another room.")).toBeTruthy();
+        expect(screen.getByText("Read")).toBeTruthy();
+        expect(screen.getByText("Rest")).toBeTruthy();
     });
 
     it("supports explicitly centered slides with longer content", async () => {
@@ -74,7 +71,7 @@ describe("reading app", () => {
         await user.click(screen.getByRole("button", { name: "Next" }));
         await user.click(screen.getByRole("button", { name: "Next" }));
 
-        expect(screen.getByRole("heading", { name: "What Worked for Me!" })).toBeInTheDocument();
-        expect(container.querySelector(".reading-slide-body-centered")).toBeInTheDocument();
+        expect(screen.getByRole("heading", { name: "What Worked for Me!" })).toBeTruthy();
+        expect(container.querySelector(".reading-slide-body-centered")).toBeTruthy();
     });
 });
