@@ -13,7 +13,6 @@ export default function ResumeApp() {
                         Senior Software Engineer | Product &amp; cross-platform engineering
                     </p>
                     <nav className="resume-contact" aria-label="Contact details">
-                        <a href="tel:+447442244043">+44 7442 244043</a>
                         <span>London, United Kingdom</span>
                         <a href="mailto:bellamengzihan@gmail.com">bellamengzihan@gmail.com</a>
                         <a href="https://linkedin.com/in/bella-meng">LinkedIn</a>
