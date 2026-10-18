@@ -46,7 +46,7 @@ describe("SiteRouter", () => {
             laptop.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
         });
         expect(window.location.pathname).toBe("/cv");
-        expect(document.title).toBe("Bella Meng | CV");
+        expect(document.title).toBe("Bella Meng | Senior Software Engineer CV");
         expect(container.querySelector(".resume-page")).not.toBeNull();
         expect(bag?.parentElement?.hidden).toBe(true);
 
