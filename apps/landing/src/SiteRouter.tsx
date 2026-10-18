@@ -10,9 +10,16 @@ type SiteRoute = "/" | "/cv" | "/books" | "/blog";
 
 const routeTitles: Record<SiteRoute, string> = {
     "/": "Bella Meng | Software Engineer",
-    "/cv": "Bella Meng | CV",
-    "/books": "Bella Meng | Books",
+    "/cv": "Bella Meng | Senior Software Engineer CV",
+    "/books": "Bella Meng | Book Ratings",
     "/blog": "Bella Meng | Blog",
+};
+
+const routeDescriptions: Record<SiteRoute, string> = {
+    "/": "Bella Meng, software engineer, (product engineer?), based in London.",
+    "/cv": "Bella Meng is a senior software engineer at Goodnotes in London. Explore her experience in product, cross-platform, and AI-enabled engineering.",
+    "/books": "Books Bella Meng read and reviewed in 2025.",
+    "/blog": "Personal notes and writing from Bella Meng, a software engineer in London.",
 };
 
 function getRoute(pathname: string): SiteRoute {
@@ -88,6 +95,20 @@ export default function SiteRouter() {
 
     useLayoutEffect(() => {
         document.title = routeTitles[route];
+        const url = `https://bellameng.com${route}`;
+        document
+            .querySelector<HTMLMetaElement>('meta[name="description"]')
+            ?.setAttribute("content", routeDescriptions[route]);
+        document.querySelector<HTMLLinkElement>('link[rel="canonical"]')?.setAttribute("href", url);
+        document
+            .querySelector<HTMLMetaElement>('meta[property="og:title"]')
+            ?.setAttribute("content", routeTitles[route]);
+        document
+            .querySelector<HTMLMetaElement>('meta[property="og:description"]')
+            ?.setAttribute("content", routeDescriptions[route]);
+        document
+            .querySelector<HTMLMetaElement>('meta[property="og:url"]')
+            ?.setAttribute("content", url);
         document.documentElement.classList.toggle(
             "bag-landing-enabled",
             !isOsLandingEnabled || route !== "/",
