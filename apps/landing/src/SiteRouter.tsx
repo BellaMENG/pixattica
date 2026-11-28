@@ -1,4 +1,5 @@
 import { lazy, Suspense, useEffect, useLayoutEffect, useState } from "react";
+import TurntableDock from "./TurntableDock";
 
 const BagLanding = lazy(() => import("./BagLanding"));
 const OsLanding = lazy(() => import("./App"));
@@ -145,6 +146,7 @@ export default function SiteRouter() {
                     </Suspense>
                 </div>
             )}
+            {route !== "/" && <TurntableDock />}
         </>
     );
 }
