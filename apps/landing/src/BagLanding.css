@@ -222,6 +222,10 @@ a.bag-item {
     clip-path: inset(31% 0 29%);
 }
 
+.bag-item--churu:not([data-churu-stage="sealed"])::before {
+    pointer-events: none;
+}
+
 .bag-item--switch::before {
     clip-path: inset(4% 4% 4% 4% round 2%);
 }
@@ -265,6 +269,120 @@ a.bag-item {
     width: calc(var(--laptop-width) * 0.524);
 }
 
+/* The right seal is the upper end once the packet is rotated into the bag. */
+.churu-packet {
+    position: relative;
+    --tear: 82% 0%, 82% 31%, 81.3% 39%, 82.2% 46%, 81.4% 53%, 82.1% 60%, 81.6% 71%, 81.6% 100%;
+}
+
+.churu-packet::after {
+    position: absolute;
+    inset: 26% 9% 24%;
+    content: "";
+    pointer-events: auto;
+}
+
+.bag-item--churu[data-churu-stage]:not([data-churu-stage="sealed"]) > .churu-packet {
+    transform: translateY(calc(-1 * var(--lift))) rotate(var(--angle));
+}
+
+.churu-strip {
+    position: absolute;
+    inset: 0;
+    visibility: hidden;
+    clip-path: polygon(var(--tear), 100% 100%, 100% 0);
+    transform-origin: 81.6% 69%;
+}
+
+[data-churu-stage="torn"] .churu-body,
+[data-churu-stage="open"] .churu-body {
+    clip-path: polygon(0 0, var(--tear), 0 100%);
+}
+
+[data-churu-stage="torn"] .churu-strip {
+    visibility: visible;
+    transform: rotate(105deg);
+    animation: churu-tear 300ms ease-out;
+}
+
+@keyframes churu-tear {
+    from {
+        transform: rotate(0deg);
+    }
+    75% {
+        transform: rotate(114deg);
+    }
+}
+
+[data-churu-stage="open"] .churu-strip {
+    animation: churu-drop 520ms ease-in;
+}
+
+@keyframes churu-drop {
+    from {
+        visibility: visible;
+        transform: rotate(105deg);
+    }
+    to {
+        visibility: visible;
+        transform: translate(-75%, 115%) rotate(225deg);
+    }
+}
+
+.churu-treat {
+    position: absolute;
+    z-index: -1;
+    left: 78%;
+    top: 37%;
+    width: 10%;
+    height: 27%;
+    /* Purée cropped from the Pakutaso photo at https://www.pakutaso.com/20231253345post-49505.html */
+    background: url("./assets/bag/churu-puree.webp") center / 100% 100% no-repeat;
+    animation: churu-squeeze 260ms 180ms ease-out backwards;
+}
+
+@keyframes churu-squeeze {
+    from {
+        transform: translateX(-100%);
+    }
+}
+
+.bag-cat-photo {
+    position: absolute;
+    z-index: 12;
+    left: 12%;
+    bottom: 70%;
+    width: min(56cqw, 32dvh);
+    padding: 2% 2% 4%;
+    transform: rotate(-4deg);
+    background: #fffdf9;
+    box-shadow:
+        0 2px 5px #0002,
+        0 8px 20px #35241e2b;
+}
+
+.bag-cat-photo img {
+    display: block;
+    width: 100%;
+    aspect-ratio: 1;
+    object-fit: contain;
+    background: #f4efe8;
+}
+
+.bag-cat-photo button {
+    position: absolute;
+    top: -0.65rem;
+    right: -0.65rem;
+    width: 2rem;
+    height: 2rem;
+    border: 1px solid #e2c9d5;
+    border-radius: 50%;
+    background: white;
+    color: #84274f;
+    font: 1.4rem/1 sans-serif;
+    cursor: pointer;
+}
+
 .bag-item--switch {
     --layer: 2;
     --angle: 88deg;
@@ -304,6 +422,11 @@ a.bag-item {
 }
 
 @media (prefers-reduced-motion: reduce) {
+    .churu-strip,
+    .churu-treat {
+        animation: none !important;
+    }
+
     .bag-item > img,
     .bag-item > span,
     .bag-landing__subtitle {
