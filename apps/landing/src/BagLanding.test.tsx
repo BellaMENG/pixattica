@@ -91,6 +91,69 @@ describe("BagLanding touch interactions", () => {
         expect(clickPrevented).toEqual([true, false]);
     });
 
+    it("tears, opens, and draws cat photos without repeating within a round", async () => {
+        await mount();
+        const churu = item("churu");
+        const photo = () => container!.querySelector<HTMLImageElement>(".bag-cat-photo img");
+        hitItem = churu;
+        // Exploring the bag by swiping across the treat must leave it sealed.
+        await pointer(churu, "pointerdown", 10, 10);
+        await pointer(churu, "pointermove", 30, 10);
+        await pointer(churu, "pointerup", 30, 10);
+        await click(churu);
+        expect(churu.dataset.churuStage).toBe("sealed");
+
+        for (const stage of ["torn", "open"]) {
+            await pointer(churu, "pointerdown", 10, 10);
+            await pointer(churu, "pointerup", 10, 10);
+            await click(churu);
+            expect(churu.dataset.churuStage).toBe(stage);
+            expect(photo()).toBeNull();
+        }
+        expect(container!.textContent).toContain("meet my cats →");
+
+        const personal = import.meta.glob("./assets/bag/cats/*.{jpg,jpeg,png,webp,avif}");
+        const fallback = import.meta.glob("./assets/cats/**/*.{jpg,jpeg,png,webp,avif}");
+        const count = Object.keys(personal).length || Object.keys(fallback).length;
+        const draws = new Set<string>();
+        for (let i = 0; i < count; i++) {
+            await click(churu);
+            draws.add(photo()!.src);
+        }
+        expect(draws.size).toBe(count);
+
+        const last = photo()!.src;
+        await click(container!.querySelector('[aria-label="Close cat photo"]')!);
+        expect(photo()).toBeNull();
+        expect(document.activeElement).toBe(churu);
+        await click(churu);
+        expect(photo()).toBeTruthy();
+        if (count > 1) expect(photo()!.src).not.toBe(last);
+    });
+
+    it("puts the Churu away when clicking elsewhere at any stage", async () => {
+        await mount();
+        const churu = item("churu");
+        const heading = container!.querySelector("h1")!;
+        const otherItem = item("switch");
+
+        for (const clicks of [1, 2, 3]) {
+            hitItem = churu;
+            await pointer(churu, "pointerdown", 10, 10);
+            await pointer(churu, "pointerup", 10, 10);
+            await click(churu);
+            expect(churu.dataset.churuStage).toBe("torn");
+            for (let i = 1; i < clicks; i++) await click(churu);
+            if (clicks === 3) expect(container!.querySelector(".bag-cat-photo")).toBeTruthy();
+
+            await click(clicks === 2 ? otherItem : heading);
+            expect(churu.dataset.churuStage).toBe("sealed");
+            expect(churu.classList.contains("is-tapped")).toBe(false);
+            expect(container!.querySelector(".bag-cat-photo")).toBeNull();
+            if (clicks === 2) expect(otherItem.classList.contains("is-tapped")).toBe(true);
+        }
+    });
+
     it("lifts consecutive items during a swipe and suppresses the swipe click", async () => {
         await mount();
         const laptop = item("laptop");

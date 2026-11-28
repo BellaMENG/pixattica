@@ -32,8 +32,47 @@ const itemCaptions = {
 
 type ItemId = (typeof items)[number]["id"];
 
+type ChuruStage = "sealed" | "torn" | "open";
+
+const churuCaptions = { sealed: itemCaptions.churu, torn: "pull the tab!", open: "meet my cats →" };
+
+const churuLabels = {
+    sealed: "Tear open the Churu cat treat",
+    torn: "Pull off the torn Churu strip",
+    open: "Show a random cat photo",
+};
+
+const personalPhotos = import.meta.glob<string>("./assets/bag/cats/*.{jpg,jpeg,png,webp,avif}", {
+    eager: true,
+    import: "default",
+    query: "?url",
+});
+const travelPhotos = import.meta.glob<string>("./assets/cats/**/*.{jpg,jpeg,png,webp,avif}", {
+    eager: true,
+    import: "default",
+    query: "?url",
+});
+const photoRoster = Object.entries(
+    Object.keys(personalPhotos).length ? personalPhotos : travelPhotos,
+).map(([path, src]) => ({
+    src,
+    alt: path
+        .split("/")
+        .pop()!
+        .replace(/\.[^.]+$/, "")
+        .replace(/[-_]+/g, " "),
+}));
+type CatPhoto = (typeof photoRoster)[number];
+
 export default function BagLanding() {
-    const [activeCaption, setActiveCaption] = useState("");
+    const [activeItem, setActiveItem] = useState<ItemId | null>(null);
+    const [churuStage, setChuruStage] = useState<ChuruStage>("sealed");
+    const [photo, setPhoto] = useState<CatPhoto | null>(null);
+    const remainingPhotos = useRef<CatPhoto[]>([]);
+    const lastPhoto = useRef<CatPhoto | null>(null);
+    const churuButton = useRef<HTMLButtonElement>(null);
+    const activeCaption =
+        activeItem === "churu" ? churuCaptions[churuStage] : activeItem && itemCaptions[activeItem];
     const [bagLoaded, setBagLoaded] = useState(false);
     const [tappedItem, setTappedItem] = useState<string | null>(null);
     const [swipedItem, setSwipedItem] = useState<ItemId | null>(null);
@@ -54,14 +93,14 @@ export default function BagLanding() {
         const dismissOnOutsideClick = (event: PointerEvent) => {
             if (event.target instanceof Element && event.target.closest(".bag-item")) return;
             setTappedItem(null);
-            setActiveCaption("");
+            setActiveItem(null);
         };
 
         document.addEventListener("pointerdown", dismissOnOutsideClick);
         return () => document.removeEventListener("pointerdown", dismissOnOutsideClick);
     }, [tappedItem]);
 
-    const handleItemClick = (id: string, event?: MouseEvent<HTMLAnchorElement>) => {
+    const handleItemClick = (id: ItemId, event?: MouseEvent<HTMLAnchorElement>) => {
         const canHover = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
         if (canHover) return;
         const touchClick = touchClickRef.current;
@@ -74,8 +113,55 @@ export default function BagLanding() {
         if (tappedItem !== id) {
             event?.preventDefault();
             setTappedItem(id);
-            setActiveCaption(itemCaptions[id as keyof typeof itemCaptions]);
+            setActiveItem(id);
         }
+    };
+
+    const activateChuru = () => {
+        setActiveItem("churu");
+        if (churuStage === "sealed") {
+            setChuruStage("torn");
+            return;
+        }
+        if (churuStage === "torn") {
+            setChuruStage("open");
+            return;
+        }
+
+        const deck = remainingPhotos.current;
+        if (!deck.length) {
+            deck.push(...photoRoster);
+            for (let i = deck.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [deck[i], deck[j]] = [deck[j], deck[i]];
+            }
+            const end = deck.length - 1;
+            if (end > 0 && deck[end] === lastPhoto.current) {
+                [deck[0], deck[end]] = [deck[end], deck[0]];
+            }
+        }
+        const next = deck.pop() ?? null;
+        lastPhoto.current = next;
+        setPhoto(next);
+    };
+
+    const dismissPhoto = () => {
+        setPhoto(null);
+        churuButton.current?.focus({ preventScroll: true });
+    };
+
+    const putChuruAway = (event: MouseEvent<HTMLElement>) => {
+        if (churuStage === "sealed") return;
+        if (
+            event.target instanceof Element &&
+            event.target.closest(".bag-item--churu, .bag-cat-photo")
+        )
+            return;
+
+        setChuruStage("sealed");
+        setPhoto(null);
+        setTappedItem((item) => (item === "churu" ? null : item));
+        setActiveItem((item) => (item === "churu" ? null : item));
     };
 
     const itemAtPoint = (scene: HTMLDivElement, x: number, y: number): ItemId | null => {
@@ -86,7 +172,7 @@ export default function BagLanding() {
     const updateSwipedItem = (scene: HTMLDivElement, x: number, y: number) => {
         const id = itemAtPoint(scene, x, y);
         setSwipedItem(id);
-        setActiveCaption(id ? itemCaptions[id] : "");
+        setActiveItem(id);
     };
 
     const handleSwipeStart = (event: ReactPointerEvent<HTMLDivElement>) => {
@@ -104,7 +190,7 @@ export default function BagLanding() {
         };
         if (tappedItem !== startItem) setTappedItem(null);
         setSwipedItem(startItem);
-        setActiveCaption(startItem ? itemCaptions[startItem] : "");
+        setActiveItem(startItem);
     };
 
     const handleSwipeMove = (event: ReactPointerEvent<HTMLDivElement>) => {
@@ -124,10 +210,10 @@ export default function BagLanding() {
         if (!swipe.moved && swipe.startItem) {
             touchClickRef.current = { id: swipe.startItem, wasTapped: swipe.wasTapped };
             setTappedItem(swipe.startItem);
-            setActiveCaption(itemCaptions[swipe.startItem]);
+            setActiveItem(swipe.startItem);
         } else {
             setTappedItem(null);
-            setActiveCaption("");
+            setActiveItem(null);
         }
         swipeRef.current = null;
         setSwipedItem(null);
@@ -138,7 +224,7 @@ export default function BagLanding() {
         swipeRef.current = null;
         touchClickRef.current = null;
         setSwipedItem(null);
-        setActiveCaption("");
+        setActiveItem(null);
     };
 
     const suppressSwipeClick = (event: MouseEvent<HTMLDivElement>) => {
@@ -153,7 +239,13 @@ export default function BagLanding() {
     };
 
     return (
-        <main className="bag-landing">
+        <main
+            className="bag-landing"
+            onClick={putChuruAway}
+            onKeyDown={(event) => {
+                if (event.key === "Escape" && photo) dismissPhoto();
+            }}
+        >
             <header className="bag-landing__header">
                 <h1 className="bag-landing__title">What&apos;s in my bag</h1>
                 <p
@@ -198,11 +290,11 @@ export default function BagLanding() {
                                           ? "Open Bella Meng's blog"
                                           : "Open Bella Meng's CV"
                                 }
-                                onMouseEnter={() => setActiveCaption(itemCaptions[id])}
-                                onMouseLeave={() => setActiveCaption("")}
+                                onMouseEnter={() => setActiveItem(id)}
+                                onMouseLeave={() => setActiveItem(null)}
                                 onClick={(event) => handleItemClick(id, event)}
-                                onFocus={() => setActiveCaption(itemCaptions[id])}
-                                onBlur={() => setActiveCaption("")}
+                                onFocus={() => setActiveItem(id)}
+                                onBlur={() => setActiveItem(null)}
                             >
                                 {id === "book" ? (
                                     <span className="bag-book">
@@ -222,23 +314,51 @@ export default function BagLanding() {
                                 type="button"
                                 className={`bag-item bag-item--${id}${tappedItem === id ? " is-tapped" : ""}${swipedItem === id ? " is-swiped" : ""}`}
                                 data-bag-item={id}
-                                aria-label={label}
-                                onMouseEnter={() => setActiveCaption(itemCaptions[id])}
-                                onMouseLeave={() => setActiveCaption("")}
-                                onClick={() => handleItemClick(id)}
-                                onFocus={() => setActiveCaption(itemCaptions[id])}
-                                onBlur={() => setActiveCaption("")}
+                                ref={id === "churu" ? churuButton : undefined}
+                                data-churu-stage={id === "churu" ? churuStage : undefined}
+                                aria-label={id === "churu" ? churuLabels[churuStage] : label}
+                                onMouseEnter={() => setActiveItem(id)}
+                                onMouseLeave={() => setActiveItem(null)}
+                                onClick={() =>
+                                    id === "churu" ? activateChuru() : handleItemClick(id)
+                                }
+                                onFocus={() => setActiveItem(id)}
+                                onBlur={() => setActiveItem(null)}
                             >
                                 {id === "switch" ? (
                                     <span className="bag-switch">
                                         <img src={image} alt="" draggable={false} />
                                     </span>
                                 ) : (
-                                    <img src={image} alt="" draggable={false} />
+                                    <span className="churu-packet" aria-hidden="true">
+                                        <img
+                                            className="churu-body"
+                                            src={image}
+                                            alt=""
+                                            draggable={false}
+                                        />
+                                        <img
+                                            className="churu-strip"
+                                            src={image}
+                                            alt=""
+                                            draggable={false}
+                                        />
+                                        {churuStage === "open" && <span className="churu-treat" />}
+                                    </span>
                                 )}
                             </button>
                         ),
                     )}
+                {photo && (
+                    <div className="bag-cat-photo">
+                        <div aria-live="polite" aria-atomic="true">
+                            <img key={photo.src} src={photo.src} alt={`Cat photo: ${photo.alt}`} />
+                        </div>
+                        <button type="button" aria-label="Close cat photo" onClick={dismissPhoto}>
+                            ×
+                        </button>
+                    </div>
+                )}
                 {/* The front handles and panel cross the items; the rear wall stays behind them. */}
                 <img
                     className="bag-scene__front-strap"
@@ -255,6 +375,7 @@ export default function BagLanding() {
                     <defs>
                         <mask id="bag-front-mask" maskUnits="userSpaceOnUse">
                             <path
+                                id="bag-front-outline"
                                 d="M 0 103 L 32 103 L 96 121 L 160 139 L 224 156 L 288 174 L 352 193 L 416 209 L 480 225 L 544 242 L 608 256 L 672 262 L 736 267 L 800 262 L 864 247 L 928 236 L 992 230 L 1056 218 L 1120 206 L 1184 194 L 1248 179 L 1312 171 L 1376 152 L 1440 143 L 1504 136 L 1536 132 L 1536 1118 L 0 1118 Z"
                                 fill="white"
                             />
@@ -266,6 +387,7 @@ export default function BagLanding() {
                         height="1118"
                         mask="url(#bag-front-mask)"
                     />
+                    <use href="#bag-front-outline" opacity="0" pointerEvents="fill" />
                 </svg>
             </div>
         </main>
